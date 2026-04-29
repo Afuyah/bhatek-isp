@@ -1,0 +1,387 @@
+{% extends "web/base.html" %}
+
+{% block title %}Bhatek ISP | Enterprise Internet Solutions{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero" style="background: linear-gradient(105deg, #e8f0ee 0%, #d4e4df 100%); min-height: 100vh; position: relative;">
+    <div class="container" style="padding-top: 120px; padding-bottom: 80px;">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-7 mb-5 mb-lg-0">
+                <!-- Trust Badge -->
+                <div class="d-inline-flex align-items-center gap-2 mb-4">
+                    <span style="background: #2d6a4f20; padding: 0.25rem 0.75rem; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: #2d6a4f;">
+                        <i class="fas fa-check-circle me-1"></i> Trusted by 500+ Businesses
+                    </span>
+                </div>
+                
+                <h1 style="font-size: clamp(2.5rem, 5vw, 3.8rem); font-weight: 700; color: #1a2e2a; letter-spacing: -0.02em; line-height: 1.2;" class="mb-4">
+                    Enterprise-Grade<br>
+                    <span style="color: #2d6a4f;">ISP Management Platform</span>
+                </h1>
+                
+                <p style="font-size: 1.1rem; color: #4a5b56; line-height: 1.5; max-width: 90%;" class="mb-4">
+                    Complete solution for ISPs - Hotspot, PPPoE, automated billing, router management, and real-time analytics. Built for scalability and reliability.
+                </p>
+                
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <a href="#features" class="btn btn-primary" style="border-radius: 40px;">
+                        Explore Solutions <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                    <a href="/login" class="btn-login" style="background: #2d6a4f; color: white;">
+                        <i class="fas fa-user-circle me-2"></i>Customer Login
+                    </a>
+                </div>
+                
+                <!-- Trust Indicators -->
+                <div class="row mt-5 g-4" style="max-width: 85%;">
+                    <div class="col-4">
+                        <div style="font-weight: 700; font-size: 1.8rem; color: #2d6a4f;">99.9%</div>
+                        <div style="font-size: 0.7rem; color: #6b7a75;">Uptime SLA</div>
+                    </div>
+                    <div class="col-4">
+                        <div style="font-weight: 700; font-size: 1.8rem; color: #2d6a4f;">24/7</div>
+                        <div style="font-size: 0.7rem; color: #6b7a75;">Tech Support</div>
+                    </div>
+                    <div class="col-4">
+                        <div style="font-weight: 700; font-size: 1.8rem; color: #2d6a4f;">10Gbps</div>
+                        <div style="font-size: 0.7rem; color: #6b7a75;">Fiber Ready</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-5">
+                <!-- Registration Card -->
+                <div class="card-modern" style="background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.08);">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fas fa-rocket" style="color: #2d6a4f; font-size: 1.2rem;"></i>
+                        <span style="font-weight: 600; font-size: 0.75rem; color: #2d6a4f; background: #2d6a4f10; padding: 0.25rem 0.75rem; border-radius: 40px;">Get Started</span>
+                    </div>
+                    
+                    <h3 class="h5 fw-bold mb-2" style="color: #1a2e2a;">Launch Your ISP Today</h3>
+                    <p class="small text-secondary mb-4">Start your 14-day free trial. No credit card required.</p>
+                    
+                    <!-- Email Form -->
+                    <form id="registrationForm">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" style="color: #4a5b56;">Work Email</label>
+                            <div class="input-group" style="border-radius: 12px; overflow: hidden; border: 1px solid #e0e8e5; background: white;">
+                                <span class="input-group-text bg-white border-0" style="color: #2d6a4f;">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" 
+                                       class="form-control border-0" 
+                                       id="regEmail" 
+                                       name="email"
+                                       placeholder="ceo@yourcompany.com" 
+                                       required
+                                       style="padding: 12px 0;">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn w-100" id="startTrialBtn" style="background: #2d6a4f; color: white; padding: 12px; border-radius: 40px; font-weight: 600; transition: all 0.2s;">
+                            <i class="fas fa-paper-plane me-2"></i>Start Free Trial
+                        </button>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Already have an account? <a href="/login" style="color: #2d6a4f; text-decoration: none; font-weight: 600;">Sign in</a></small>
+                    </div>
+                    
+                    <!-- Divider -->
+                    <div class="position-relative my-4">
+                        <hr class="text-muted">
+                        <span class="position-absolute top-50 start-50 translate-middle bg-white px-3" style="color: #6b7a75; font-size: 0.7rem;">or</span>
+                    </div>
+                    
+                    <!-- Demo Hotspot -->
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="fas fa-wifi" style="color: #2d6a4f; font-size: 0.9rem;"></i>
+                        <span style="font-size: 0.7rem; color: #2d6a4f; font-weight: 600;">Test the Experience</span>
+                    </div>
+                    <div class="alert mb-3" style="background: #f4f9f7; border: 1px solid #c8dfd8; border-radius: 14px; padding: 0.75rem;">
+                        <i class="fas fa-signal me-2" style="color: #2d6a4f;"></i>
+                        <span style="font-weight: 500; font-size: 0.85rem; color: #1a2e2a;">SSID: Bhatek-Enterprise</span>
+                        <div class="mt-1">
+                            <small class="text-muted">Password: demo123</small>
+                        </div>
+                    </div>
+                    <a href="/hotspot/demo" class="btn w-100" style="background: transparent; border: 1px solid #c8dfd8; color: #2d6a4f; padding: 10px; border-radius: 40px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='#f4f9f7'" onmouseout="this.style.background='transparent'">
+                        <i class="fas fa-external-link-alt me-2"></i>Try Demo Hotspot
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section id="features" style="background: white; padding: 5rem 0;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span style="background: #2d6a4f10; padding: 0.35rem 1rem; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: #2d6a4f; display: inline-block; margin-bottom: 1rem;">
+                Core Capabilities
+            </span>
+            <h2 style="font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 700; color: #1a2e2a; letter-spacing: -0.02em;">
+                Everything You Need<br>to Scale Your ISP
+            </h2>
+            <p style="color: #6b7a75; max-width: 600px; margin: 1rem auto 0;">Enterprise-grade features designed for modern internet service providers</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card" style="background: #fafbfc; border-radius: 20px; padding: 2rem 1.5rem; height: 100%; transition: all 0.25s ease; border: 1px solid #eef2f0;">
+                    <div style="width: 56px; height: 56px; background: #2d6a4f10; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-wifi" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+                    </div>
+                    <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">Hotspot Management</h4>
+                    <p class="small text-secondary mb-3">Complete captive portal with vouchers, SMS authentication, bandwidth control, and session management.</p>
+                    <ul class="list-unstyled small" style="color: #6b7a75;">
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Customizable landing pages</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Prepaid vouchers & plans</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Real-time usage tracking</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card" style="background: #fafbfc; border-radius: 20px; padding: 2rem 1.5rem; height: 100%; transition: all 0.25s ease; border: 1px solid #eef2f0;">
+                    <div style="width: 56px; height: 56px; background: #2d6a4f10; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-network-wired" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+                    </div>
+                    <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">PPPoE Support</h4>
+                    <p class="small text-secondary mb-3">Full PPPoE server management with user accounts, profiles, and real-time monitoring.</p>
+                    <ul class="list-unstyled small" style="color: #6b7a75;">
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Bandwidth limiting</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Session timeout control</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Active session management</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card" style="background: #fafbfc; border-radius: 20px; padding: 2rem 1.5rem; height: 100%; transition: all 0.25s ease; border: 1px solid #eef2f0;">
+                    <div style="width: 56px; height: 56px; background: #2d6a4f10; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-money-bill-wave" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+                    </div>
+                    <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">Automated Billing</h4>
+                    <p class="small text-secondary mb-3">M-Pesa integration, automated invoicing, and seamless payment processing.</p>
+                    <ul class="list-unstyled small" style="color: #6b7a75;">
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>STK Push payments</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Recurring billing</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Invoice generation</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card" style="background: #fafbfc; border-radius: 20px; padding: 2rem 1.5rem; height: 100%; transition: all 0.25s ease; border: 1px solid #eef2f0;">
+                    <div style="width: 56px; height: 56px; background: #2d6a4f10; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-server" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+                    </div>
+                    <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">Router Management</h4>
+                    <p class="small text-secondary mb-3">Manage MikroTik routers, access points, and network infrastructure.</p>
+                    <ul class="list-unstyled small" style="color: #6b7a75;">
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Multi-router support</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Remote configuration</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Performance monitoring</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card" style="background: #fafbfc; border-radius: 20px; padding: 2rem 1.5rem; height: 100%; transition: all 0.25s ease; border: 1px solid #eef2f0;">
+                    <div style="width: 56px; height: 56px; background: #2d6a4f10; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-chart-line" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+                    </div>
+                    <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">Analytics & Reports</h4>
+                    <p class="small text-secondary mb-3">Real-time usage statistics, revenue reports, and customer insights.</p>
+                    <ul class="list-unstyled small" style="color: #6b7a75;">
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Bandwidth analytics</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Revenue forecasting</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Customer lifetime value</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card" style="background: #fafbfc; border-radius: 20px; padding: 2rem 1.5rem; height: 100%; transition: all 0.25s ease; border: 1px solid #eef2f0;">
+                    <div style="width: 56px; height: 56px; background: #2d6a4f10; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-shield-alt" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+                    </div>
+                    <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">Enterprise Security</h4>
+                    <p class="small text-secondary mb-3">Bank-level encryption and role-based access control for your peace of mind.</p>
+                    <ul class="list-unstyled small" style="color: #6b7a75;">
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>256-bit encryption</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>RBAC permissions</li>
+                        <li><i class="fas fa-check me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Audit logging</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Registration Flow JavaScript -->
+<script>
+// Registration form handler
+const registrationForm = document.getElementById('registrationForm');
+const startTrialBtn = document.getElementById('startTrialBtn');
+
+if (registrationForm) {
+    registrationForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('regEmail').value;
+        
+        if (!email) {
+            showToast('Please enter your email address', 'warning');
+            return;
+        }
+        
+        if (!isValidEmail(email)) {
+            showToast('Please enter a valid email address', 'error');
+            return;
+        }
+        
+        // Show loading state
+        startTrialBtn.disabled = true;
+        startTrialBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+        
+        try {
+            const response = await fetch('/api/v1/auth/send-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: email })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                // Store email for registration
+                sessionStorage.setItem('verificationEmail', email);
+                // Show success modal
+                showVerificationModal(email);
+            } else {
+                showToast(data.error || 'Failed to send verification email. Please try again.', 'error');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            showToast('Network error. Please check your connection and try again.', 'error');
+        } finally {
+            // Reset button
+            startTrialBtn.disabled = false;
+            startTrialBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Start Free Trial';
+        }
+    });
+}
+
+function isValidEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function showVerificationModal(email) {
+    // Remove existing modal if present
+    const existingModal = document.getElementById('verificationModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Create modal
+    const modalHtml = `
+        <div class="modal fade" id="verificationModal" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 20px; border: none;">
+                    <div class="modal-body text-center p-5">
+                        <div style="width: 80px; height: 80px; background: #2d6a4f10; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                            <i class="fas fa-envelope fa-3x" style="color: #2d6a4f;"></i>
+                        </div>
+                        <h4 class="mb-3" style="color: #1a2e2a;">Check Your Email</h4>
+                        <p class="text-muted mb-2">We've sent a verification link to</p>
+                        <p class="fw-semibold" style="color: #2d6a4f;">${email}</p>
+                        <p class="text-muted small mt-3">Click the link in the email to complete your registration.<br>The link expires in 24 hours.</p>
+                        <button class="btn mt-3" data-bs-dismiss="modal" style="background: #2d6a4f; color: white; border-radius: 40px; padding: 10px 30px; font-weight: 500;">
+                            OK, I'll check
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('verificationModal'));
+    modal.show();
+    
+    // Remove modal from DOM when hidden
+    document.getElementById('verificationModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// Add hover effects for feature cards
+document.querySelectorAll('.feature-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+        this.style.boxShadow = '0 10px 30px rgba(0,0,0,0.08)';
+    });
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = 'none';
+    });
+});
+</script>
+
+<style>
+.feature-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary, .btn-login, .btn {
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover, .btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(45, 106, 79, 0.2);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-modern {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.toast {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+</style>
+
+{% endblock %}

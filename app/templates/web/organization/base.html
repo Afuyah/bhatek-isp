@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ organization.name }} - ISP Manager{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            width: 260px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            transition: all 0.3s;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-header h3 {
+            font-size: 1.3rem;
+            margin: 0;
+            color: white;
+        }
+
+        .sidebar-header p {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            margin: 0;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s;
+            border-radius: 0;
+            margin: 0.2rem 0;
+        }
+
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            padding-left: 1.8rem;
+        }
+
+        .sidebar .nav-link.active {
+            color: white;
+            background: linear-gradient(90deg, rgba(102,126,234,0.2) 0%, rgba(118,75,162,0.2) 100%);
+            border-left: 3px solid #667eea;
+        }
+
+        .sidebar .nav-link i {
+            width: 25px;
+            margin-right: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            background: white;
+            border-radius: 15px;
+            padding: 0.75rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .organization-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .organization-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .organization-details h5 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .organization-details small {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Cards */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .data-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .data-card-header {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-active { background: #d1fae5; color: #065f46; }
+        .status-inactive { background: #fee2e2; color: #991b1b; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-suspended { background: #ffedd5; color: #9a3412; }
+        .status-expired { background: #f3f4f6; color: #374151; }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 1050;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .mobile-toggle {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 1060;
+                background: #667eea;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 0.5rem 1rem;
+            }
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1100;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Mobile Toggle Button -->
+    <button class="mobile-toggle d-md-none" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-wifi me-2"></i>ISP Manager</h3>
+            <p>{{ organization.name }}</p>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'organization.dashboard' %}active{% endif %}" href="/organization/dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'subscribers' in request.path %}active{% endif %}" href="/organization/subscribers">
+                    <i class="fas fa-users"></i>
+                    Subscribers
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'routers' in request.path %}active{% endif %}" href="/organization/routers">
+                    <i class="fas fa-server"></i>
+                    Routers
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'access-points' in request.path %}active{% endif %}" href="/organization/access-points">
+                    <i class="fas fa-wifi"></i>
+                    Access Points
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'plans' in request.path %}active{% endif %}" href="/organization/plans">
+                    <i class="fas fa-tag"></i>
+                    Plans
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'vouchers' in request.path %}active{% endif %}" href="/organization/vouchers">
+                    <i class="fas fa-ticket-alt"></i>
+                    Vouchers
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'billing' in request.path %}active{% endif %}" href="/organization/billing">
+                    <i class="fas fa-credit-card"></i>
+                    Billing
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'reports' in request.path %}active{% endif %}" href="/organization/reports">
+                    <i class="fas fa-chart-line"></i>
+                    Reports
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'settings' in request.path %}active{% endif %}" href="/organization/settings">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <div class="top-navbar">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="organization-info">
+                    <div class="organization-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="organization-details">
+                        <h5>{{ organization.name }}</h5>
+                        <small><i class="fas fa-map-marker-alt me-1"></i>{{ organization.city or 'No location' }}</small>
+                    </div>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-link text-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge bg-danger rounded-pill" id="notificationCount">0</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" id="notificationList">
+                            <li><a class="dropdown-item" href="#">No notifications</a></li>
+                        </ul>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-link text-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <div class="user-avatar">
+                                {{ (user.first_name or user.email)[0]|upper }}
+                            </div>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text">{{ user.email }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/organization/profile"><i class="fas fa-user me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="/organization/settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                            <li><a class="dropdown-item" href="/organization/switch"><i class="fas fa-exchange-alt me-2"></i>Switch Organization</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Main Content Block -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+
+        // Global functions
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function showToast(message, type = 'success') {
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+            bsToast.show();
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function formatCurrency(amount, currency = 'KES') {
+            return new Intl.NumberFormat('en-KE', {
+                style: 'currency',
+                currency: currency
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-KE', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Store organization and user info
+        sessionStorage.setItem('organization_id', '{{ organization.id }}');
+        sessionStorage.setItem('organization_slug', '{{ organization.slug }}');
+        sessionStorage.setItem('user_email', '{{ user.email }}');
+        
+       
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

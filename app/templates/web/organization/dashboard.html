@@ -1,0 +1,434 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card" onclick="window.location.href='/organization/subscribers'">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Total Subscribers</small>
+                    <h3 class="mb-0" id="totalSubscribers">0</h3>
+                    <small class="text-success" id="subscribersGrowth">+0%</small>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stat-card" onclick="window.location.href='/organization/sessions'">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Active Sessions</small>
+                    <h3 class="mb-0" id="activeSessions">0</h3>
+                    <small class="text-success" id="sessionsGrowth">+0%</small>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="fas fa-wifi"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stat-card" onclick="window.location.href='/organization/billing'">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Monthly Revenue</small>
+                    <h3 class="mb-0" id="monthlyRevenue">KES 0</h3>
+                    <small class="text-success" id="revenueGrowth">+0%</small>
+                </div>
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="stat-card" onclick="window.location.href='/organization/routers'">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Active Routers</small>
+                    <h3 class="mb-0" id="activeRouters">0</h3>
+                    <small class="text-success" id="routersGrowth">+0%</small>
+                </div>
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="fas fa-server"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="data-card">
+            <div class="data-card-header">
+                <h5 class="mb-0">Revenue Overview</h5>
+                <select class="form-select form-select-sm w-auto" id="revenuePeriod" onchange="loadRevenueChart()">
+                    <option value="week">Last 7 Days</option>
+                    <option value="month" selected>Last 30 Days</option>
+                    <option value="quarter">Last 90 Days</option>
+                    <option value="year">Last 12 Months</option>
+                </select>
+            </div>
+            <canvas id="revenueChart" height="300"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="data-card">
+            <div class="data-card-header">
+                <h5 class="mb-0">Plan Distribution</h5>
+            </div>
+            <canvas id="planChart" height="300"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity & Top Users -->
+<div class="row">
+    <div class="col-md-7">
+        <div class="data-card">
+            <div class="data-card-header">
+                <h5 class="mb-0">Recent Activity</h5>
+                <a href="/organization/activity" class="text-decoration-none">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover" id="activityTable">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-5">
+        <div class="data-card">
+            <div class="data-card-header">
+                <h5 class="mb-0">Top Subscribers by Usage</h5>
+                <a href="/organization/subscribers/top" class="text-decoration-none">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm" id="topUsersTable">
+                    <thead>
+                        <tr>
+                            <th>Subscriber</th>
+                            <th>Usage (GB)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="data-card mt-3">
+            <div class="data-card-header">
+                <h5 class="mb-0">System Health</h5>
+            </div>
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <small>API Response Time</small>
+                    <small id="apiResponseTime">95ms</small>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar bg-success" id="apiResponseBar" role="progressbar" style="width: 95%"></div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <small>Router Uptime</small>
+                    <small id="routerUptime">99.5%</small>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar bg-info" id="routerUptimeBar" role="progressbar" style="width: 99.5%"></div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <small>Database Connection</small>
+                    <small id="dbStatus">Healthy</small>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar bg-success" id="dbStatusBar" role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div>
+                <div class="d-flex justify-content-between mb-1">
+                    <small>Cache (Redis)</small>
+                    <small id="redisStatus">Operational</small>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar bg-success" id="redisStatusBar" role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let revenueChart, planChart;
+
+// Load dashboard data
+async function loadDashboardData() {
+    showLoading();
+    try {
+        const response = await fetch('/api/v1/organizations/dashboard/stats', {
+            headers: {
+                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+            }
+        });
+        const data = await response.json();
+        
+        if (data) {
+            $('#totalSubscribers').text(data.total_subscribers || 0);
+            $('#activeSessions').text(data.active_sessions || 0);
+            $('#monthlyRevenue').text(formatCurrency(data.monthly_revenue || 0));
+            $('#activeRouters').text(data.active_routers || 0);
+            
+            $('#subscribersGrowth').text(`+${data.subscribers_growth || 0}%`);
+            $('#sessionsGrowth').text(`+${data.sessions_growth || 0}%`);
+            $('#revenueGrowth').text(`+${data.revenue_growth || 0}%`);
+            $('#routersGrowth').text(`+${data.routers_growth || 0}%`);
+        }
+    } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+    }
+    hideLoading();
+}
+
+// Load revenue chart
+async function loadRevenueChart() {
+    const period = $('#revenuePeriod').val();
+    showLoading();
+    
+    try {
+        const response = await fetch(`/api/v1/reports/revenue?period=${period}`, {
+            headers: {
+                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+            }
+        });
+        const data = await response.json();
+        
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        
+        if (revenueChart) revenueChart.destroy();
+        
+        revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels || [],
+                datasets: [{
+                    label: 'Revenue',
+                    data: data.values || [],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { 
+                        callbacks: { 
+                            label: (ctx) => formatCurrency(ctx.raw)
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: (value) => formatCurrency(value)
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Failed to load revenue chart:', error);
+    }
+    hideLoading();
+}
+
+// Load plan distribution chart
+async function loadPlanChart() {
+    showLoading();
+    try {
+        const response = await fetch('/api/v1/reports/plan-distribution', {
+            headers: {
+                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+            }
+        });
+        const data = await response.json();
+        
+        const ctx = document.getElementById('planChart').getContext('2d');
+        
+        if (planChart) planChart.destroy();
+        
+        planChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.labels || [],
+                datasets: [{
+                    data: data.values || [],
+                    backgroundColor: ['#667eea', '#764ba2', '#10b981', '#f59e0b', '#ef4444', '#3b82f6']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.label}: ${ctx.raw}%`
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Failed to load plan chart:', error);
+    }
+    hideLoading();
+}
+
+// Load recent activity
+async function loadRecentActivity() {
+    try {
+        const response = await fetch('/api/v1/audit/recent?limit=5', {
+            headers: {
+                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+            }
+        });
+        const activities = await response.json();
+        
+        const tbody = $('#activityTable tbody');
+        tbody.empty();
+        
+        if (activities.length === 0) {
+            tbody.html('<tr><td colspan="4" class="text-center">No recent activity</td></tr>');
+        } else {
+            activities.forEach(activity => {
+                const statusClass = activity.status === 'success' ? 'status-active' : 'status-inactive';
+                tbody.append(`
+                    <tr>
+                        <td>${formatDate(activity.created_at)}</td>
+                        <td>${activity.user_email || 'System'}</td>
+                        <td>${activity.action}</td>
+                        <td><span class="status-badge ${statusClass}">${activity.status}</span></td>
+                    </tr>
+                `);
+            });
+        }
+    } catch (error) {
+        console.error('Failed to load activity:', error);
+    }
+}
+
+// Load top users
+async function loadTopUsers() {
+    try {
+        const response = await fetch('/api/v1/reports/top-users?limit=5', {
+            headers: {
+                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+            }
+        });
+        const users = await response.json();
+        
+        const tbody = $('#topUsersTable tbody');
+        tbody.empty();
+        
+        if (users.length === 0) {
+            tbody.html('<tr><td colspan="3" class="text-center">No data available</td></tr>');
+        } else {
+            users.forEach(user => {
+                const statusClass = user.status === 'active' ? 'status-active' : 'status-inactive';
+                tbody.append(`
+                    <tr>
+                        <td>${user.name || user.phone}</td>
+                        <td>${(user.usage_gb || 0).toFixed(2)} GB</td>
+                        <td><span class="status-badge ${statusClass}">${user.status}</span></td>
+                    </tr>
+                `);
+            });
+        }
+    } catch (error) {
+        console.error('Failed to load top users:', error);
+    }
+}
+
+// Load notifications
+async function loadNotifications() {
+    try {
+        const response = await fetch('/api/v1/notifications/unread', {
+            headers: {
+                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+            }
+        });
+        const notifications = await response.json();
+        
+        $('#notificationCount').text(notifications.length);
+        
+        const list = $('#notificationList');
+        list.empty();
+        
+        if (notifications.length === 0) {
+            list.html('<li><a class="dropdown-item" href="#">No new notifications</a></li>');
+        } else {
+            notifications.slice(0, 5).forEach(notif => {
+                list.append(`
+                    <li><a class="dropdown-item" href="${notif.link}">
+                        <small class="text-muted">${formatDate(notif.created_at)}</small><br>
+                        <small>${notif.message}</small>
+                    </a></li>
+                `);
+            });
+            if (notifications.length > 5) {
+                list.append('<li><hr class="dropdown-divider"></li>');
+                list.append('<li><a class="dropdown-item text-center" href="/organization/notifications">View all</a></li>');
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load notifications:', error);
+    }
+}
+
+// Initialize dashboard
+$(document).ready(function() {
+    loadDashboardData();
+    loadRevenueChart();
+    loadPlanChart();
+    loadRecentActivity();
+    loadTopUsers();
+    loadNotifications();
+    
+    // Refresh every 30 seconds
+    setInterval(() => {
+        loadDashboardData();
+        loadNotifications();
+    }, 30000);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+# Core
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-CORS
+Flask-Redis
+Flask-Limiter
+Flask-Caching
+
+# Database
+psycopg2-binary
+SQLAlchemy
+alembic
+
+# Redis
+redis
+
+# Celery
+celery
+flower
+
+# HTTP & API
+requests
+gunicorn
+gevent
+
+# Security
+PyJWT
+bcrypt
+cryptography
+python-jose
+passlib
+python-slugify
+
+# Validation
+marshmallow
+marshmallow-sqlalchemy
+email-validator
+phonenumbers
+validators
+
+# Logging
+python-json-logger
+structlog
+
+# Monitoring
+prometheus-flask-exporter
+opentelemetry-api
+opentelemetry-sdk
+
+# M-Pesa
+pyOpenSSL
+cryptography
+# SMS
+twilio
+africastalking
+
+# MikroTik
+librouteros
+paramiko
+
+# Utils
+python-dotenv
+pyyaml
+arrow
+pendulum
+faker
+
+# Testing
+pytest
+pytest-cov
+factory-boy

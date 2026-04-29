@@ -1,0 +1,82 @@
+app/modules/web/templates/
+├── base.html
+├── index.html
+├── login.html
+├── dashboard/
+│   ├── index.html
+│   ├── layout/
+│   │   ├── sidebar.html
+│   │   ├── header.html
+│   │   └── footer.html
+│   └── components/
+│       ├── stats_cards.html
+│       ├── charts.html
+│       └── activity_table.html
+├── auth/
+│   ├── login.html
+│   ├── register.html
+│   ├── forgot_password.html
+│   ├── reset_password.html
+│   └── profile.html
+├── organizations/
+│   ├── index.html
+│   ├── create.html
+│   ├── edit.html
+│   └── show.html
+├── routers/
+│   ├── index.html
+│   ├── create.html
+│   ├── edit.html
+│   ├── show.html
+│   └── components/
+│       ├── status_badge.html
+│       └── connection_status.html
+├── access_points/
+│   ├── index.html
+│   ├── create.html
+│   ├── edit.html
+│   └── show.html
+├── subscribers/
+│   ├── index.html
+│   ├── create.html
+│   ├── edit.html
+│   ├── show.html
+│   └── components/
+│       ├── subscription_card.html
+│       └── devices_list.html
+├── billing/
+│   ├── plans/
+│   │   ├── index.html
+│   │   ├── create.html
+│   │   └── edit.html
+│   ├── subscriptions/
+│   │   ├── index.html
+│   │   └── show.html
+│   ├── invoices/
+│   │   ├── index.html
+│   │   └── show.html
+│   └── vouchers/
+│       ├── index.html
+│       ├── create.html
+│       └── batch_create.html
+├── payments/
+│   ├── transactions/
+│   │   ├── index.html
+│   │   └── show.html
+│   └── accounts/
+│       ├── index.html
+│       └── create.html
+├── reports/
+│   ├── index.html
+│   ├── revenue.html
+│   ├── usage.html
+│   └── subscribers.html
+├── settings/
+│   ├── index.html
+│   ├── general.html
+│   ├── security.html
+│   └── integrations.html
+└── hotspot/
+    ├── index.html
+    ├── connect.html
+    └── success.html
