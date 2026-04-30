@@ -83,7 +83,7 @@ class PlanRepository:
 
 
 class SubscriptionRepository:
-    """Repository for Subscription operations"""
+    """Repository for Subscription"""
     
     def __init__(self):
         self.model = Subscription

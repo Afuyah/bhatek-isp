@@ -9,7 +9,7 @@ from app.modules.billing.repository import (
     PlanRepository, SubscriptionRepository, VoucherRepository,
     VoucherBatchRepository, DiscountCouponRepository
 )
-from app.models.billing import Voucher, VoucherBatch, Plan
+from app.models.billing import Plan, Subscription, Voucher, VoucherBatch,  DiscountCoupon, Invoice, InvoiceItem
 
 from app.modules.payment.service import PaymentService
 from app.core.logging.logger import logger
