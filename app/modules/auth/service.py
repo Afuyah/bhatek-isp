@@ -1,18 +1,19 @@
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 from uuid import UUID
 from datetime import datetime, timedelta
-from flask import current_app, g
+from flask import current_app
+import secrets
 
 from app.modules.auth.repository import UserRepository, RefreshTokenRepository
 from app.models.auth import User
 from app.core.security.jwt import JWTService
-from app.core.security.encryption import EncryptionService
-from app.core.logging.logger import logger
-from app.core.exceptions.handlers import AuthenticationError, ValidationError, BusinessError
 from app.core.database.session import db
+from app.core.logging.logger import logger
+from app.core.exceptions.handlers import AuthenticationError, ValidationError, BusinessError, NotFoundError
+
 
 class AuthService:
-        
+    
     def __init__(self):
         self.user_repo = UserRepository()
         self.token_repo = RefreshTokenRepository()
@@ -20,7 +21,7 @@ class AuthService:
     
     @property
     def jwt_service(self):
-        """Get JWT service instance (lazy loading)"""
+        """Get JWT service instance"""
         if self._jwt_service is None:
             # Try to get from Flask extensions first
             if hasattr(current_app, 'extensions') and 'jwt_service' in current_app.extensions:
@@ -53,9 +54,35 @@ class AuthService:
         user.set_password(data['password'])
         self.user_repo.update(user.id, {'password_hash': user.password_hash})
         
+        # Send welcome email asynchronously
+        self._send_welcome_email_async(user.email, user.first_name, user.last_name)
+        
         logger.info(f"User registered: {user.email}")
         
         return user
+    
+    def _send_welcome_email_async(self, email: str, first_name: str = None, last_name: str = None):
+        """Send welcome email asynchronously"""
+        from app.integrations.email.service import EmailService
+        import threading
+        
+        email_service = EmailService()
+        name = f"{first_name} {last_name}".strip() if first_name or last_name else "User"
+        
+        def send():
+            try:
+                email_service.send_welcome_email(
+                    to_email=email,
+                    first_name=name,
+                    organization_name="ISP SaaS"
+                )
+                logger.info(f"Welcome email sent to {email}")
+            except Exception as e:
+                logger.error(f"Failed to send welcome email to {email}: {e}", exc_info=True)
+        
+        # Send asynchronously to avoid blocking
+        thread = threading.Thread(target=send, daemon=True)
+        thread.start()
     
     def login(self, email: str, password: str, ip_address: str, user_agent: str) -> Dict[str, Any]:
         """Authenticate user and generate tokens"""
@@ -192,6 +219,9 @@ class AuthService:
         user.set_password(password)
         self.user_repo.update(user.id, {'password_hash': user.password_hash})
         
+        # Send welcome email to super admin
+        self._send_welcome_email_async(email, "Super", "Admin")
+        
         logger.info(f"Super admin created: {email}")
         
         return user
@@ -273,6 +303,7 @@ class AuthService:
         """Register a new organization and create admin user"""
         from app.models import Organization, OrganizationUser
         from app.models.verification import EmailVerification
+        from app.integrations.email.service import EmailService
         
         email = data.get('email')
         password = data.get('password')
@@ -351,6 +382,15 @@ class AuthService:
             
             db.session.commit()
             
+            # Send welcome email
+            self._send_organization_welcome_email_async(
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                organization_name=org_name,
+                organization_slug=org_slug
+            )
+            
             logger.info(f"New organization registered: {org_name} (slug: {org_slug}) by {email}")
             
             return {
@@ -367,6 +407,32 @@ class AuthService:
             db.session.rollback()
             logger.error(f"Organization registration failed for {email}: {str(e)}", exc_info=True)
             raise BusinessError(f'Registration failed: {str(e)}')
+    
+    def _send_organization_welcome_email_async(self, email: str, first_name: str, 
+                                                last_name: str, organization_name: str,
+                                                organization_slug: str):
+        """Send welcome email for organization registration"""
+        from app.integrations.email.service import EmailService
+        import threading
+        
+        email_service = EmailService()
+        full_name = f"{first_name} {last_name}".strip() if first_name or last_name else "User"
+        
+        def send():
+            try:
+                # Send welcome email
+                email_service.send_welcome_email(
+                    to_email=email,
+                    first_name=full_name,
+                    organization_name=organization_name
+                )
+                logger.info(f"Welcome email sent to {email} for organization {organization_name}")
+            except Exception as e:
+                logger.error(f"Failed to send welcome email to {email}: {e}", exc_info=True)
+        
+        # Send asynchronously to avoid blocking
+        thread = threading.Thread(target=send, daemon=True)
+        thread.start()
     
     def resend_verification_email(self, email: str) -> Dict[str, Any]:
         """Resend verification email"""

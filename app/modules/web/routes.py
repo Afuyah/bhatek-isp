@@ -1,6 +1,8 @@
+# Add these imports at the top if not already present
 from flask import render_template, request, redirect, url_for, session, jsonify, g, current_app
 from datetime import datetime
 import uuid
+import re
 from app.modules.web import web_bp
 from app.modules.auth.service import AuthService
 from app.modules.subscriber.service import SubscriberService
@@ -10,13 +12,160 @@ from app.core.logging.logger import logger
 from app.core.decorators.web_auth import web_login_required, web_super_admin_required, web_organization_member_required
 
 
-@web_bp.before_request
-def before_request():
-    """Set up request context for web requests"""
-    # Don't set organization from subdomain anymore
-    pass
+# REGISTRATION API ENDPOINTS 
+@web_bp.route('/api/check-email', methods=['POST'])
+def check_email_availability():
+    """API: Check if email is available for registration"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        
+        if not email:
+            return jsonify({'available': False, 'error': 'Email is required'}), 400
+        
+        # Validate email format
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
+            return jsonify({'available': False, 'error': 'Invalid email format'}), 400
+        
+        auth_service = AuthService()
+        result = auth_service.check_email_availability(email)
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        logger.error(f"Check email error: {e}", exc_info=True)
+        return jsonify({'available': False, 'error': str(e)}), 500
 
 
+@web_bp.route('/api/check-slug', methods=['POST'])
+def check_slug_availability():
+    """API: Check if organization slug is available"""
+    try:
+        data = request.get_json()
+        slug = data.get('slug')
+        
+        if not slug:
+            return jsonify({'available': False, 'error': 'Slug is required'}), 400
+        
+        # Validate slug format
+        slug_pattern = r'^[a-z0-9-]+$'
+        if not re.match(slug_pattern, slug):
+            return jsonify({
+                'available': False, 
+                'error': 'Slug must contain only lowercase letters, numbers, and hyphens'
+            }), 400
+        
+        if slug.startswith('-') or slug.endswith('-'):
+            return jsonify({
+                'available': False, 
+                'error': 'Slug cannot start or end with a hyphen'
+            }), 400
+        
+        auth_service = AuthService()
+        result = auth_service.check_org_slug_availability(slug)
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        logger.error(f"Check slug error: {e}", exc_info=True)
+        return jsonify({'available': False, 'error': str(e)}), 500
+
+
+@web_bp.route('/api/send-verification', methods=['POST'])
+def send_verification():
+    """API: Send verification email to user"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        
+        if not email:
+            return jsonify({'success': False, 'error': 'Email is required'}), 400
+        
+        auth_service = AuthService()
+        result = auth_service.send_verification_email(email)
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        logger.error(f"Send verification error: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@web_bp.route('/api/verify-email-token', methods=['POST'])
+def verify_email_token():
+    """API: Verify email token"""
+    try:
+        data = request.get_json()
+        token = data.get('token')
+        
+        if not token:
+            return jsonify({'success': False, 'error': 'Token is required'}), 400
+        
+        auth_service = AuthService()
+        result = auth_service.verify_email(token)
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        logger.error(f"Verify email token error: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@web_bp.route('/api/register-organization', methods=['POST'])
+def register_organization():
+    """API: Complete organization registration"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['email', 'password', 'first_name', 'last_name', 
+                          'phone', 'organization_name', 'organization_slug']
+        
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'error': f'{field} is required'}), 400
+        
+        # Validate password strength
+        password = data.get('password')
+        if len(password) < 8:
+            return jsonify({'success': False, 'error': 'Password must be at least 8 characters'}), 400
+        if not any(c.isupper() for c in password):
+            return jsonify({'success': False, 'error': 'Password must contain at least one uppercase letter'}), 400
+        if not any(c.isdigit() for c in password):
+            return jsonify({'success': False, 'error': 'Password must contain at least one number'}), 400
+        
+        auth_service = AuthService()
+        result = auth_service.register_organization(data)
+        
+        return jsonify(result), 201
+        
+    except Exception as e:
+        logger.error(f"Register organization error: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@web_bp.route('/api/resend-verification', methods=['POST'])
+def resend_verification():
+    """API: Resend verification email"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        
+        if not email:
+            return jsonify({'success': False, 'error': 'Email is required'}), 400
+        
+        auth_service = AuthService()
+        result = auth_service.resend_verification_email(email)
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        logger.error(f"Resend verification error: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# WEB TEMPLATE ROUTES 
 @web_bp.route('/')
 def index():
     """Landing page"""
@@ -154,9 +303,37 @@ def logout():
     return redirect(url_for('web.index'))
 
 
+@web_bp.route('/register')
+def register_page():
+    """Registration page"""
+    email = request.args.get('email')
+    # If email is provided, pre-fill it in the registration form
+    return render_template('web/register.html', email=email)
 
-# HOTSPOT ROUTES (Public - No Authentication Required)
 
+@web_bp.route('/register-success')
+def register_success():
+    """Registration success page with organization URL"""
+    org_slug = request.args.get('org_slug')
+    org_name = request.args.get('org_name')
+    
+    return render_template('web/register_success.html', 
+                          org_name=org_name, 
+                          org_slug=org_slug)
+
+
+@web_bp.route('/verify-email')
+def verify_email_page():
+    """Email verification page"""
+    token = request.args.get('token')
+    
+    if not token:
+        return redirect(url_for('web.index'))
+    
+    return render_template('web/verify_email.html', token=token)
+
+
+# HOTSPOT ROUTES (Public ) 
 @web_bp.route('/hotspot/<org_slug>')
 def hotspot_portal(org_slug):
     """Captive portal landing page (public)"""
@@ -346,32 +523,15 @@ def hotspot_status(org_slug, session_id):
     })
 
 
-@web_bp.route('/verify-email')
-def verify_email_page():
-    """Email verification page"""
-    token = request.args.get('token')
-    
-    if not token:
-        return redirect(url_for('web.index'))
-    
-    return render_template('web/verify_email.html', token=token)
+# ERROR HANDLERS 
+@web_bp.errorhandler(404)
+def not_found_error(error):
+    """404 error handler"""
+    return render_template('web/404.html'), 404
 
 
-@web_bp.route('/register')
-def register_page():
-    """Registration page"""
-    email = request.args.get('email')
-    if not email:
-        return redirect(url_for('web.index'))
-    return render_template('web/register.html', email=email)
-
-
-@web_bp.route('/register-success')
-def register_success():
-    """Registration success page with organization URL"""
-    org_slug = request.args.get('org_slug')
-    org_name = request.args.get('org_name')
-    
-    return render_template('web/register_success.html', 
-                          org_name=org_name, 
-                          org_slug=org_slug)
+@web_bp.errorhandler(500)
+def internal_error(error):
+    """500 error handler"""
+    logger.error(f"Internal server error: {error}", exc_info=True)
+    return render_template('web/500.html'), 500
