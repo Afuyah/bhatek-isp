@@ -176,6 +176,20 @@ class Config:
     # Caching Configuration
     CACHE_DEFAULT_TIMEOUT = int(os.environ.get('CACHE_DEFAULT_TIMEOUT', 300))  # 5 minutes
     CACHE_KEY_PREFIX = os.environ.get('CACHE_KEY_PREFIX', 'isp:')
+
+
+    # Brevo Email Configuration
+    BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+    BREVO_USE_API = os.environ.get('BREVO_USE_API', 'true').lower() == 'true'
+    SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp-relay.brevo.com')
+    SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
+    SMTP_USER = os.environ.get('SMTP_USER', '')
+    SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+    FROM_EMAIL = os.environ.get('FROM_EMAIL')
+    FROM_NAME = os.environ.get('FROM_NAME', 'Bhatek ISP')
+    BASE_URL = os.environ.get('BASE_URL')
+    
+
     
     # Email Configuration
     SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
@@ -185,7 +199,8 @@ class Config:
     SMTP_USE_TLS = os.environ.get('SMTP_USE_TLS', 'True').lower() == 'true'
     SMTP_USE_SSL = os.environ.get('SMTP_USE_SSL', 'False').lower() == 'true'
     FROM_EMAIL = os.environ.get('FROM_EMAIL', 'noreply@isp.com')
-    FROM_NAME = os.environ.get('FROM_NAME', 'ISP SaaS')
+    FROM_NAME = os.environ.get('FROM_NAME', 'Bhatek Solution')
+    EMAIL_ASYNC_MODE = os.environ.get('EMAIL_ASYNC_MODE', 'true').lower() == 'true'
     
     # Celery Configuration
     CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', REDIS_URL)
@@ -222,7 +237,7 @@ class Config:
     SMS_PROVIDER = os.environ.get('SMS_PROVIDER', 'africa_talking')  # 'africa_talking', 'twilio', 'messagebird'
     SMS_API_KEY = os.environ.get('SMS_API_KEY', '')
     SMS_API_SECRET = os.environ.get('SMS_API_SECRET', '')
-    SMS_SENDER_ID = os.environ.get('SMS_SENDER_ID', 'ISP SAAS')
+    SMS_SENDER_ID = os.environ.get('SMS_SENDER_ID', 'Bhatek Solution')
     
     # MikroTik Configuration
     MIKROTIK_API_TIMEOUT = int(os.environ.get('MIKROTIK_API_TIMEOUT', 30))
