@@ -1,284 +1,239 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Registration | Bhatek ISP</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #e8f0ee 0%, #d4e4df 100%);
-            min-height: 100vh;
-            padding: 50px 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        .register-card {
-            background: white;
-            border-radius: 24px;
-            padding: 40px;
-            max-width: 600px;
-            margin: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-        }
-        .form-control, .form-select {
-            border-radius: 12px;
-            padding: 12px 15px;
-            border: 1px solid #e0e8e5;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #2d6a4f;
-            box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
-        }
-        .btn-register {
-            background: #2d6a4f;
-            border: none;
-            border-radius: 40px;
-            padding: 12px;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.2s;
-        }
-        .btn-register:hover {
-            background: #1b4d3e;
-            transform: translateY(-2px);
-        }
-        .input-group-text {
-            background: white;
-            border-right: none;
-            color: #2d6a4f;
-        }
-        .input-group .form-control {
-            border-left: none;
-        }
-        .input-group .form-control:focus {
-            border-left: none;
-        }
-    </style>
-</head>
-<body>
+{% extends "web/base.html" %}
+{% block title %}Complete Registration | Bhatek ISP{% endblock %}
+
+{% block content %}
+
+<div class="register-page" style="background: linear-gradient(135deg, #e8f0ee 0%, #d4e4df 100%); min-height: 100vh; padding: 100px 0;">
     <div class="container">
-        <div class="register-card">
-            <div class="text-center mb-4">
-                <div style="width: 70px; height: 70px; background: #2d6a4f10; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                    <i class="fas fa-user-plus fa-2x" style="color: #2d6a4f;"></i>
-                </div>
-                <h2>Complete Registration</h2>
-                <p class="text-muted">Set up your organization account</p>
-            </div>
-            
-            <form id="registerForm">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">First Name *</label>
-                        <input type="text" class="form-control" id="firstName" required>
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+
+                <!-- Registration Card -->
+                <div class="card-modern" style="background: white; border-radius: 28px; padding: 2.5rem 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.1);">
+
+                    <div class="text-center mb-5">
+                        <div style="width: 72px; height: 72px; background: #2d6a4f10; border-radius: 50%; 
+                                    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                            <i class="fas fa-user-plus fa-2x" style="color: #2d6a4f;"></i>
+                        </div>
+                        <h2 style="font-weight: 700; color: #1a2e2a; letter-spacing: -0.3px;">Complete Registration</h2>
+                        <p class="text-muted mt-2">Set up your organization account to get started</p>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Last Name *</label>
-                        <input type="text" class="form-control" id="lastName" required>
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Email Address</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                        <input type="email" class="form-control" id="email" value="{{ email }}" readonly>
-                    </div>
-                    <small class="text-muted">Email cannot be changed</small>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Phone Number *</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                        <input type="tel" class="form-control" id="phone" placeholder="254712345678" required>
-                    </div>
-                    <small class="text-muted">Include country code (e.g., 254...)</small>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Organization Name *</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-building"></i></span>
-                        <input type="text" class="form-control" id="orgName" placeholder="My ISP Company" required>
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Organization Slug *</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-link"></i></span>
-                        <input type="text" class="form-control" id="orgSlug" placeholder="my-isp-company" required>
-                    </div>
-                    <small class="text-muted">URL-friendly name (lowercase, hyphens only)</small>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Password *</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                        <input type="password" class="form-control" id="password" required>
-                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
-                            <i class="fas fa-eye"></i>
+
+                    <form id="registerForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-medium">First Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-lg" id="firstName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-medium">Last Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-lg" id="lastName" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control form-control-lg" id="email" readonly>
+                            </div>
+                            <small class="text-muted">This email cannot be changed</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Phone Number <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                <input type="tel" class="form-control form-control-lg" id="phone" 
+                                       placeholder="254712345678" required>
+                            </div>
+                            <small class="text-muted">Include country code (e.g., 2547XXXXXXXX)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Organization Name <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                <input type="text" class="form-control form-control-lg" id="orgName" 
+                                       placeholder="My ISP Company" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Organization Slug <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                <input type="text" class="form-control form-control-lg" id="orgSlug" 
+                                       placeholder="my-isp-company" required>
+                            </div>
+                            <small class="text-muted">URL-friendly name (lowercase, numbers and hyphens only)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control form-control-lg" id="password" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                                    <i class="fas fa-eye" id="passwordIcon"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">Minimum 8 characters with uppercase, number & special character</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">Confirm Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control form-control-lg" id="confirmPassword" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword')">
+                                    <i class="fas fa-eye" id="confirmPasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-register btn-lg" id="registerBtn">
+                            <i class="fas fa-check-circle me-2"></i> Create My Account
                         </button>
-                    </div>
-                    <small class="text-muted">Minimum 8 characters with uppercase, number, and special character</small>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="form-label">Confirm Password *</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                        <input type="password" class="form-control" id="confirmPassword" required>
-                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword')">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            Already have an account? 
+                            <a href="/login" style="color: #2d6a4f; font-weight: 600;">Sign in</a>
+                        </small>
                     </div>
                 </div>
-                
-                <button type="submit" class="btn btn-register" id="registerBtn">
-                    <i class="fas fa-check-circle me-2"></i>Create Account
-                </button>
-            </form>
-            
-            <div class="text-center mt-4">
-                <small class="text-muted">
-                    Already have an account? <a href="/login" style="color: #2d6a4f;">Sign in</a>
-                </small>
             </div>
         </div>
     </div>
+</div>
+
+<script>
+// Auto-fill email from session or URL
+const verifiedEmail = sessionStorage.getItem('verificationEmail') || 
+                      new URLSearchParams(window.location.search).get('email');
+
+if (verifiedEmail) {
+    document.getElementById('email').value = verifiedEmail;
+} else {
+    // Redirect to home if no verified email
+    window.location.href = '/';
+}
+
+// Password toggle
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = document.getElementById(fieldId + 'Icon');
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Check if email is verified
-        const verifiedEmail = sessionStorage.getItem('verified_email');
-        const urlEmail = new URLSearchParams(window.location.search).get('email');
-        
-        if (!verifiedEmail && !urlEmail) {
-            // No verified email, redirect to home
-            window.location.href = '/';
-        }
-        
-        // Set email from URL or session storage
-        if (urlEmail) {
-            document.getElementById('email').value = urlEmail;
-            sessionStorage.setItem('verified_email', urlEmail);
-        } else if (verifiedEmail) {
-            document.getElementById('email').value = verifiedEmail;
-        }
-        
-        function togglePassword(fieldId) {
-            const field = document.getElementById(fieldId);
-            const icon = field.nextElementSibling.querySelector('i');
-            if (field.type === 'password') {
-                field.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                field.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-        
-        // Generate slug from organization name
-        document.getElementById('orgName').addEventListener('input', function() {
-            const slug = this.value
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-|-$/g, '');
-            document.getElementById('orgSlug').value = slug;
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// Auto-generate slug from organization name
+document.getElementById('orgName').addEventListener('input', function() {
+    let slug = this.value
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+    
+    document.getElementById('orgSlug').value = slug;
+});
+
+// Form Submission
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const orgName = document.getElementById('orgName').value.trim();
+    const orgSlug = document.getElementById('orgSlug').value.trim();
+
+    // Basic validation
+    if (!firstName || !lastName || !phone || !orgName || !orgSlug || !password) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showToast('Passwords do not match', 'error');
+        return;
+    }
+
+    if (password.length < 8) {
+        showToast('Password must be at least 8 characters long', 'error');
+        return;
+    }
+
+    // Password strength
+    if (!/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*]/.test(password)) {
+        showToast('Password must contain uppercase letter, number and special character', 'error');
+        return;
+    }
+
+    // Phone validation (Kenya format)
+    const phoneRegex = /^(254|0)[17]\d{8}$/;
+    if (!phoneRegex.test(phone)) {
+        showToast('Please enter a valid Kenyan phone number (e.g., 254712345678)', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('registerBtn');
+    const originalText = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Creating Account...';
+
+    try {
+        const response = await fetch('/api/v1/auth/register-organization', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+                first_name: firstName,
+                last_name: lastName,
+                phone: phone,
+                organization_name: orgName,
+                organization_slug: orgSlug
+            })
         });
-        
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            showToast('Account created successfully!', 'success');
+            sessionStorage.removeItem('verificationEmail');
             
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const firstName = document.getElementById('firstName').value;
-            const lastName = document.getElementById('lastName').value;
-            const phone = document.getElementById('phone').value;
-            const orgName = document.getElementById('orgName').value;
-            const orgSlug = document.getElementById('orgSlug').value;
-            
-            // Validation
-            if (!firstName || !lastName || !phone || !orgName || !orgSlug) {
-                alert('Please fill in all required fields');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                alert('Passwords do not match');
-                return;
-            }
-            
-            if (password.length < 8) {
-                alert('Password must be at least 8 characters');
-                return;
-            }
-            
-            // Password strength check
-            const hasUpper = /[A-Z]/.test(password);
-            const hasNumber = /[0-9]/.test(password);
-            const hasSpecial = /[!@#$%^&*()]/.test(password);
-            
-            if (!hasUpper || !hasNumber || !hasSpecial) {
-                alert('Password must contain uppercase, number, and special character');
-                return;
-            }
-            
-            // Phone validation
-            const phoneRegex = /^(254|0)[17]\d{8}$/;
-            if (!phoneRegex.test(phone)) {
-                alert('Invalid phone number. Use 2547XXXXXXXX or 07XXXXXXXX');
-                return;
-            }
-            
-            const btn = document.getElementById('registerBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
-            
-            try {
-                const response = await fetch('/api/v1/auth/register-organization', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password,
-                        confirm_password: confirmPassword,
-                        first_name: firstName,
-                        last_name: lastName,
-                        phone: phone,
-                        organization_name: orgName,
-                        organization_slug: orgSlug
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok && data.success) {
-                    alert('Registration successful! Redirecting to login...');
-                    sessionStorage.removeItem('verified_email');
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 1500);
-                } else {
-                    alert(data.error || 'Registration failed');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Create Account';
-                }
-            } catch (error) {
-                console.error('Registration error:', error);
-                alert('Network error. Please try again.');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Create Account';
-            }
-        });
-    </script>
-</body>
-</html>
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 1800);
+        } else {
+            showToast(data.error || 'Registration failed. Please try again.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (error) {
+        console.error(error);
+        showToast('Network error. Please check your connection.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+</script>
+
+{% endblock %}
