@@ -170,7 +170,8 @@ class BrevoEmailService:
         return self.send_email(to_email, subject, html_content, text_content)
     
     def send_welcome_email(self, to_email: str, first_name: str, organization_name: str) -> bool:
-        """Send welcome email after registration"""
+    """Send welcome email after registration"""
+    try:
         subject = f"Welcome to Bhatek Solution, {first_name}!"
         
         html_content = f"""
@@ -213,14 +214,26 @@ class BrevoEmailService:
                     </p>
                 </div>
                 <div class="footer">
-                    <p>&copy; 2024 Bhatek Solution. All rights reserved.</p>
+                    <p>&copy; 2026 Bhatek Solution. All rights reserved.</p>
                 </div>
             </div>
         </body>
         </html>
         """
         
-        return self.send_email(to_email, subject, html_content)
+        logger.info(f"Sending welcome email to {to_email} for {organization_name}")
+        result = self.send_email(to_email, subject, html_content)
+        
+        if result:
+            logger.info(f"Welcome email sent successfully to {to_email}")
+        else:
+            logger.error(f"Failed to send welcome email to {to_email}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Exception sending welcome email to {to_email}: {e}", exc_info=True)
+        return False
     
     def send_password_reset_email(self, to_email: str, reset_token: str) -> bool:
         """Send password reset email"""
