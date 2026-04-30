@@ -24,7 +24,7 @@ class EmailService:
     def send_payment_confirmation(self, to_email: str, amount: float, 
                                    transaction_id: str, plan_name: str) -> bool:
         """Send payment confirmation email"""
-        subject = f"Payment Confirmation - Bhatek ISP"
+        subject = f"Payment Confirmation - Bhatek Solution"
         
         html_content = f"""
         <!DOCTYPE html>

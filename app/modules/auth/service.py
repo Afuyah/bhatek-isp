@@ -10,7 +10,8 @@ from app.core.security.jwt import JWTService
 from app.core.database.session import db
 from app.core.logging.logger import logger
 from app.core.exceptions.handlers import AuthenticationError, ValidationError, BusinessError, NotFoundError
-
+from flask import copy_current_request_context
+import threading
 
 class AuthService:
     
@@ -61,26 +62,33 @@ class AuthService:
         
         return user
     
+    
+
     def _send_welcome_email_async(self, email: str, first_name: str = None, last_name: str = None):
-        """Send welcome email asynchronously"""
+        """Send welcome email asynchronously using Flask's context copy"""
         from app.integrations.email.service import EmailService
-        import threading
         
-        email_service = EmailService()
         name = f"{first_name} {last_name}".strip() if first_name or last_name else "User"
         
+        @copy_current_request_context
         def send():
             try:
-                email_service.send_welcome_email(
+                email_service = EmailService()
+                success = email_service.send_welcome_email(
                     to_email=email,
                     first_name=name,
-                    organization_name="ISP SaaS"
+                    organization_name="Bhatek ISP"
                 )
-                logger.info(f"Welcome email sent to {email}")
+                
+                if success:
+                    logger.info(f"Welcome email sent to {email}")
+                else:
+                    logger.error(f"Failed to send welcome email to {email}")
+                    
             except Exception as e:
                 logger.error(f"Failed to send welcome email to {email}: {e}", exc_info=True)
         
-        # Send asynchronously to avoid blocking
+        # Start thread with copied context
         thread = threading.Thread(target=send, daemon=True)
         thread.start()
     

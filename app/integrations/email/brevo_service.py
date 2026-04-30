@@ -14,7 +14,7 @@ class BrevoEmailService:
         self.smtp_port = current_app.config.get('SMTP_PORT', 587)
         self.smtp_user = current_app.config.get('SMTP_USER', '')
         self.smtp_password = current_app.config.get('SMTP_PASSWORD', '')
-        self.from_email = current_app.config.get('FROM_EMAIL', 'noreply@isp.com')
+        self.from_email = current_app.config.get('FROM_EMAIL')
         self.from_name = current_app.config.get('FROM_NAME', 'Bhatek Solution')
         
         # Use Brevo API if key is available
@@ -172,14 +172,14 @@ class BrevoEmailService:
     def send_welcome_email(self, to_email: str, first_name: str, organization_name: str) -> bool:
         """Send welcome email after registration"""
         try:
-            subject = f"Welcome to Bhatek ISP, {first_name}!"
+            subject = f"Welcome to Bhatek Solution, {first_name}!"
             
             html_content = f"""
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="UTF-8">
-                <title>Welcome to Bhatek ISP</title>
+                <title>Welcome to Bhatek Solution</title>
                 <style>
                     body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f7fafc; margin: 0; padding: 0; }}
                     .container {{ max-width: 560px; margin: 0 auto; padding: 20px; }}
@@ -197,7 +197,7 @@ class BrevoEmailService:
                     </div>
                     <div class="content">
                         <p>Dear {first_name},</p>
-                        <p>Your organization <strong>{organization_name}</strong> has been successfully registered with Bhatek ISP.</p>
+                        <p>Your organization <strong>{organization_name}</strong> has been successfully registered with Bhatek Solution.</p>
                         <p>You're now ready to start managing your ISP infrastructure:</p>
                         <ul>
                             <li>📡 Set up your routers and access points</li>
@@ -214,7 +214,7 @@ class BrevoEmailService:
                         </p>
                     </div>
                     <div class="footer">
-                        <p>&copy; 2024 Bhatek ISP. All rights reserved.</p>
+                        <p>&copy; 2024 Bhatek Solution. All rights reserved.</p>
                     </div>
                 </div>
             </body>
