@@ -170,70 +170,70 @@ class BrevoEmailService:
         return self.send_email(to_email, subject, html_content, text_content)
     
     def send_welcome_email(self, to_email: str, first_name: str, organization_name: str) -> bool:
-    """Send welcome email after registration"""
-    try:
-        subject = f"Welcome to Bhatek Solution, {first_name}!"
-        
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Welcome to Bhatek Solution</title>
-            <style>
-                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f7fafc; margin: 0; padding: 0; }}
-                .container {{ max-width: 560px; margin: 0 auto; padding: 20px; }}
-                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px 24px; text-align: center; border-radius: 12px 12px 0 0; }}
-                .header h1 {{ color: white; margin: 0; font-size: 24px; font-weight: 600; }}
-                .content {{ background: white; padding: 32px 24px; border-radius: 0 0 12px 12px; }}
-                .button {{ display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; margin: 16px 0; }}
-                .footer {{ text-align: center; padding: 24px; color: #718096; font-size: 12px; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>Welcome Aboard, {first_name}! 🎉</h1>
-                </div>
-                <div class="content">
-                    <p>Dear {first_name},</p>
-                    <p>Your organization <strong>{organization_name}</strong> has been successfully registered with Bhatek Solution.</p>
-                    <p>You're now ready to start managing your ISP infrastructure:</p>
-                    <ul>
-                        <li>📡 Set up your routers and access points</li>
-                        <li>💰 Create internet plans and pricing</li>
-                        <li>👥 Add subscribers and manage customers</li>
-                        <li>💳 Configure M-Pesa payment integration</li>
-                    </ul>
-                    <div style="text-align: center;">
-                        <a href="{current_app.config['BASE_URL']}/login" class="button">Go to Dashboard</a>
+        """Send welcome email after registration"""
+        try:
+            subject = f"Welcome to Bhatek ISP, {first_name}!"
+            
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Welcome to Bhatek ISP</title>
+                <style>
+                    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f7fafc; margin: 0; padding: 0; }}
+                    .container {{ max-width: 560px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px 24px; text-align: center; border-radius: 12px 12px 0 0; }}
+                    .header h1 {{ color: white; margin: 0; font-size: 24px; font-weight: 600; }}
+                    .content {{ background: white; padding: 32px 24px; border-radius: 0 0 12px 12px; }}
+                    .button {{ display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; margin: 16px 0; }}
+                    .footer {{ text-align: center; padding: 24px; color: #718096; font-size: 12px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Welcome Aboard, {first_name}! 🎉</h1>
                     </div>
-                    <hr>
-                    <p style="font-size: 12px; color: #718096;">
-                        Need help? Contact us at support@bhatek.space
-                    </p>
+                    <div class="content">
+                        <p>Dear {first_name},</p>
+                        <p>Your organization <strong>{organization_name}</strong> has been successfully registered with Bhatek ISP.</p>
+                        <p>You're now ready to start managing your ISP infrastructure:</p>
+                        <ul>
+                            <li>📡 Set up your routers and access points</li>
+                            <li>💰 Create internet plans and pricing</li>
+                            <li>👥 Add subscribers and manage customers</li>
+                            <li>💳 Configure M-Pesa payment integration</li>
+                        </ul>
+                        <div style="text-align: center;">
+                            <a href="{current_app.config['BASE_URL']}/login" class="button">Go to Dashboard</a>
+                        </div>
+                        <hr>
+                        <p style="font-size: 12px; color: #718096;">
+                            Need help? Contact us at support@bhatek.space
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>&copy; 2024 Bhatek ISP. All rights reserved.</p>
+                    </div>
                 </div>
-                <div class="footer">
-                    <p>&copy; 2026 Bhatek Solution. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        
-        logger.info(f"Sending welcome email to {to_email} for {organization_name}")
-        result = self.send_email(to_email, subject, html_content)
-        
-        if result:
-            logger.info(f"Welcome email sent successfully to {to_email}")
-        else:
-            logger.error(f"Failed to send welcome email to {to_email}")
-        
-        return result
-        
-    except Exception as e:
-        logger.error(f"Exception sending welcome email to {to_email}: {e}", exc_info=True)
-        return False
+            </body>
+            </html>
+            """
+            
+            logger.info(f"Sending welcome email to {to_email} for {organization_name}")
+            result = self.send_email(to_email, subject, html_content)
+            
+            if result:
+                logger.info(f"Welcome email sent successfully to {to_email}")
+            else:
+                logger.error(f"Failed to send welcome email to {to_email}")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Exception sending welcome email to {to_email}: {e}", exc_info=True)
+            return False
     
     def send_password_reset_email(self, to_email: str, reset_token: str) -> bool:
         """Send password reset email"""
