@@ -5,7 +5,7 @@ from app.core.security.jwt import token_required, permission_required
 billing_bp = Blueprint('billing', __name__)
 controller = BillingController()
 
-# ==================== Plan Routes ====================
+#  Plan Routes 
 @billing_bp.route('/plans', methods=['GET'])
 @token_required
 def get_plans():
@@ -39,7 +39,7 @@ def delete_plan(plan_id):
     """Delete a plan"""
     return controller.delete_plan(plan_id)
 
-# ==================== Voucher Routes ====================
+#  Voucher Routes 
 @billing_bp.route('/vouchers', methods=['POST'])
 @token_required
 @permission_required('voucher_create')
@@ -66,7 +66,7 @@ def check_voucher(voucher_code):
     """Check voucher validity"""
     return controller.check_voucher(voucher_code)
 
-# ==================== Discount Coupon Routes ====================
+#  Discount Coupon Routes 
 @billing_bp.route('/coupons', methods=['POST'])
 @token_required
 @permission_required('coupon_create')
@@ -80,7 +80,7 @@ def validate_coupon():
     """Validate a coupon code"""
     return controller.validate_coupon()
 
-# ==================== Subscription Routes ====================
+#  Subscription Routes 
 @billing_bp.route('/subscriptions/<subscription_id>', methods=['GET'])
 @token_required
 def get_subscription(subscription_id):
