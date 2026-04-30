@@ -4,72 +4,55 @@
 
 {% block content %}
 
-<!-- Hero Section - First Page App Style -->
-<div class="hero" style="background: linear-gradient(125deg, #eef5f2 0%, #e0ece8 100%); min-height: 100vh; position: relative; display: flex; align-items: center;">
-    <div class="container" style="padding-top: 100px; padding-bottom: 80px;">
-        <div class="row align-items-center g-5">
-            <!-- Left Column - Content -->
+<!-- Hero Section - Premium App Style with Strategic Content Ordering -->
+<div class="hero" style="background: linear-gradient(135deg, #eef5f2 0%, #e0ece8 100%); min-height: 100vh; position: relative; display: flex; align-items: center;">
+    <div class="container" style="padding-top: 80px; padding-bottom: 80px;">
+        
+        <!-- Mobile-First Content Order Strategy:
+             On small screens: Trust Badge → Registration Card → Stats → Explore Button
+             On large screens: Trust Badge + Heading + Text (Left) → Registration Card (Right) → Stats + Explore (Below)
+        -->
+        
+        <!-- Row 1: Trust Badge + Heading + Description (Left) + Registration Card (Right) -->
+        <div class="row align-items-start align-items-lg-center g-5">
+            <!-- Left Column - Brand Content -->
             <div class="col-lg-7">
-                <!-- Trust Badge -->
+                <!-- Trust Badge - Appears first on all screens -->
                 <div class="mb-4">
-                    <span style="background: rgba(45, 106, 79, 0.12); padding: 0.35rem 1rem; border-radius: 60px; font-size: 0.75rem; font-weight: 600; color: #2d6a4f;">
+                    <span style="background: rgba(45, 106, 79, 0.12); padding: 0.4rem 1.2rem; border-radius: 60px; font-size: 0.75rem; font-weight: 600; color: #2d6a4f; letter-spacing: 0.3px;">
                         <i class="fas fa-check-circle me-1"></i> Trusted Platform
                     </span>
                 </div>
                 
-                <h1 style="font-size: clamp(2.2rem, 5.5vw, 3.6rem); font-weight: 800; color: #1a2e2a; letter-spacing: -0.02em; line-height: 1.2;" class="mb-4">
+                <h1 style="font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; color: #1a2e2a; letter-spacing: -0.02em; line-height: 1.2;" class="mb-4">
                     Run Your ISP<br>
-                    <span style="color: #2d6a4f; background: linear-gradient(135deg, #2d6a4f, #40916c); background-clip: text; -webkit-background-clip: text; color: transparent;">With Confidence</span>
+                    <span style="background: linear-gradient(135deg, #2d6a4f, #52b788); background-clip: text; -webkit-background-clip: text; color: transparent;">With Confidence</span>
                 </h1>
                 
-                <p style="font-size: 0.8rem; color: #4a5b56; line-height: 1.5; max-width: 90%;" class="mb-4">
-                    Complete solution for ISPs — Hotspot, PPPoE, automated billing, router management, and real-time analytics.
+                <p style="font-size: 0.9rem; color: #4a5b56; line-height: 1.5; max-width: 90%;" class="mb-4">
+                    Complete solution for ISPs — Hotspot, PPPoE, automated billing, router management, and real-time analytics. 
                 </p>
-                
-                <!-- Buttons - Perfectly arranged -->
-                <div class="d-flex flex-wrap gap-3 align-items-center mb-5">
-                    <a href="#features" class="btn btn-primary" style="border-radius: 60px; padding: 0.85rem 2rem;">
-                        Explore Solutions <i class="fas fa-arrow-right ms-2"></i>
-                    </a>
-                    <a href="/login" class="btn-login" style="border-radius: 60px; padding: 0.85rem 2rem;">
-                        <i class="fas fa-user-circle me-2"></i>Customer Login
-                    </a>
-                </div>
-                
-                <!-- Trust Indicators - Modern Stats -->
-                <div class="row g-4" style="max-width: 90%;">
-                    <div class="col-4">
-                        <div style="font-weight: 800; font-size: 1.6rem; color: #2d6a4f;">99.9%</div>
-                        <div style="font-size: 0.7rem; color: #6b7a75; font-weight: 500; letter-spacing: 0.3px;">UPTIME SLA</div>
-                    </div>
-                    <div class="col-4">
-                        <div style="font-weight: 800; font-size: 1.6rem; color: #2d6a4f;">24/7</div>
-                        <div style="font-size: 0.7rem; color: #6b7a75; font-weight: 500; letter-spacing: 0.3px;">TECH SUPPORT</div>
-                    </div>
-                    <div class="col-4">
-                        <div style="font-weight: 800; font-size: 1.6rem; color: #2d6a4f;">10Gbps</div>
-                        <div style="font-size: 0.7rem; color: #6b7a75; font-weight: 500; letter-spacing: 0.3px;">FIBER READY</div>
-                    </div>
-                </div>
             </div>
             
-            <!-- Right Column - Registration Card  -->
+            <!-- Right Column - Registration Card (Appears second on mobile, right on desktop) -->
             <div class="col-lg-5">
-                <div class="card-modern" style="background: white; border-radius: 32px; padding: 2rem 2rem 2rem 2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.12);">
+                <div class="card-modern" style="background: white; border-radius: 32px; padding: 2.2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.12); border: 1px solid rgba(45, 106, 79, 0.08);">
                     <div class="d-flex align-items-center gap-2 mb-3">
-                        <i class="fas fa-rocket" style="color: #2d6a4f; font-size: 1.2rem;"></i>
+                        <div style="width: 32px; height: 32px; background: rgba(45, 106, 79, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-rocket" style="color: #2d6a4f; font-size: 0.9rem;"></i>
+                        </div>
                         <span style="font-weight: 600; font-size: 0.7rem; color: #2d6a4f; background: rgba(45, 106, 79, 0.1); padding: 0.25rem 0.9rem; border-radius: 60px;">Get Started</span>
                     </div>
                     
-                    <h3 class="h5 fw-bold mb-2" style="color: #1a2e2a;">Launch  Today</h3>
+                    <h3 class="h5 fw-bold mb-2" style="color: #1a2e2a;">Launch Your ISP</h3>
                     <p class="small text-secondary mb-4">Start your 14-day free trial. No credit card required.</p>
                     
                     <!-- Email Form -->
                     <form id="registrationForm">
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold" style="color: #4a5b56;">Your Email</label>
-                            <div class="input-group" style="border-radius: 60px; overflow: hidden; border: 1px solid #e0e8e5; background: white;">
-                                <span class="input-group-text bg-white border-0" style="color: #2d6a4f; padding-left: 1rem;">
+                            <label class="form-label small fw-semibold" style="color: #4a5b56;">Work Email</label>
+                            <div class="input-group" style="border-radius: 60px; overflow: hidden; border: 1px solid #e0e8e5; background: white; transition: all 0.2s;">
+                                <span class="input-group-text bg-white border-0" style="color: #2d6a4f; padding-left: 1.2rem;">
                                     <i class="fas fa-envelope"></i>
                                 </span>
                                 <input type="email" 
@@ -78,48 +61,79 @@
                                        name="email"
                                        placeholder="ceo@yourcompany.com" 
                                        required
-                                       style="padding: 13px 0; font-size: 0.9rem;">
+                                       style="padding: 14px 0; font-size: 0.9rem; background: white;">
                             </div>
                         </div>
                         
-                        <button type="submit" class="btn w-100" id="startTrialBtn" style="background: #2d6a4f; color: white; padding: 13px; border-radius: 60px; font-weight: 600; transition: all 0.25s; border: none;">
+                        <button type="submit" class="btn w-100" id="startTrialBtn" style="background: #2d6a4f; color: white; padding: 14px; border-radius: 60px; font-weight: 600; transition: all 0.25s; border: none; font-size: 0.9rem;">
                             <i class="fas fa-paper-plane me-2"></i>Start Free Trial
                         </button>
                     </form>
                     
-                    <div class="text-center mt-3">
-                        <small class="text-muted">Already have an account? <a href="/login" style="color: #2d6a4f; text-decoration: none; font-weight: 600;">Sign in</a></small>
+                    <div class="text-center mt-4">
+                        <small class="text-muted">Already have an account? <a href="/login" style="color: #2d6a4f; text-decoration: none; font-weight: 600;">Sign in →</a></small>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Row 2: Trust Indicators + Explore Button (Appears after registration card on mobile, below both columns on desktop) -->
+        <div class="row mt-5 pt-3">
+            <div class="col-12">
+                <!-- Trust Indicators - Modern Stats -->
+                <div class="stats-wrapper" style="margin-bottom: 2rem;">
+                    <div class="row g-4" style="max-width: 100%;">
+                        <div class="col-4 text-start">
+                            <div style="font-weight: 800; font-size: 1.8rem; color: #2d6a4f; letter-spacing: -0.5px;">99.9%</div>
+                            <div style="font-size: 0.7rem; color: #6b7a75; font-weight: 600; letter-spacing: 0.5px;">UPTIME SLA</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div style="font-weight: 800; font-size: 1.8rem; color: #2d6a4f; letter-spacing: -0.5px;">24/7</div>
+                            <div style="font-size: 0.7rem; color: #6b7a75; font-weight: 600; letter-spacing: 0.5px;">TECH SUPPORT</div>
+                        </div>
+                        <div class="col-4 text-end">
+                            <div style="font-weight: 800; font-size: 1.8rem; color: #2d6a4f; letter-spacing: -0.5px;">10G</div>
+                            <div style="font-size: 0.7rem; color: #6b7a75; font-weight: 600; letter-spacing: 0.5px;">FIBER READY</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Single CTA Button - Explore Solutions -->
+                <div class="explore-wrapper">
+                    <a href="#features" class="btn btn-primary" style="border-radius: 60px; padding: 0.9rem 2.2rem; font-size: 0.95rem;">
+                        Explore Solutions <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
     </div>
 </div>
 
 <!-- Features Section - App Style Second Page -->
-<section id="features" style="background: white; padding: 5rem 0;">
+<section id="features" style="background: white; padding: 5rem 0 6rem;">
     <div class="container">
         <div class="text-center mb-5">
-            <span style="background: rgba(45, 106, 79, 0.08); padding: 0.4rem 1.2rem; border-radius: 60px; font-size: 0.7rem; font-weight: 600; color: #2d6a4f; display: inline-block; margin-bottom: 1rem; letter-spacing: 0.5px;">
+            <span style="background: rgba(45, 106, 79, 0.08); padding: 0.4rem 1.2rem; border-radius: 60px; font-size: 0.7rem; font-weight: 700; color: #2d6a4f; display: inline-block; margin-bottom: 1rem; letter-spacing: 0.8px;">
                 CORE CAPABILITIES
             </span>
             <h2 style="font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 700; color: #1a2e2a; letter-spacing: -0.02em;">
                 Everything You Need<br>to Scale Your ISP
             </h2>
-            <p style="color: #6b7a75; max-width: 550px; margin: 1rem auto 0; font-size: 0.95rem;">Features designed for modern internet service providers</p>
+            <p style="color: #6b7a75; max-width: 520px; margin: 1rem auto 0; font-size: 0.95rem;">Enterprise-grade features designed for modern internet service providers</p>
         </div>
         
         <div class="row g-4">
             <!-- Feature 1 -->
-            <div class="col-md-4">
-                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 2rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
-                    <div style="width: 56px; height: 56px; background: rgba(45, 106, 79, 0.1); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                        <i class="fas fa-wifi" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 1.8rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
+                    <div style="width: 52px; height: 52px; background: rgba(45, 106, 79, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-wifi" style="font-size: 1.5rem; color: #2d6a4f;"></i>
                     </div>
                     <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">Hotspot Management</h4>
-                    <p class="small text-secondary mb-3">Complete captive portal with vouchers, SMS authentication, bandwidth control.</p>
+                    <p class="small text-secondary mb-3">Captive portal with vouchers, SMS auth, and bandwidth control.</p>
                     <ul class="list-unstyled small" style="color: #6b7a75;">
-                        <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Customizable landing pages</li>
+                        <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Custom landing pages</li>
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Prepaid vouchers & plans</li>
                         <li><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Real-time usage tracking</li>
                     </ul>
@@ -127,13 +141,13 @@
             </div>
             
             <!-- Feature 2 -->
-            <div class="col-md-4">
-                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 2rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
-                    <div style="width: 56px; height: 56px; background: rgba(45, 106, 79, 0.1); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                        <i class="fas fa-network-wired" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 1.8rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
+                    <div style="width: 52px; height: 52px; background: rgba(45, 106, 79, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-network-wired" style="font-size: 1.5rem; color: #2d6a4f;"></i>
                     </div>
                     <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">PPPoE Support</h4>
-                    <p class="small text-secondary mb-3">Full PPPoE server management with user accounts, profiles, and monitoring.</p>
+                    <p class="small text-secondary mb-3">Full PPPoE server management with user accounts and monitoring.</p>
                     <ul class="list-unstyled small" style="color: #6b7a75;">
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Bandwidth limiting</li>
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Session timeout control</li>
@@ -143,13 +157,13 @@
             </div>
             
             <!-- Feature 3 -->
-            <div class="col-md-4">
-                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 2rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
-                    <div style="width: 56px; height: 56px; background: rgba(45, 106, 79, 0.1); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                        <i class="fas fa-money-bill-wave" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 1.8rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
+                    <div style="width: 52px; height: 52px; background: rgba(45, 106, 79, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-money-bill-wave" style="font-size: 1.5rem; color: #2d6a4f;"></i>
                     </div>
                     <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">Automated Billing</h4>
-                    <p class="small text-secondary mb-3">M-Pesa integration, automated invoicing, and seamless payment processing.</p>
+                    <p class="small text-secondary mb-3">M-Pesa integration, automated invoicing, seamless payments.</p>
                     <ul class="list-unstyled small" style="color: #6b7a75;">
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>STK Push payments</li>
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Recurring billing</li>
@@ -159,13 +173,13 @@
             </div>
             
             <!-- Feature 4 -->
-            <div class="col-md-4">
-                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 2rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
-                    <div style="width: 56px; height: 56px; background: rgba(45, 106, 79, 0.1); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                        <i class="fas fa-server" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 1.8rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
+                    <div style="width: 52px; height: 52px; background: rgba(45, 106, 79, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-server" style="font-size: 1.5rem; color: #2d6a4f;"></i>
                     </div>
                     <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">Router Management</h4>
-                    <p class="small text-secondary mb-3">Manage MikroTik routers, access points, and network infrastructure.</p>
+                    <p class="small text-secondary mb-3">Manage MikroTik routers, APs, and network infrastructure.</p>
                     <ul class="list-unstyled small" style="color: #6b7a75;">
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Multi-router support</li>
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Remote configuration</li>
@@ -175,13 +189,13 @@
             </div>
             
             <!-- Feature 5 -->
-            <div class="col-md-4">
-                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 2rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
-                    <div style="width: 56px; height: 56px; background: rgba(45, 106, 79, 0.1); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                        <i class="fas fa-chart-line" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 1.8rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
+                    <div style="width: 52px; height: 52px; background: rgba(45, 106, 79, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-chart-line" style="font-size: 1.5rem; color: #2d6a4f;"></i>
                     </div>
                     <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">Analytics & Reports</h4>
-                    <p class="small text-secondary mb-3">Real-time usage statistics, revenue reports, and customer insights.</p>
+                    <p class="small text-secondary mb-3">Real-time usage stats, revenue reports, customer insights.</p>
                     <ul class="list-unstyled small" style="color: #6b7a75;">
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Bandwidth analytics</li>
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>Revenue forecasting</li>
@@ -191,13 +205,13 @@
             </div>
             
             <!-- Feature 6 -->
-            <div class="col-md-4">
-                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 2rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
-                    <div style="width: 56px; height: 56px; background: rgba(45, 106, 79, 0.1); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                        <i class="fas fa-shield-alt" style="font-size: 1.6rem; color: #2d6a4f;"></i>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card" style="background: #ffffff; border-radius: 24px; padding: 1.8rem 1.5rem; height: 100%; transition: all 0.3s ease; border: 1px solid #edf2ef;">
+                    <div style="width: 52px; height: 52px; background: rgba(45, 106, 79, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                        <i class="fas fa-shield-alt" style="font-size: 1.5rem; color: #2d6a4f;"></i>
                     </div>
                     <h4 class="h6 fw-bold mb-2" style="color: #1a2e2a;">Enterprise Security</h4>
-                    <p class="small text-secondary mb-3">Bank-level encryption and role-based access control for peace of mind.</p>
+                    <p class="small text-secondary mb-3">Bank-level encryption and role-based access control.</p>
                     <ul class="list-unstyled small" style="color: #6b7a75;">
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>256-bit encryption</li>
                         <li class="mb-1"><i class="fas fa-check-circle me-2" style="color: #2d6a4f; font-size: 0.7rem;"></i>RBAC permissions</li>
@@ -209,7 +223,6 @@
     </div>
 </section>
 
-<!-- Registration Flow JavaScript -->
 <script>
 // Registration form handler
 const registrationForm = document.getElementById('registrationForm');
@@ -324,8 +337,15 @@ document.querySelectorAll('.feature-card').forEach(card => {
     cursor: pointer;
 }
 
-.btn-primary, .btn-login {
+.btn-primary {
     transition: all 0.25s ease;
+    background: #2d6a4f;
+}
+
+.btn-primary:hover {
+    background: #1b4d3e;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(45, 106, 79, 0.25);
 }
 
 @keyframes fadeInUp {
@@ -343,24 +363,55 @@ document.querySelectorAll('.feature-card').forEach(card => {
     animation: fadeInUp 0.5s ease-out;
 }
 
-/* Mobile centering fix - ensures hero content is perfectly centered on small screens */
-@media (max-width: 768px) {
-    .hero .row {
+/* ============================================
+   PERFECT CONTENT ORDER FOR ALL SCREEN SIZES
+   ============================================ */
+   
+/* DESKTOP & LARGE SCREENS (992px and above) */
+@media (min-width: 992px) {
+    /* Stats and Explore button align naturally below both columns */
+    .stats-wrapper {
+        margin-top: 1rem;
+    }
+    
+    .stats-wrapper .row {
+        justify-content: flex-start;
+    }
+    
+    .stats-wrapper .col-4:first-child {
+        text-align: left;
+    }
+    
+    .stats-wrapper .col-4:last-child {
+        text-align: right;
+    }
+    
+    .explore-wrapper {
+        margin-top: 0.5rem;
+    }
+}
+
+/* MOBILE SCREENS (991px and below) - Perfect reordering */
+@media (max-width: 991px) {
+    .hero .container {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Center all content */
+    .hero .col-lg-7,
+    .hero .col-lg-5 {
         text-align: center;
     }
     
-    .hero .col-lg-7 {
+    /* Trust badge centered */
+    .hero .mb-4 {
         text-align: center;
     }
     
-    .hero .d-flex.flex-wrap {
-        justify-content: center;
-    }
-    
-    .hero .row.g-4 {
-        justify-content: center;
-        margin-left: auto;
-        margin-right: auto;
+    /* Heading and paragraph centered */
+    .hero h1 br {
+        display: none;
     }
     
     .hero p {
@@ -369,31 +420,68 @@ document.querySelectorAll('.feature-card').forEach(card => {
         margin-right: auto;
     }
     
-    .hero .row.g-4 {
-        max-width: 80% !important;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    
+    /* Registration card centered */
     .card-modern {
         max-width: 450px;
         margin-left: auto;
         margin-right: auto;
     }
     
-    .hero .col-lg-7 .row.g-4 {
-        max-width: 90% !important;
+    /* Stats centered on mobile */
+    .stats-wrapper .row {
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .stats-wrapper .col-4 {
+        text-align: center !important;
+    }
+    
+    /* Explore button centered */
+    .explore-wrapper {
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+    
+    /* Adjust spacing for app-like feel */
+    .hero .row.mt-5 {
+        margin-top: 2rem !important;
+    }
+    
+    .stats-wrapper {
+        margin-bottom: 1.5rem;
     }
 }
 
+/* Small phones (576px and below) - Extra polish */
 @media (max-width: 576px) {
-    .hero .row.g-4 {
-        max-width: 100% !important;
+    .hero .container {
+        padding-top: 60px;
+        padding-bottom: 60px;
+    }
+    
+    .card-modern {
+        padding: 1.5rem !important;
+        max-width: 100%;
     }
     
     .feature-card {
         padding: 1.5rem 1.25rem !important;
     }
+    
+    .stats-wrapper .stat-number {
+        font-size: 1.4rem;
+    }
+    
+    .btn-primary {
+        padding: 0.8rem 1.8rem !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+/* App-like smooth interactions */
+* {
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* Toast animation */
