@@ -4,28 +4,20 @@ from datetime import datetime, timedelta
 import random
 import string
 import hashlib
-import secrets
 
-# Import models from centralized location
-from app.models.billing import (
-    Plan, Subscription, Voucher, VoucherBatch, 
-    DiscountCoupon, Invoice, InvoiceItem
-)
-
-# Import repositories
 from app.modules.billing.repository import (
     PlanRepository, SubscriptionRepository, VoucherRepository,
-    VoucherBatchRepository, DiscountCouponRepository, InvoiceRepository
+    VoucherBatchRepository, DiscountCouponRepository
 )
+from app.models.billing import Voucher, VoucherBatch, Plan
 
 from app.modules.payment.service import PaymentService
 from app.core.logging.logger import logger
-from app.core.exceptions import NotFoundError, BusinessError, ValidationError
+from app.core.exceptions.handlers import NotFoundError, BusinessError, ValidationError
 from app.core.database.session import db
 from app.integrations.sms.provider import SMSService
-from app.integrations.radius.redius_cache import RadiusCache  # Fixed typo: radius_cache
+from app.integrations.radius.redius_cache import RadiusCache
 from app.modules.subscriber.repository import SubscriberRepository
-
 
 class BillingService:
     """Complete billing service for plans, subscriptions, vouchers, and discounts"""
@@ -36,14 +28,12 @@ class BillingService:
         self.voucher_repo = VoucherRepository()
         self.voucher_batch_repo = VoucherBatchRepository()
         self.discount_repo = DiscountCouponRepository()
-        self.invoice_repo = InvoiceRepository()  # Added missing invoice repo
         self.subscriber_repo = SubscriberRepository()
         self.payment_service = PaymentService()
         self.sms_service = SMSService()
         self.radius_cache = RadiusCache()
     
-    # ==================== Plan Management ====================
-    
+    # Plan Management     
     def create_plan(self, organization_id: UUID, data: Dict[str, Any]) -> Plan:
         """Create a new plan"""
         try:
@@ -79,8 +69,7 @@ class BillingService:
         """Delete a plan (soft delete by setting is_active=False)"""
         return self.plan_repo.update(plan_id, organization_id, {'is_active': False}) is not None
     
-    # ==================== Subscription Management ====================
-    
+    # Subscription Management     
     def create_subscription(self, organization_id: UUID, subscriber_id: UUID, 
                             plan_id: UUID, auto_renew: bool = False) -> Subscription:
         """Create a new subscription for a subscriber"""
@@ -97,12 +86,6 @@ class BillingService:
         if old_sub:
             self.subscription_repo.update_status(old_sub.id, organization_id, 'expired', 'replaced_by_new')
         
-        # Calculate expiry
-        if plan.validity_type == 'time_based' and plan.validity_days:
-            expiry_time = datetime.utcnow() + timedelta(days=plan.validity_days)
-        else:
-            expiry_time = datetime.utcnow() + timedelta(days=30)  # Default 30 days
-        
         # Create new subscription
         subscription_data = {
             'organization_id': organization_id,
@@ -110,7 +93,7 @@ class BillingService:
             'plan_id': plan_id,
             'status': 'active',
             'start_time': datetime.utcnow(),
-            'expiry_time': expiry_time,
+            'expiry_time': datetime.utcnow() + timedelta(days=plan.validity_days),
             'auto_renew': auto_renew,
             'device_limit': plan.device_limit,
             'bandwidth_up_mbps': plan.bandwidth_up_mbps,
@@ -118,9 +101,6 @@ class BillingService:
         }
         
         subscription = self.subscription_repo.create(subscription_data)
-        
-        # Generate invoice
-        self.generate_invoice_for_subscription(subscription.id, organization_id)
         
         # Update RADIUS cache
         self.radius_cache.set_auth_data(
@@ -150,10 +130,7 @@ class BillingService:
     
     def cancel_subscription(self, subscription_id: UUID, organization_id: UUID, reason: str = None) -> bool:
         """Cancel a subscription"""
-        result = self.subscription_repo.update_status(subscription_id, organization_id, 'cancelled', reason)
-        if result:
-            logger.info(f"Cancelled subscription {subscription_id}")
-        return result
+        return self.subscription_repo.update_status(subscription_id, organization_id, 'cancelled', reason)
     
     def renew_subscription(self, subscription_id: UUID, organization_id: UUID) -> Subscription:
         """Renew an existing subscription"""
@@ -163,24 +140,14 @@ class BillingService:
         
         plan = subscription.plan
         new_expiry = max(subscription.expiry_time, datetime.utcnow()) + timedelta(days=plan.validity_days)
-        
-        updated_sub = self.subscription_repo.update(
-            subscription_id, 
-            organization_id,
-            {
-                'expiry_time': new_expiry,
-                'status': 'active'
-            }
-        )
-        
-        # Generate new invoice for renewal
-        self.generate_invoice_for_subscription(subscription_id, organization_id)
+        subscription.expiry_time = new_expiry
+        subscription.status = 'active'
+        db.session.commit()
         
         logger.info(f"Renewed subscription {subscription_id} until {new_expiry}")
-        return updated_sub
+        return subscription
     
-    # ==================== Voucher Management ====================
-    
+    # Voucher Management     
     def generate_voucher_code(self) -> str:
         """Generate a unique voucher code"""
         chars = string.ascii_uppercase + string.digits
@@ -243,7 +210,7 @@ class BillingService:
         
         # Generate vouchers
         vouchers_data = []
-        for i in range(quantity):
+        for _ in range(quantity):
             code = self.generate_voucher_code()
             vouchers_data.append({
                 'organization_id': organization_id,
@@ -275,7 +242,7 @@ class BillingService:
             raise NotFoundError("Subscriber not found")
         
         # Check if subscriber already has an active session with this voucher
-        from app.models import ActiveSession
+        from app.modules.session.models import ActiveSession
         existing_session = ActiveSession.query.filter(
             ActiveSession.voucher_id == voucher.id,
             ActiveSession.status == 'active'
@@ -309,7 +276,7 @@ class BillingService:
         subscription = self.subscription_repo.create(subscription_data)
         
         # Mark voucher as used
-        self.voucher_repo.use_voucher(voucher.id, subscriber_id, device_mac)
+        self.voucher_repo.use_voucher(voucher.id, subscriber_id, None)
         
         # Update RADIUS cache
         self.radius_cache.set_auth_data(
@@ -326,18 +293,6 @@ class BillingService:
             },
             ttl=3600
         )
-        
-        # Send SMS notification
-        try:
-            self.sms_service.send_voucher_redeemed(
-                organization_id=organization_id,
-                phone=subscriber.phone,
-                voucher_code=voucher_code,
-                plan_name=plan.name,
-                expiry_days=plan.validity_days
-            )
-        except Exception as e:
-            logger.error(f"Failed to send SMS: {e}")
         
         logger.info(f"Redeemed voucher {voucher_code} for subscriber {subscriber_id}")
         
@@ -362,35 +317,22 @@ class BillingService:
             'is_valid': voucher.is_valid(),
             'expires_at': voucher.expires_at.isoformat(),
             'usage_count': voucher.usage_count,
-            'max_uses': voucher.max_uses,
-            'price_paid': float(voucher.price_paid) if voucher.price_paid else None
+            'max_uses': voucher.max_uses
         }
     
-    # ==================== Discount Coupons ====================
-    
+    # Discount Coupons     
     def create_coupon(self, organization_id: UUID, data: Dict[str, Any]) -> DiscountCoupon:
         """Create a discount coupon"""
-        # Check if code exists
-        existing = self.discount_repo.get_by_code(data['code'], organization_id)
-        if existing:
-            raise BusinessError(f"Coupon code already exists: {data['code']}")
-        
         data['organization_id'] = organization_id
         coupon = self.discount_repo.create(data)
         logger.info(f"Created coupon {coupon.code} for org {organization_id}")
         return coupon
     
-    def validate_coupon(self, coupon_code: str, organization_id: UUID, amount: float, 
-                        plan_id: UUID = None) -> Dict[str, Any]:
+    def validate_coupon(self, coupon_code: str, organization_id: UUID, amount: float) -> Dict[str, Any]:
         """Validate a coupon code"""
         coupon = self.discount_repo.get_valid_by_code(coupon_code, organization_id, amount)
         if not coupon:
             raise BusinessError("Invalid or expired coupon code")
-        
-        # Check if coupon applies to this plan
-        if coupon.applicable_plan_ids and plan_id:
-            if str(plan_id) not in [str(pid) for pid in coupon.applicable_plan_ids]:
-                raise BusinessError("Coupon not applicable for this plan")
         
         discount_amount = coupon.calculate_discount(amount)
         
@@ -404,10 +346,12 @@ class BillingService:
             'description': coupon.description
         }
     
-    # ==================== Invoice Management ====================
-    
+    # Invoice Management     
     def generate_invoice_for_subscription(self, subscription_id: UUID, organization_id: UUID) -> Invoice:
         """Generate an invoice for a subscription"""
+        from app.modules.billing.models import Invoice, InvoiceItem
+        import secrets
+        
         subscription = self.subscription_repo.get_by_id(subscription_id, organization_id)
         if not subscription:
             raise NotFoundError("Subscription not found")
@@ -415,67 +359,35 @@ class BillingService:
         # Generate invoice number
         invoice_number = f"INV-{datetime.utcnow().strftime('%Y%m%d')}-{secrets.token_hex(4).upper()}"
         
-        invoice_data = {
-            'organization_id': organization_id,
-            'invoice_number': invoice_number,
-            'invoice_type': 'subscription',
-            'subscriber_id': subscription.subscriber_id,
-            'subscription_id': subscription.id,
-            'plan_id': subscription.plan_id,
-            'subtotal': float(subscription.plan.price),
-            'tax_amount': float(subscription.plan.price) * 0.16,  # 16% VAT
-            'tax_rate': 16.00,
-            'total': float(subscription.plan.price) * 1.16,
-            'currency': 'KES',
-            'issue_date': datetime.utcnow(),
-            'due_date': datetime.utcnow() + timedelta(days=7),
-            'status': 'draft',
-            'billing_period_start': subscription.start_time,
-            'billing_period_end': subscription.expiry_time
-        }
+        invoice = Invoice(
+            organization_id=organization_id,
+            invoice_number=invoice_number,
+            invoice_type='subscription',
+            subscriber_id=subscription.subscriber_id,
+            subscription_id=subscription.id,
+            plan_id=subscription.plan_id,
+            subtotal=subscription.plan.price,
+            total=subscription.plan.price,
+            issue_date=datetime.utcnow(),
+            due_date=datetime.utcnow() + timedelta(days=7),
+            status='draft',
+            billing_period_start=subscription.start_time,
+            billing_period_end=subscription.expiry_time
+        )
         
-        invoice = self.invoice_repo.create(invoice_data)
+        db.session.add(invoice)
+        db.session.flush()
         
         # Add invoice item
-        invoice_item_data = {
-            'invoice_id': invoice.id,
-            'description': f"{subscription.plan.name} - {subscription.plan.billing_cycle} subscription",
-            'quantity': 1,
-            'unit_price': float(subscription.plan.price),
-            'total': float(subscription.plan.price)
-        }
-        self.invoice_repo.add_item(invoice_item_data)
+        item = InvoiceItem(
+            invoice_id=invoice.id,
+            description=f"{subscription.plan.name} - {subscription.plan.billing_cycle} subscription",
+            quantity=1,
+            unit_price=subscription.plan.price,
+            total=subscription.plan.price
+        )
+        db.session.add(item)
+        db.session.commit()
         
         logger.info(f"Generated invoice {invoice_number} for subscription {subscription_id}")
         return invoice
-    
-    def get_invoice(self, invoice_id: UUID, organization_id: UUID) -> Optional[Invoice]:
-        """Get invoice by ID"""
-        invoice = self.invoice_repo.get_by_id(invoice_id, organization_id)
-        if not invoice:
-            raise NotFoundError("Invoice not found")
-        return invoice
-    
-    def get_subscriber_invoices(self, subscriber_id: UUID, organization_id: UUID) -> List[Invoice]:
-        """Get all invoices for a subscriber"""
-        return self.invoice_repo.get_by_subscriber(subscriber_id, organization_id)
-    
-    def mark_invoice_paid(self, invoice_id: UUID, organization_id: UUID, 
-                          transaction_id: UUID = None) -> Invoice:
-        """Mark invoice as paid"""
-        invoice = self.get_invoice(invoice_id, organization_id)
-        
-        if invoice.status == 'paid':
-            raise BusinessError("Invoice already paid")
-        
-        updated_invoice = self.invoice_repo.update(
-            invoice_id,
-            organization_id,
-            {
-                'status': 'paid',
-                'paid_at': datetime.utcnow()
-            }
-        )
-        
-        logger.info(f"Invoice marked as paid: {invoice_id}")
-        return updated_invoice
