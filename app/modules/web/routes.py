@@ -535,3 +535,8 @@ def internal_error(error):
     """500 error handler"""
     logger.error(f"Internal server error: {error}", exc_info=True)
     return render_template('web/500.html'), 500
+
+
+
+
+    

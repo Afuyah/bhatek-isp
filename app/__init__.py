@@ -69,7 +69,7 @@ def create_app(config_name=None):
         '/health',
         '/api/v1/health',
         
-        # Web routes (no JWT required - uses session instead)
+        # Web routes 
         '/',
         '/login',
         '/logout',
@@ -78,7 +78,7 @@ def create_app(config_name=None):
         '/verify-email',
         '/dashboard',
         '/super-admin',
-        '/organization',
+        
         
         # Hotspot routes (public)
         '/hotspot',
@@ -164,8 +164,10 @@ def create_app(config_name=None):
     from app.modules.payment.routes import payment_bp
     from app.modules.session.routes import session_bp
     from app.modules.web import web_bp
+    from app.modules.network.web_routes import network_web_bp
     
     app.register_blueprint(web_bp)
+    app.register_blueprint(network_web_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     app.register_blueprint(org_bp, url_prefix='/api/v1/organizations')
     app.register_blueprint(network_bp, url_prefix='/api/v1/networks')

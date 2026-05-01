@@ -2,182 +2,606 @@
 
 {% block title %}{{ organization.name }} - Dashboard{% endblock %}
 
-{% block content %}
-<!-- Stats Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="stat-card" onclick="window.location.href='/organization/subscribers'">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <small class="text-muted">Total Subscribers</small>
-                    <h3 class="mb-0" id="totalSubscribers">0</h3>
-                    <small class="text-success" id="subscribersGrowth">+0%</small>
-                </div>
-                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                    <i class="fas fa-users"></i>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block extra_css %}
+<style>
+    /* Modern Dashboard Styles */
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
     
-    <div class="col-md-3 mb-3">
-        <div class="stat-card" onclick="window.location.href='/organization/sessions'">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <small class="text-muted">Active Sessions</small>
-                    <h3 class="mb-0" id="activeSessions">0</h3>
-                    <small class="text-success" id="sessionsGrowth">+0%</small>
-                </div>
-                <div class="stat-icon bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-wifi"></i>
-                </div>
-            </div>
-        </div>
-    </div>
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        pointer-events: none;
+    }
     
-    <div class="col-md-3 mb-3">
-        <div class="stat-card" onclick="window.location.href='/organization/billing'">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <small class="text-muted">Monthly Revenue</small>
-                    <h3 class="mb-0" id="monthlyRevenue">KES 0</h3>
-                    <small class="text-success" id="revenueGrowth">+0%</small>
-                </div>
-                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-            </div>
-        </div>
-    </div>
+    .welcome-text h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
     
-    <div class="col-md-3 mb-3">
-        <div class="stat-card" onclick="window.location.href='/organization/routers'">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <small class="text-muted">Active Routers</small>
-                    <h3 class="mb-0" id="activeRouters">0</h3>
-                    <small class="text-success" id="routersGrowth">+0%</small>
-                </div>
-                <div class="stat-icon bg-info bg-opacity-10 text-info">
-                    <i class="fas fa-server"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Charts Row -->
-<div class="row mb-4">
-    <div class="col-md-8">
-        <div class="data-card">
-            <div class="data-card-header">
-                <h5 class="mb-0">Revenue Overview</h5>
-                <select class="form-select form-select-sm w-auto" id="revenuePeriod" onchange="loadRevenueChart()">
-                    <option value="week">Last 7 Days</option>
-                    <option value="month" selected>Last 30 Days</option>
-                    <option value="quarter">Last 90 Days</option>
-                    <option value="year">Last 12 Months</option>
-                </select>
-            </div>
-            <canvas id="revenueChart" height="300"></canvas>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="data-card">
-            <div class="data-card-header">
-                <h5 class="mb-0">Plan Distribution</h5>
-            </div>
-            <canvas id="planChart" height="300"></canvas>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Activity & Top Users -->
-<div class="row">
-    <div class="col-md-7">
-        <div class="data-card">
-            <div class="data-card-header">
-                <h5 class="mb-0">Recent Activity</h5>
-                <a href="/organization/activity" class="text-decoration-none">View All</a>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover" id="activityTable">
-                    <thead>
-                        <tr>
-                            <th>Time</th>
-                            <th>User</th>
-                            <th>Action</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="4" class="text-center">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    .welcome-text p {
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
     
-    <div class="col-md-5">
-        <div class="data-card">
-            <div class="data-card-header">
-                <h5 class="mb-0">Top Subscribers by Usage</h5>
-                <a href="/organization/subscribers/top" class="text-decoration-none">View All</a>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-sm" id="topUsersTable">
-                    <thead>
-                        <tr>
-                            <th>Subscriber</th>
-                            <th>Usage (GB)</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="3" class="text-center">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    .date-time {
+        text-align: right;
+    }
+    
+    .date-time .date {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .date-time .time {
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card-modern {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    }
+    
+    .stat-card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border-color: transparent;
+    }
+    
+    .stat-card-modern::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card-modern:hover::after {
+        transform: scaleX(1);
+    }
+    
+    .stat-icon-modern {
+        width: 55px;
+        height: 55px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-info h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: #1a1a2e;
+    }
+    
+    .stat-info .stat-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-trend {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .trend-up {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .trend-down {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    /* Quick Actions */
+    .quick-actions {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+        color: #1a1a2e;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .section-title i {
+        color: #667eea;
+    }
+    
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .action-btn {
+        background: #f8f9fa;
+        border: none;
+        padding: 1rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #1a1a2e;
+    }
+    
+    .action-btn:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+    
+    .action-btn i {
+        font-size: 1.25rem;
+        width: 24px;
+    }
+    
+    /* Data Cards */
+    .data-card-modern {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .data-card-modern:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    
+    .card-header-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .card-header-modern h5 {
+        font-weight: 600;
+        margin-bottom: 0;
+        color: #1a1a2e;
+    }
+    
+    .view-all-link {
+        font-size: 0.875rem;
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .view-all-link:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+    
+    /* Activity List */
+    .activity-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 12px;
+        transition: background 0.3s ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    
+    .activity-icon.user {
+        background: #e0e7ff;
+        color: #4f46e5;
+    }
+    
+    .activity-icon.payment {
+        background: #d1fae5;
+        color: #10b981;
+    }
+    
+    .activity-icon.session {
+        background: #fef3c7;
+        color: #f59e0b;
+    }
+    
+    .activity-icon.router {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+    
+    .activity-details {
+        flex: 1;
+    }
+    
+    .activity-title {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        color: #1a1a2e;
+    }
+    
+    .activity-time {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    
+    .activity-status {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 20px;
+    }
+    
+    /* Top Users List */
+    .user-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .user-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem;
+        border-radius: 12px;
+        transition: background 0.3s ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .user-item:last-child {
+        border-bottom: none;
+    }
+    
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .user-info {
+        flex: 1;
+    }
+    
+    .user-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        color: #1a1a2e;
+    }
+    
+    .user-phone {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    
+    .user-stats {
+        text-align: right;
+    }
+    
+    .user-usage {
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 0.25rem;
+    }
+    
+    .user-status {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 20px;
+        display: inline-block;
+    }
+    
+    /* Recent Transactions */
+    .transaction-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem;
+        border-radius: 12px;
+        transition: background 0.3s ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .transaction-amount {
+        font-weight: 700;
+        color: #10b981;
+    }
+    
+    .transaction-amount.negative {
+        color: #ef4444;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-header {
+            padding: 1.5rem;
+        }
         
-        <div class="data-card mt-3">
-            <div class="data-card-header">
-                <h5 class="mb-0">System Health</h5>
+        .date-time {
+            text-align: left;
+            margin-top: 1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .action-buttons {
+            grid-template-columns: 1fr;
+        }
+        
+        .card-header-modern {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+    }
+    
+    /* Scrollbar Styling */
+    .activity-list::-webkit-scrollbar,
+    .user-list::-webkit-scrollbar {
+        width: 5px;
+    }
+    
+    .activity-list::-webkit-scrollbar-track,
+    .user-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .activity-list::-webkit-scrollbar-thumb,
+    .user-list::-webkit-scrollbar-thumb {
+        background: #c7d2fe;
+        border-radius: 10px;
+    }
+    
+    .activity-list::-webkit-scrollbar-thumb:hover,
+    .user-list::-webkit-scrollbar-thumb:hover {
+        background: #818cf8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="welcome-text">
+                    <h2>Welcome back, {{ user.first_name or user.email }}</h2>
+                    <p>Here's what's happening with your network today</p>
+                </div>
             </div>
-            <div class="mb-3">
-                <div class="d-flex justify-content-between mb-1">
-                    <small>API Response Time</small>
-                    <small id="apiResponseTime">95ms</small>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar bg-success" id="apiResponseBar" role="progressbar" style="width: 95%"></div>
+            <div class="col-md-4">
+                <div class="date-time">
+                    <div class="date" id="currentDate"></div>
+                    <div class="time" id="currentTime"></div>
                 </div>
             </div>
-            <div class="mb-3">
-                <div class="d-flex justify-content-between mb-1">
-                    <small>Router Uptime</small>
-                    <small id="routerUptime">99.5%</small>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card-modern" onclick="window.location.href='/organization/subscribers'">
+            <div class="stat-icon-modern bg-primary bg-opacity-10 text-primary">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="totalSubscribers">0</h3>
+                <div class="stat-label">Total Subscribers</div>
+                <span id="subscribersTrend" class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> <span id="subscribersGrowth">0</span>% this month
+                </span>
+            </div>
+        </div>
+
+        <div class="stat-card-modern" onclick="window.location.href='/organization/sessions'">
+            <div class="stat-icon-modern bg-success bg-opacity-10 text-success">
+                <i class="fas fa-wifi"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="activeSessions">0</h3>
+                <div class="stat-label">Active Sessions</div>
+                <span id="sessionsTrend" class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> <span id="sessionsGrowth">0</span> from yesterday
+                </span>
+            </div>
+        </div>
+
+        <div class="stat-card-modern" onclick="window.location.href='/organization/billing/revenue'">
+            <div class="stat-icon-modern bg-warning bg-opacity-10 text-warning">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="monthlyRevenue">KES 0</h3>
+                <div class="stat-label">Monthly Revenue</div>
+                <span id="revenueTrend" class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> <span id="revenueGrowth">0</span>% vs last month
+                </span>
+            </div>
+        </div>
+
+        <div class="stat-card-modern" onclick="window.location.href='/organization/routers'">
+            <div class="stat-icon-modern bg-info bg-opacity-10 text-info">
+                <i class="fas fa-server"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="activeRouters">0</h3>
+                <div class="stat-label">Active Routers</div>
+                <span id="routersTrend" class="stat-trend trend-up">
+                    <i class="fas fa-check-circle"></i> <span id="onlineRouters">0</span> online
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <div class="section-title">
+            <i class="fas fa-bolt"></i>
+            <span>Quick Actions</span>
+        </div>
+        <div class="action-buttons">
+            <a href="/organization/subscribers/add" class="action-btn">
+                <i class="fas fa-user-plus"></i>
+                <span>Add Subscriber</span>
+            </a>
+            <a href="/organization/vouchers/create" class="action-btn">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Generate Voucher</span>
+            </a>
+            <a href="/organization/routers/add" class="action-btn">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add Router</span>
+            </a>
+            <a href="/organization/billing/plans" class="action-btn">
+                <i class="fas fa-tag"></i>
+                <span>Manage Plans</span>
+            </a>
+            <a href="/organization/reports" class="action-btn">
+                <i class="fas fa-chart-bar"></i>
+                <span>View Reports</span>
+            </a>
+            <a href="/organization/settings" class="action-btn">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Activity -->
+        <div class="col-lg-7">
+            <div class="data-card-modern">
+                <div class="card-header-modern">
+                    <h5><i class="fas fa-history me-2"></i>Recent Activity</h5>
+                    <a href="/organization/activity" class="view-all-link">View All <i class="fas fa-arrow-right ms-1"></i></a>
                 </div>
-                <div class="progress">
-                    <div class="progress-bar bg-info" id="routerUptimeBar" role="progressbar" style="width: 99.5%"></div>
+                <div class="activity-list" id="activityList">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="mb-3">
-                <div class="d-flex justify-content-between mb-1">
-                    <small>Database Connection</small>
-                    <small id="dbStatus">Healthy</small>
+        </div>
+
+        <!-- Top Subscribers -->
+        <div class="col-lg-5">
+            <div class="data-card-modern">
+                <div class="card-header-modern">
+                    <h5><i class="fas fa-trophy me-2"></i>Top Subscribers</h5>
+                    <a href="/organization/subscribers/top" class="view-all-link">View All <i class="fas fa-arrow-right ms-1"></i></a>
                 </div>
-                <div class="progress">
-                    <div class="progress-bar bg-success" id="dbStatusBar" role="progressbar" style="width: 100%"></div>
+                <div class="user-list" id="topUsersList">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div>
-                <div class="d-flex justify-content-between mb-1">
-                    <small>Cache (Redis)</small>
-                    <small id="redisStatus">Operational</small>
+
+            <!-- Recent Transactions -->
+            <div class="data-card-modern mt-4">
+                <div class="card-header-modern">
+                    <h5><i class="fas fa-credit-card me-2"></i>Recent Transactions</h5>
+                    <a href="/organization/transactions" class="view-all-link">View All <i class="fas fa-arrow-right ms-1"></i></a>
                 </div>
-                <div class="progress">
-                    <div class="progress-bar bg-success" id="redisStatusBar" role="progressbar" style="width: 100%"></div>
+                <div class="activity-list" id="transactionsList">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -185,7 +609,16 @@
 </div>
 
 <script>
-let revenueChart, planChart;
+// Update date and time
+function updateDateTime() {
+    const now = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+    document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+setInterval(updateDateTime, 1000);
+updateDateTime();
 
 // Load dashboard data
 async function loadDashboardData() {
@@ -193,153 +626,104 @@ async function loadDashboardData() {
     try {
         const response = await fetch('/api/v1/organizations/dashboard/stats', {
             headers: {
-                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
             }
         });
         const data = await response.json();
         
         if (data) {
-            $('#totalSubscribers').text(data.total_subscribers || 0);
-            $('#activeSessions').text(data.active_sessions || 0);
-            $('#monthlyRevenue').text(formatCurrency(data.monthly_revenue || 0));
-            $('#activeRouters').text(data.active_routers || 0);
+            // Update stats with animations
+            animateNumber('totalSubscribers', 0, data.total_subscribers || 0);
+            animateNumber('activeSessions', 0, data.active_sessions || 0);
+            animateNumber('monthlyRevenue', 0, data.monthly_revenue || 0, true);
+            animateNumber('activeRouters', 0, data.active_routers || 0);
             
-            $('#subscribersGrowth').text(`+${data.subscribers_growth || 0}%`);
-            $('#sessionsGrowth').text(`+${data.sessions_growth || 0}%`);
-            $('#revenueGrowth').text(`+${data.revenue_growth || 0}%`);
-            $('#routersGrowth').text(`+${data.routers_growth || 0}%`);
+            document.getElementById('subscribersGrowth').textContent = Math.abs(data.subscribers_growth || 0);
+            document.getElementById('sessionsGrowth').textContent = Math.abs(data.sessions_growth || 0);
+            document.getElementById('revenueGrowth').textContent = Math.abs(data.revenue_growth || 0);
+            document.getElementById('onlineRouters').textContent = data.online_routers || 0;
+            
+            // Update trend colors
+            updateTrend('subscribersTrend', data.subscribers_growth);
+            updateTrend('sessionsTrend', data.sessions_growth);
+            updateTrend('revenueTrend', data.revenue_growth);
         }
     } catch (error) {
         console.error('Failed to load dashboard data:', error);
+        showToast('Failed to load dashboard data', 'error');
     }
     hideLoading();
 }
 
-// Load revenue chart
-async function loadRevenueChart() {
-    const period = $('#revenuePeriod').val();
-    showLoading();
+// Animate number counting
+function animateNumber(elementId, start, end, isCurrency = false) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
     
-    try {
-        const response = await fetch(`/api/v1/reports/revenue?period=${period}`, {
-            headers: {
-                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
-            }
-        });
-        const data = await response.json();
-        
-        const ctx = document.getElementById('revenueChart').getContext('2d');
-        
-        if (revenueChart) revenueChart.destroy();
-        
-        revenueChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.labels || [],
-                datasets: [{
-                    label: 'Revenue',
-                    data: data.values || [],
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: { 
-                        callbacks: { 
-                            label: (ctx) => formatCurrency(ctx.raw)
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        ticks: {
-                            callback: (value) => formatCurrency(value)
-                        }
-                    }
-                }
-            }
-        });
-    } catch (error) {
-        console.error('Failed to load revenue chart:', error);
-    }
-    hideLoading();
+    const duration = 1000;
+    const step = 20;
+    const increment = (end - start) / (duration / step);
+    let current = start;
+    let timer = setInterval(() => {
+        current += increment;
+        if (current >= end) {
+            current = end;
+            clearInterval(timer);
+        }
+        if (isCurrency) {
+            element.textContent = formatCurrency(Math.floor(current));
+        } else {
+            element.textContent = Math.floor(current);
+        }
+    }, step);
 }
 
-// Load plan distribution chart
-async function loadPlanChart() {
-    showLoading();
-    try {
-        const response = await fetch('/api/v1/reports/plan-distribution', {
-            headers: {
-                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
-            }
-        });
-        const data = await response.json();
-        
-        const ctx = document.getElementById('planChart').getContext('2d');
-        
-        if (planChart) planChart.destroy();
-        
-        planChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: data.labels || [],
-                datasets: [{
-                    data: data.values || [],
-                    backgroundColor: ['#667eea', '#764ba2', '#10b981', '#f59e0b', '#ef4444', '#3b82f6']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => `${ctx.label}: ${ctx.raw}%`
-                        }
-                    }
-                }
-            }
-        });
-    } catch (error) {
-        console.error('Failed to load plan chart:', error);
+// Update trend indicator
+function updateTrend(elementId, growth) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    if (growth >= 0) {
+        element.className = 'stat-trend trend-up';
+        element.innerHTML = `<i class="fas fa-arrow-up"></i> ${Math.abs(growth)}% this month`;
+    } else {
+        element.className = 'stat-trend trend-down';
+        element.innerHTML = `<i class="fas fa-arrow-down"></i> ${Math.abs(growth)}% this month`;
     }
-    hideLoading();
 }
 
 // Load recent activity
 async function loadRecentActivity() {
     try {
-        const response = await fetch('/api/v1/audit/recent?limit=5', {
+        const response = await fetch('/api/v1/audit/recent?limit=10', {
             headers: {
-                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
             }
         });
         const activities = await response.json();
         
-        const tbody = $('#activityTable tbody');
-        tbody.empty();
+        const container = document.getElementById('activityList');
+        container.innerHTML = '';
         
         if (activities.length === 0) {
-            tbody.html('<tr><td colspan="4" class="text-center">No recent activity</td></tr>');
+            container.innerHTML = '<div class="text-center py-4 text-muted">No recent activity</div>';
         } else {
             activities.forEach(activity => {
-                const statusClass = activity.status === 'success' ? 'status-active' : 'status-inactive';
-                tbody.append(`
-                    <tr>
-                        <td>${formatDate(activity.created_at)}</td>
-                        <td>${activity.user_email || 'System'}</td>
-                        <td>${activity.action}</td>
-                        <td><span class="status-badge ${statusClass}">${activity.status}</span></td>
-                    </tr>
-                `);
+                const iconClass = getActivityIcon(activity.action);
+                container.innerHTML += `
+                    <div class="activity-item">
+                        <div class="activity-icon ${iconClass}">
+                            <i class="${getActivityIconClass(activity.action)}"></i>
+                        </div>
+                        <div class="activity-details">
+                            <div class="activity-title">${activity.action}</div>
+                            <div class="activity-time">${formatRelativeTime(activity.created_at)}</div>
+                        </div>
+                        <div>
+                            <span class="activity-status status-${activity.status}">${activity.status}</span>
+                        </div>
+                    </div>
+                `;
             });
         }
     } catch (error) {
@@ -352,26 +736,33 @@ async function loadTopUsers() {
     try {
         const response = await fetch('/api/v1/reports/top-users?limit=5', {
             headers: {
-                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
             }
         });
         const users = await response.json();
         
-        const tbody = $('#topUsersTable tbody');
-        tbody.empty();
+        const container = document.getElementById('topUsersList');
+        container.innerHTML = '';
         
         if (users.length === 0) {
-            tbody.html('<tr><td colspan="3" class="text-center">No data available</td></tr>');
+            container.innerHTML = '<div class="text-center py-4 text-muted">No data available</div>';
         } else {
-            users.forEach(user => {
+            users.forEach((user, index) => {
+                const initials = (user.name || user.phone).charAt(0).toUpperCase();
                 const statusClass = user.status === 'active' ? 'status-active' : 'status-inactive';
-                tbody.append(`
-                    <tr>
-                        <td>${user.name || user.phone}</td>
-                        <td>${(user.usage_gb || 0).toFixed(2)} GB</td>
-                        <td><span class="status-badge ${statusClass}">${user.status}</span></td>
-                    </tr>
-                `);
+                container.innerHTML += `
+                    <div class="user-item">
+                        <div class="user-avatar">${initials}</div>
+                        <div class="user-info">
+                            <div class="user-name">${user.name || user.phone}</div>
+                            <div class="user-phone">${user.phone || ''}</div>
+                        </div>
+                        <div class="user-stats">
+                            <div class="user-usage">${(user.usage_gb || 0).toFixed(1)} GB</div>
+                            <div class="user-status ${statusClass}">${user.status}</div>
+                        </div>
+                    </div>
+                `;
             });
         }
     } catch (error) {
@@ -379,55 +770,83 @@ async function loadTopUsers() {
     }
 }
 
-// Load notifications
-async function loadNotifications() {
+// Load recent transactions
+async function loadRecentTransactions() {
     try {
-        const response = await fetch('/api/v1/notifications/unread', {
+        const response = await fetch('/api/v1/transactions/recent?limit=5', {
             headers: {
-                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
             }
         });
-        const notifications = await response.json();
+        const transactions = await response.json();
         
-        $('#notificationCount').text(notifications.length);
+        const container = document.getElementById('transactionsList');
+        container.innerHTML = '';
         
-        const list = $('#notificationList');
-        list.empty();
-        
-        if (notifications.length === 0) {
-            list.html('<li><a class="dropdown-item" href="#">No new notifications</a></li>');
+        if (transactions.length === 0) {
+            container.innerHTML = '<div class="text-center py-4 text-muted">No recent transactions</div>';
         } else {
-            notifications.slice(0, 5).forEach(notif => {
-                list.append(`
-                    <li><a class="dropdown-item" href="${notif.link}">
-                        <small class="text-muted">${formatDate(notif.created_at)}</small><br>
-                        <small>${notif.message}</small>
-                    </a></li>
-                `);
+            transactions.forEach(transaction => {
+                const amountClass = transaction.status === 'success' ? 'transaction-amount' : 'transaction-amount negative';
+                container.innerHTML += `
+                    <div class="transaction-item">
+                        <div class="activity-icon payment">
+                            <i class="fas fa-${transaction.payment_method === 'mpesa' ? 'mobile-alt' : 'money-bill-wave'}"></i>
+                        </div>
+                        <div class="activity-details">
+                            <div class="activity-title">${transaction.description || 'Payment'}</div>
+                            <div class="activity-time">${formatRelativeTime(transaction.created_at)}</div>
+                        </div>
+                        <div class="${amountClass}">
+                            ${transaction.status === 'success' ? '+' : '-'} ${formatCurrency(transaction.amount)}
+                        </div>
+                    </div>
+                `;
             });
-            if (notifications.length > 5) {
-                list.append('<li><hr class="dropdown-divider"></li>');
-                list.append('<li><a class="dropdown-item text-center" href="/organization/notifications">View all</a></li>');
-            }
         }
     } catch (error) {
-        console.error('Failed to load notifications:', error);
+        console.error('Failed to load transactions:', error);
     }
+}
+
+// Helper functions
+function getActivityIcon(action) {
+    if (action.includes('login') || action.includes('user')) return 'user';
+    if (action.includes('payment') || action.includes('transaction')) return 'payment';
+    if (action.includes('session') || action.includes('connect')) return 'session';
+    return 'router';
+}
+
+function getActivityIconClass(action) {
+    if (action.includes('login') || action.includes('user')) return 'fas fa-user';
+    if (action.includes('payment') || action.includes('transaction')) return 'fas fa-credit-card';
+    if (action.includes('session') || action.includes('connect')) return 'fas fa-wifi';
+    return 'fas fa-server';
+}
+
+function formatRelativeTime(timestamp) {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diff = Math.floor((now - then) / 1000);
+    
+    if (diff < 60) return `${diff} seconds ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+    return `${Math.floor(diff / 86400)} days ago`;
 }
 
 // Initialize dashboard
 $(document).ready(function() {
     loadDashboardData();
-    loadRevenueChart();
-    loadPlanChart();
     loadRecentActivity();
     loadTopUsers();
-    loadNotifications();
+    loadRecentTransactions();
     
     // Refresh every 30 seconds
     setInterval(() => {
         loadDashboardData();
-        loadNotifications();
+        loadRecentActivity();
+        loadRecentTransactions();
     }, 30000);
 });
 </script>

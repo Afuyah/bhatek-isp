@@ -15,8 +15,40 @@ class AuthMiddleware:
         self.secret_key = secret_key
         self.exempt_paths = exempt_paths or []
         
-        # Log the exempt paths for debugging
-        logger.info(f"AuthMiddleware initialized with exempt paths: {self.exempt_paths}")
+        # Get JWT configuration from app config if available
+        self.algorithm = 'HS256'
+        self.expected_audience = 'isp-saas-api'  # Match JWTService default
+        self.expected_issuer = 'isp-saas'  # Match JWTService default
+        self.token_type = 'access'  # We only validate access tokens
+        
+        # Separate web and API paths for better handling
+        self.web_exempt_prefixes = [
+            '/',
+            '/login',
+            '/logout',
+            '/register',
+            '/register-success',
+            '/verify-email',
+            '/dashboard',
+            '/super-admin',
+            '/organization/',
+            '/hotspot/',
+            '/static/',
+            '/health'
+        ]
+        
+        self.api_exact_exempt = [
+            '/api/v1/health',
+            '/api/v1/auth/login',
+            '/api/v1/auth/register',
+            '/api/v1/auth/refresh',
+            '/api/v1/auth/forgot-password',
+            '/api/v1/auth/reset-password',
+        ]
+        
+        logger.info(f"AuthMiddleware initialized with audience: {self.expected_audience}")
+        logger.debug(f"Web exempt prefixes: {self.web_exempt_prefixes}")
+        logger.debug(f"API exact exempt: {self.api_exact_exempt}")
     
     def __call__(self, environ, start_response):
         """WSGI callable"""
@@ -51,21 +83,66 @@ class AuthMiddleware:
         environ['ORGANIZATION_ID'] = payload.get('organization_id')
         environ['USER_ROLE'] = payload.get('role')
         environ['USER_EMAIL'] = payload.get('email')
+        environ['USER_PERMISSIONS'] = payload.get('permissions', [])
         
         return self.app(environ, start_response)
     
     def _is_exempt_path(self, path: str) -> bool:
         """Check if path is exempt from authentication"""
+        
+        # Check exact matches for API routes FIRST (highest priority)
+        if path in self.api_exact_exempt:
+            logger.debug(f"Path {path} matched exact API exempt")
+            return True
+        
+        # Also check API exact matches with trailing slash variation
+        if path.rstrip('/') in self.api_exact_exempt:
+            logger.debug(f"Path {path} matched API exempt (with slash normalization)")
+            return True
+        
+        # For web routes (non-API), check prefix matches
+        # This prevents API routes from being matched by web prefixes
+        if not path.startswith('/api/'):
+            for prefix in self.web_exempt_prefixes:
+                # Exact match for web routes
+                if path == prefix:
+                    logger.debug(f"Path {path} matched exact web exempt: {prefix}")
+                    return True
+                
+                # Prefix match for directories (with or without trailing slash)
+                if prefix.endswith('/'):
+                    if path.startswith(prefix):
+                        logger.debug(f"Path {path} matched web exempt prefix: {prefix}")
+                        return True
+                else:
+                    # For non-trailing-slash prefixes, match exactly or with slash
+                    if path == prefix or path.startswith(prefix + '/'):
+                        logger.debug(f"Path {path} matched web exempt prefix: {prefix}")
+                        return True
+        
+        # Check legacy exempt_paths if provided (backward compatibility)
         for exempt in self.exempt_paths:
+            # Skip API routes in legacy list - they should be handled by exact match only
+            if exempt.startswith('/api/') and path != exempt:
+                continue
+                
             # Exact match
             if path == exempt:
+                logger.debug(f"Path {path} matched legacy exempt exact: {exempt}")
                 return True
-            # Path starts with exempt (for directories like /static)
-            if exempt.endswith('/') and path.startswith(exempt):
-                return True
-            # Path matches pattern
-            if path.startswith(exempt):
-                return True
+            
+            # For non-API routes, check prefix matches
+            if not path.startswith('/api/') and not exempt.startswith('/api/'):
+                if exempt.endswith('/') and path.startswith(exempt):
+                    logger.debug(f"Path {path} matched legacy exempt prefix: {exempt}")
+                    return True
+                if path.startswith(exempt):
+                    # Make sure we don't accidentally match /org with /api/v1/org
+                    if exempt == '/organization' and path.startswith('/api/'):
+                        continue
+                    logger.debug(f"Path {path} matched legacy exempt startswith: {exempt}")
+                    return True
+        
         return False
     
     def _extract_token(self, auth_header: str) -> Optional[str]:
@@ -75,28 +152,49 @@ class AuthMiddleware:
         return auth_header.split(' ')[1]
     
     def _validate_token(self, token: str) -> Optional[dict]:
-        """Validate JWT token with signature verification"""
+        """Validate JWT token with signature verification - matches JWTService"""
         if not self.secret_key:
             logger.error("JWT_SECRET_KEY not configured in AuthMiddleware")
             return None
         
         try:
+            # Decode with audience and issuer validation (matching JWTService)
             payload = jwt.decode(
                 token,
                 self.secret_key,
-                algorithms=['HS256'],
-                options={'verify_exp': True}
+                algorithms=[self.algorithm],
+                audience=self.expected_audience,
+                issuer=self.expected_issuer,
+                options={
+                    'verify_exp': True,
+                    'verify_aud': True,
+                    'verify_iss': True,
+                    'require': ['exp', 'iat', 'sub']
+                }
             )
             
             # Check token type
-            if payload.get('type') != 'access':
-                logger.warning(f"Invalid token type: {payload.get('type')}")
+            if payload.get('type') != self.token_type:
+                logger.warning(f"Invalid token type: {payload.get('type')}. Expected {self.token_type}")
                 return None
             
+            # Check if token is expired (additional check)
+            exp = payload.get('exp')
+            if exp and datetime.utcnow().timestamp() > exp:
+                logger.warning("Token expired (timestamp check)")
+                return None
+            
+            logger.debug(f"Token validated successfully for user: {payload.get('user_id')}")
             return payload
             
         except jwt.ExpiredSignatureError:
             logger.warning("Token expired")
+            return None
+        except jwt.InvalidAudienceError as e:
+            logger.warning(f"Invalid audience: {str(e)}. Expected: {self.expected_audience}")
+            return None
+        except jwt.InvalidIssuerError as e:
+            logger.warning(f"Invalid issuer: {str(e)}. Expected: {self.expected_issuer}")
             return None
         except jwt.InvalidTokenError as e:
             logger.warning(f"Invalid token: {str(e)}")

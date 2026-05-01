@@ -4,11 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ organization.name }} - ISP Manager{% endblock %}</title>
+    <!-- CSS Dependencies -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    
     <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -21,24 +30,25 @@
             overflow-x: hidden;
         }
 
-        /* Sidebar Styles */
         .sidebar {
             position: fixed;
             top: 0;
             bottom: 0;
             left: 0;
-            z-index: 100;
-            width: 260px;
+            z-index: 1000;
+            width: var(--sidebar-width);
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: white;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
         }
 
         .sidebar-header {
             padding: 1.5rem;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             margin-bottom: 1rem;
+            text-align: center;
         }
 
         .sidebar-header h3 {
@@ -59,6 +69,7 @@
             transition: all 0.3s;
             border-radius: 0;
             margin: 0.2rem 0;
+            position: relative;
         }
 
         .sidebar .nav-link:hover {
@@ -70,23 +81,31 @@
         .sidebar .nav-link.active {
             color: white;
             background: linear-gradient(90deg, rgba(102,126,234,0.2) 0%, rgba(118,75,162,0.2) 100%);
-            border-left: 3px solid #667eea;
+        }
+
+        .sidebar .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
         }
 
         .sidebar .nav-link i {
             width: 25px;
             margin-right: 10px;
+            text-align: center;
         }
 
-        /* Main Content */
         .main-content {
-            margin-left: 260px;
+            margin-left: var(--sidebar-width);
             padding: 1.5rem;
             min-height: 100vh;
             transition: all 0.3s;
         }
 
-        /* Top Navbar */
         .top-navbar {
             background: white;
             border-radius: 15px;
@@ -131,39 +150,14 @@
         .user-avatar {
             width: 40px;
             height: 40px;
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
-        }
-
-        /* Cards */
-        .stat-card {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            transition: transform 0.3s, box-shadow 0.3s;
             cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
         }
 
         .data-card {
@@ -174,16 +168,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .data-card-header {
-            border-bottom: 1px solid #e9ecef;
-            padding-bottom: 1rem;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Buttons */
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -194,7 +178,6 @@
             box-shadow: 0 5px 15px rgba(102,126,234,0.4);
         }
 
-        /* Status Badges */
         .status-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
@@ -205,11 +188,7 @@
 
         .status-active { background: #d1fae5; color: #065f46; }
         .status-inactive { background: #fee2e2; color: #991b1b; }
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-suspended { background: #ffedd5; color: #9a3412; }
-        .status-expired { background: #f3f4f6; color: #374151; }
 
-        /* Loading Overlay */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -237,7 +216,21 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Responsive */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1100;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -252,19 +245,9 @@
             }
             .mobile-toggle {
                 display: block;
-                position: fixed;
-                top: 1rem;
-                left: 1rem;
-                z-index: 1060;
-                background: #667eea;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                padding: 0.5rem 1rem;
             }
         }
 
-        /* Toast */
         .toast-container {
             position: fixed;
             bottom: 20px;
@@ -275,78 +258,90 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Mobile Toggle Button -->
-    <button class="mobile-toggle d-md-none" onclick="toggleSidebar()">
+    <button class="mobile-toggle" onclick="toggleSidebar()">
         <i class="fas fa-bars"></i>
     </button>
 
-    <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3><i class="fas fa-wifi me-2"></i>ISP Manager</h3>
-            <p>{{ organization.name }}</p>
-        </div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'organization.dashboard' %}active{% endif %}" href="/organization/dashboard">
-                    <i class="fas fa-tachometer-alt"></i>
-                    Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'subscribers' in request.path %}active{% endif %}" href="/organization/subscribers">
-                    <i class="fas fa-users"></i>
-                    Subscribers
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'routers' in request.path %}active{% endif %}" href="/organization/routers">
-                    <i class="fas fa-server"></i>
-                    Routers
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'access-points' in request.path %}active{% endif %}" href="/organization/access-points">
-                    <i class="fas fa-wifi"></i>
-                    Access Points
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'plans' in request.path %}active{% endif %}" href="/organization/plans">
-                    <i class="fas fa-tag"></i>
-                    Plans
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'vouchers' in request.path %}active{% endif %}" href="/organization/vouchers">
-                    <i class="fas fa-ticket-alt"></i>
-                    Vouchers
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'billing' in request.path %}active{% endif %}" href="/organization/billing">
-                    <i class="fas fa-credit-card"></i>
-                    Billing
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'reports' in request.path %}active{% endif %}" href="/organization/reports">
-                    <i class="fas fa-chart-line"></i>
-                    Reports
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'settings' in request.path %}active{% endif %}" href="/organization/settings">
-                    <i class="fas fa-cog"></i>
-                    Settings
-                </a>
-            </li>
-        </ul>
-    </nav>
+    <div class="sidebar-header">
+        <h3><i class="fas fa-wifi me-2"></i>ISP Manager</h3>
+        <p>{{ organization.name }}</p>
+    </div>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" 
+               href="/organization/{{ organization.id }}/dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'subscribers' in request.path %}active{% endif %}" 
+               href="/organization/{{ organization.id }}/subscribers">
+                <i class="fas fa-users"></i>
+                <span>Subscribers</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'routers' in request.path %}active{% endif %}" 
+               href="/organization/{{ organization.id }}/routers">
+                <i class="fas fa-server"></i>
+                <span>Routers</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'access-points' in request.path %}active{% endif %}" 
+               href="/organization/{{ organization.id }}/access-points">
+                <i class="fas fa-wifi"></i>
+                <span>Access Points</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'networks' in request.path %}active{% endif %}" 
+               href="/organization/{{ organization.id }}/networks/">
+                <i class="fas fa-network-wired"></i>
+                <span>Networks</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'plans' in request.path %}active{% endif %}" 
+               href="/organization/{{ organization.id }}/plans">
+                <i class="fas fa-tag"></i>
+                <span>Plans</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'vouchers' in request.path %}active{% endif %}" 
+               href="/organization/{{ organization.id }}/vouchers">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Vouchers</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'billing' in request.path %}active{% endif %}" 
+               href="/organization/{{ organization.id }}/billing">
+                <i class="fas fa-credit-card"></i>
+                <span>Billing</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'reports' in request.path %}active{% endif %}" 
+               href="/organization/{{ organization.id }}/reports">
+                <i class="fas fa-chart-line"></i>
+                <span>Reports</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'settings' in request.path %}active{% endif %}" 
+               href="/organization/{{ organization.id }}/settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </li>
+    </ul>
+</nav>
 
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Top Navbar -->
         <div class="top-navbar">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="organization-info">
@@ -360,26 +355,28 @@
                 </div>
                 <div class="user-menu">
                     <div class="dropdown">
-                        <button class="btn btn-link text-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <button class="btn btn-link text-dark position-relative dropdown-toggle" type="button" data-bs-toggle="dropdown">
                             <i class="fas fa-bell"></i>
-                            <span class="badge bg-danger rounded-pill" id="notificationCount">0</span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationCount" style="font-size: 0.6rem;">0</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end" id="notificationList">
-                            <li><a class="dropdown-item" href="#">No notifications</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end" id="notificationList" style="width: 300px;">
+                            <li class="dropdown-header">Notifications</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-center" href="#">No new notifications</a></li>
                         </ul>
                     </div>
                     <div class="dropdown">
                         <button class="btn btn-link text-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">
                             <div class="user-avatar">
-                                {{ (user.first_name or user.email)[0]|upper }}
+                                {{ (user.first_name or user.email)[0]|upper if user else 'U' }}
                             </div>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text">{{ user.email }}</span></li>
+                            <li><span class="dropdown-item-text fw-bold">{{ user.first_name }} {{ user.last_name }}</span></li>
+                            <li><span class="dropdown-item-text small text-muted">{{ user.email }}</span></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/organization/profile"><i class="fas fa-user me-2"></i>Profile</a></li>
-                            <li><a class="dropdown-item" href="/organization/settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
-                            <li><a class="dropdown-item" href="/organization/switch"><i class="fas fa-exchange-alt me-2"></i>Switch Organization</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                         </ul>
@@ -388,11 +385,11 @@
             </div>
         </div>
 
-        <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show mb-3" role="alert">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }} me-2"></i>
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
@@ -400,30 +397,23 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Main Content Block -->
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Toast Container -->
     <div class="toast-container"></div>
-
-    <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script>
-        // Toggle sidebar on mobile
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('show');
         }
 
-        // Global functions
         function showLoading() {
             document.getElementById('loadingOverlay').style.display = 'flex';
         }
@@ -444,34 +434,27 @@
                 </div>
             `;
             toastContainer.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+            const bsToast = new bootstrap.Toast(toast, { delay: 5000 });
             bsToast.show();
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        function formatCurrency(amount, currency = 'KES') {
-            return new Intl.NumberFormat('en-KE', {
-                style: 'currency',
-                currency: currency
-            }).format(amount);
+            setTimeout(() => toast.remove(), 5000);
         }
 
         function formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString('en-KE', {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-KE', {
                 year: 'numeric',
                 month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                day: 'numeric'
             });
         }
 
-        // Store organization and user info
+
+
+
         sessionStorage.setItem('organization_id', '{{ organization.id }}');
+        sessionStorage.setItem('organization_name', '{{ organization.name }}');
         sessionStorage.setItem('organization_slug', '{{ organization.slug }}');
-        sessionStorage.setItem('user_email', '{{ user.email }}');
-        
-       
     </script>
     {% block extra_js %}{% endblock %}
 </body>

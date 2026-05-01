@@ -1,141 +1,154 @@
 {% extends "web/base.html" %}
+
 {% block title %}Login | Bhatek ISP Portal{% endblock %}
 
 {% block content %}
-
-<div class="login-container" style="min-height: 100vh; background: linear-gradient(105deg, #e8f0ee 0%, #d4e4df 100%); display: flex; align-items: center;">
+<div class="login-container" style="min-height: 100vh; background: linear-gradient(105deg, #e8f0ee 0%, #d4e4df 100%);">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5 col-xl-4">
-
+        <div class="row justify-content-center align-items-center" style="min-height: 100vh; padding: 100px 0;">
+            <div class="col-md-6 col-lg-5">
                 <!-- Login Card -->
-                <div class="card-modernv mt-4" style="background: white; border-radius: 28px; padding: 2.5rem 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.1);">
-
-                    <!-- Logo & Header -->
-                    <div class="text-center mb-5">
-                        <div style="width: 68px; height: 68px; background: #2d6a4f10; border-radius: 20px; 
-                                    display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
-                            <i class="fas fa-wifi" style="font-size: 2rem; color: #2d6a4f;"></i>
+                <div class="card-modern" style="background: white; border-radius: 28px; padding: 2rem; box-shadow: 0 20px 35px -10px rgba(0,0,0,0.08);">
+                    <div class="text-center mb-4">
+                        <!-- Logo Area -->
+                        <div style="width: 64px; height: 64px; background: #2d6a4f10; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
+                            <i class="fas fa-wifi" style="font-size: 1.8rem; color: #2d6a4f;"></i>
                         </div>
-                        <h2 style="font-weight: 700; color: #1a2e2a; font-size: 1.85rem; letter-spacing: -0.4px;">
+                        <h2 style="font-weight: 700; color: #1a2e2a; font-size: 1.75rem; letter-spacing: -0.3px; margin-bottom: 0.5rem;">
                             Welcome Back
                         </h2>
-                        <p style="color: #6b7a75; margin-top: 0.5rem; font-size: 0.95rem;">
-                            Sign in to your ISP management dashboard
+                        <p style="color: #6b7a75; font-size: 0.9rem;">
+                            Access your ISP management dashboard
                         </p>
                     </div>
-
-                    <!-- Error Message -->
+                    
+                    <!-- Error Alert -->
                     {% if error %}
-                    <div class="alert alert-danger text-center" role="alert" 
-                         style="border-radius: 16px; border: none; background: #fee2e2; color: #991b1b; padding: 0.9rem;">
+                    <div class="alert alert-danger fade show" role="alert" style="border-radius: 14px; border: none; background: #fee2e2; color: #991b1b; font-size: 0.85rem; padding: 0.75rem 1rem;">
                         <i class="fas fa-exclamation-circle me-2"></i>
                         {{ error }}
                     </div>
                     {% endif %}
-
+                    
                     <!-- Login Form -->
                     <form method="POST">
-                        <div class="mb-4">
-                            <label class="form-label fw-medium" style="color: #1a2e2a; font-size: 0.9rem;">
-                                Email Address
+                        <div class="mb-3">
+                            <label for="email" class="form-label" style="font-weight: 500; color: #1a2e2a; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-envelope me-1" style="font-size: 0.75rem; color: #2d6a4f;"></i> Email Address
                             </label>
-                            <input type="email" 
-                                   class="form-control form-control-lg" 
-                                   id="email" 
-                                   name="email" 
-                                   required
-                                   placeholder="admin@bhatek.com"
-                                   style="border-radius: 16px; border: 1.5px solid #e2e8f0; padding: 0.85rem 1.2rem;">
+                            <input type="email" class="form-control" id="email" name="email" required 
+                                   style="border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 0.75rem 1rem; font-size: 0.9rem; transition: all 0.2s ease;"
+                                   onfocus="this.style.borderColor='#2d6a4f'; this.style.boxShadow='0 0 0 3px #2d6a4f20'"
+                                   onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'"
+                                   placeholder="admin@bhatek.com">
                         </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-medium" style="color: #1a2e2a; font-size: 0.9rem;">
-                                Password
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label" style="font-weight: 500; color: #1a2e2a; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-lock me-1" style="font-size: 0.75rem; color: #2d6a4f;"></i> Password
                             </label>
-                            <input type="password" 
-                                   class="form-control form-control-lg" 
-                                   id="password" 
-                                   name="password" 
-                                   required
-                                   placeholder="••••••••"
-                                   style="border-radius: 16px; border: 1.5px solid #e2e8f0; padding: 0.85rem 1.2rem;">
+                            <input type="password" class="form-control" id="password" name="password" required
+                                   style="border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 0.75rem 1rem; font-size: 0.9rem; transition: all 0.2s ease;"
+                                   onfocus="this.style.borderColor='#2d6a4f'; this.style.boxShadow='0 0 0 3px #2d6a4f20'"
+                                   onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'"
+                                   placeholder="••••••••">
                         </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-4">
+                        
+                        <div class="mb-4 d-flex justify-content-between align-items-center">
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="remember" style="cursor: pointer;">
-                                <label class="form-check-label" for="remember" style="font-size: 0.9rem; color: #4a5b56;">
+                                <input type="checkbox" class="form-check-input" id="remember" 
+                                       style="border-radius: 4px; border: 1.5px solid #cbd5e1; cursor: pointer;">
+                                <label class="form-check-label" for="remember" style="font-size: 0.85rem; color: #4a5b56;">
                                     Remember me
                                 </label>
                             </div>
-                            <a href="#" class="text-decoration-none" style="color: #2d6a4f; font-weight: 500; font-size: 0.9rem;">
+                            <a href="#" class="text-decoration-none" style="font-size: 0.85rem; color: #2d6a4f; font-weight: 500;">
                                 Forgot password?
                             </a>
                         </div>
-
-                        <button type="submit" id="loginBtn"
-                                class="btn btn-primary w-100 btn-lg" 
-                                style="background: #2d6a4f; border-radius: 16px; padding: 0.95rem; font-weight: 600; font-size: 1.02rem;">
-                            Sign In
+                        
+                        <button type="submit" class="btn btn-primary w-100" style="background: #2d6a4f; padding: 0.875rem; font-weight: 600; font-size: 0.95rem; border-radius: 14px;">
+                            <i class="fas fa-arrow-right-to-bracket me-2"></i> Sign In
                         </button>
                     </form>
-
-                    <!-- Security Note -->
-                    <div class="text-center mt-5">
-                        <p style="font-size: 0.82rem; color: #6b7a75;">
-                            <i class="fas fa-shield-alt me-1"></i>
+                    
+                    <div class="text-center mt-4">
+                        <hr style="border-color: #eef2f0; margin: 1.5rem 0;">
+                        <p style="font-size: 0.85rem; color: #6b7a75; margin-bottom: 0;">
+                            <i class="fas fa-shield-alt me-1" style="color: #2d6a4f;"></i> 
                             Secure enterprise authentication
                         </p>
+                        <p class="mt-2 mb-0" style="font-size: 0.75rem; color: #94a3b8;">
+                            Need help? <a href="/support" style="color: #2d6a4f;">Contact support</a>
+                        </p>
                     </div>
-
                 </div>
-
-                <!-- Signup / Demo Link -->
+                
+                <!-- Demo Access Hint -->
                 <div class="text-center mt-4">
-                    <p style="font-size: 0.9rem; color: #4a5b56;">
-                        New to Bhatek? 
-                        <a href="/" style="color: #2d6a4f; font-weight: 600;">Create an account</a>
+                    <p style="font-size: 0.8rem; color: #4a5b56;">
+                        <i class="fas fa-wifi me-1"></i> 
+                        New to Bhatek? <a href="/hotspot/demo" style="color: #2d6a4f; font-weight: 500;">Try our demo hotspot</a>
                     </p>
                 </div>
-
             </div>
         </div>
     </div>
 </div>
 
 <style>
+    /* Custom focus styles */
     .form-control:focus {
         border-color: #2d6a4f;
-        box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.15);
+        box-shadow: 0 0 0 3px #2d6a4f20;
         outline: none;
     }
-
+    
+    .form-check-input:checked {
+        background-color: #2d6a4f;
+        border-color: #2d6a4f;
+    }
+    
+    .form-check-input:focus {
+        border-color: #2d6a4f;
+        box-shadow: 0 0 0 2px #2d6a4f20;
+    }
+    
+    /* Smooth transitions */
     .card-modern {
-        transition: all 0.3s ease;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-
+    
     .card-modern:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 30px 50px rgba(0, 0, 0, 0.12);
+        transform: translateY(-3px);
+        box-shadow: 0 25px 40px -12px rgba(0,0,0,0.12);
     }
-
-    @media (max-width: 576px) {
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
         .card-modern {
-            padding: 2rem 1.5rem;
+            padding: 1.5rem;
+        }
+        
+        .card-modern h2 {
+            font-size: 1.5rem;
         }
     }
 </style>
 
+<!-- Optional: Add loading effect on form submit -->
 <script>
-    // Form submit loading state
-    document.querySelector('form').addEventListener('submit', function() {
-        const btn = document.getElementById('loginBtn');
+    document.querySelector('form')?.addEventListener('submit', function() {
+        const btn = this.querySelector('button[type="submit"]');
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Signing In...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Authenticating...';
         }
+        showLoading();
     });
+    
+    // Pre-fill demo credentials (for testing - remove in production)
+    // document.getElementById('email').value = 'admin@bhatek.com';
+    // document.getElementById('password').value = 'password';
 </script>
-
 {% endblock %}
