@@ -205,6 +205,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
             body: JSON.stringify({
                 email: email,
                 password: password,
+                confirm_password: confirmPassword,  // ✅ CRITICAL FIX: Added missing field
                 first_name: firstName,
                 last_name: lastName,
                 phone: phone,
@@ -223,17 +224,37 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
                 window.location.href = '/login';
             }, 1800);
         } else {
-            showToast(data.error || 'Registration failed. Please try again.', 'error');
+            // Display detailed error message
+            const errorMsg = data.error || data.message || 'Registration failed. Please try again.';
+            showToast(errorMsg, 'error');
             btn.disabled = false;
             btn.innerHTML = originalText;
         }
     } catch (error) {
-        console.error(error);
+        console.error('Registration error:', error);
         showToast('Network error. Please check your connection.', 'error');
         btn.disabled = false;
         btn.innerHTML = originalText;
     }
 });
+
+// Toast notification function (make sure this exists or add it)
+function showToast(message, type = 'success') {
+    // You can implement this based on your existing toast system
+    // If you don't have one, here's a simple implementation
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; 
+                    background: ${type === 'success' ? '#2d6a4f' : '#dc3545'}; 
+                    color: white; padding: 12px 24px; border-radius: 8px; 
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            ${message}
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
 </script>
 
 {% endblock %}

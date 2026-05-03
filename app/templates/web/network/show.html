@@ -2,12 +2,139 @@
 
 {% block title %}{{ organization.name }} - {{ network.name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .data-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .data-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .network-type {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    .type-hotspot {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .type-pppoe {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .type-hybrid {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-inactive {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1.5rem;
+    }
+    
+    .bg-primary {
+        background-color: #2d6a4f !important;
+    }
+    
+    .bg-success {
+        background-color: #10b981 !important;
+    }
+    
+    .bg-warning {
+        background-color: #f59e0b !important;
+    }
+    
+    .bg-info {
+        background-color: #06b6d4 !important;
+    }
+    
+    .btn-outline-primary {
+        color: #2d6a4f;
+        border-color: #2d6a4f;
+    }
+    
+    .btn-outline-primary:hover {
+        background: #2d6a4f;
+        border-color: #2d6a4f;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #4b5563;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-4">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/organization/networks">Networks</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('network_web.index', org_id=organization.id) }}">Networks</a></li>
             <li class="breadcrumb-item active">{{ network.name }}</li>
         </ol>
     </nav>
@@ -16,24 +143,26 @@
     <div class="data-card mb-4">
         <div class="d-flex justify-content-between align-items-start">
             <div>
-                <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
                     <h3 class="mb-0">{{ network.name }}</h3>
                     <span class="network-type type-{{ network.type }}">
                         <i class="fas {{ 'fa-wifi' if network.type == 'hotspot' else 'fa-network-wired' if network.type == 'pppoe' else 'fa-code-branch' }}"></i>
                         {{ network.type.upper() }}
                     </span>
                     <span class="status-badge {{ 'status-active' if network.is_active else 'status-inactive' }}">
+                        <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
                         {{ 'Active' if network.is_active else 'Inactive' }}
                     </span>
                 </div>
                 <p class="text-muted">{{ network.description or 'No description provided' }}</p>
-                <div class="d-flex gap-3 mt-2">
-                    <small><i class="far fa-calendar-alt me-1"></i>Created: {{ network.created_at|format_date }}</small>
-                    <small><i class="far fa-clock me-1"></i>Updated: {{ network.updated_at|format_date }}</small>
+                <div class="d-flex gap-3 mt-2 flex-wrap">
+                    <small><i class="far fa-calendar-alt me-1"></i>Created: {{ network.created_at[:10] if network.created_at else 'N/A' }}</small>
+                    <small><i class="far fa-clock me-1"></i>Updated: {{ network.updated_at[:10] if network.updated_at else 'N/A' }}</small>
+                    <small><i class="fas fa-link me-1"></i>Slug: <code>{{ network.slug }}</code></small>
                 </div>
             </div>
-            <div>
-                <button class="btn btn-outline-primary me-2" onclick="editNetwork()">
+            <div class="btn-group">
+                <button class="btn btn-outline-primary" onclick="editNetwork()">
                     <i class="fas fa-edit me-2"></i>Edit
                 </button>
                 <button class="btn btn-primary" onclick="addRouter()">
@@ -46,30 +175,30 @@
     <!-- Stats Row -->
     <div class="row mb-4">
         <div class="col-md-3 mb-3">
-            <div class="stat-card text-center" onclick="window.location.href='/organization/networks/{{ network.id }}/routers'">
+            <div class="stat-card text-center" onclick="viewRouters()">
                 <div class="stat-icon bg-primary bg-opacity-10 text-primary mx-auto mb-3">
                     <i class="fas fa-server"></i>
                 </div>
                 <h3 id="routerCount">0</h3>
-                <p class="text-muted">Routers</p>
+                <p class="text-muted mb-0">Routers</p>
             </div>
         </div>
         <div class="col-md-3 mb-3">
-            <div class="stat-card text-center" onclick="window.location.href='/organization/networks/{{ network.id }}/access-points'">
+            <div class="stat-card text-center" onclick="viewAccessPoints()">
                 <div class="stat-icon bg-success bg-opacity-10 text-success mx-auto mb-3">
                     <i class="fas fa-wifi"></i>
                 </div>
                 <h3 id="apCount">0</h3>
-                <p class="text-muted">Access Points</p>
+                <p class="text-muted mb-0">Access Points</p>
             </div>
         </div>
         <div class="col-md-3 mb-3">
-            <div class="stat-card text-center" onclick="window.location.href='/organization/networks/{{ network.id }}/sessions'">
+            <div class="stat-card text-center" onclick="viewSessions()">
                 <div class="stat-icon bg-warning bg-opacity-10 text-warning mx-auto mb-3">
                     <i class="fas fa-users"></i>
                 </div>
                 <h3 id="activeSessions">0</h3>
-                <p class="text-muted">Active Sessions</p>
+                <p class="text-muted mb-0">Active Sessions</p>
             </div>
         </div>
         <div class="col-md-3 mb-3">
@@ -78,10 +207,22 @@
                     <i class="fas fa-chart-line"></i>
                 </div>
                 <h3 id="bandwidthUsage">0</h3>
-                <p class="text-muted">Bandwidth (Gbps)</p>
+                <p class="text-muted mb-0">Bandwidth (Gbps)</p>
             </div>
         </div>
     </div>
+    
+    <!-- Settings Card -->
+    {% if network.settings %}
+    <div class="data-card">
+        <div class="data-card-header">
+            <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Network Settings</h5>
+        </div>
+        <div class="bg-light p-3 rounded" style="font-family: monospace; font-size: 0.85rem;">
+            <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">{{ network.settings|tojson(indent=2) if network.settings else '{}' }}</pre>
+        </div>
+    </div>
+    {% endif %}
     
     <!-- Routers List -->
     <div class="data-card">
@@ -92,20 +233,19 @@
             </button>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover" id="routersTable">
+            <table class="table table-hover">
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>IP Address</th>
                         <th>Status</th>
                         <th>Model</th>
-                        <th>Last Seen</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="routersList">
                     <tr>
-                        <td colspan="6" class="text-center">Loading routers...</td>
+                        <td colspan="5" class="text-center text-muted">No routers in this network</td>
                     </tr>
                 </tbody>
             </table>
@@ -134,7 +274,7 @@
                 </thead>
                 <tbody id="apsList">
                     <tr>
-                        <td colspan="6" class="text-center">Loading access points...</td>
+                        <td colspan="6" class="text-center text-muted">No access points in this network</td>
                     </tr>
                 </tbody>
             </table>
@@ -144,23 +284,79 @@
 
 <script>
 const networkId = '{{ network.id }}';
+const orgId = '{{ organization.id }}';
 
-// Load network details
+// Simple toast notification
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+    `;
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// Loading indicator
+function showLoading() {
+    // You can implement a loading spinner here
+}
+
+function hideLoading() {
+    // You can hide loading spinner here
+}
+
+// Navigation functions
+function editNetwork() {
+    window.location.href = `/organization/${orgId}/networks/${networkId}/edit`;
+}
+
+function addRouter() {
+    window.location.href = `/organization/${orgId}/routers/create?network_id=${networkId}`;
+}
+
+function addAccessPoint() {
+    window.location.href = `/organization/${orgId}/access-points/create?network_id=${networkId}`;
+}
+
+function viewRouters() {
+    window.location.href = `/organization/${orgId}/networks/${networkId}/routers`;
+}
+
+function viewAccessPoints() {
+    window.location.href = `/organization/${orgId}/networks/${networkId}/access-points`;
+}
+
+function viewSessions() {
+    window.location.href = `/organization/${orgId}/networks/${networkId}/sessions`;
+}
+
+function viewRouter(routerId) {
+    window.location.href = `/organization/${orgId}/routers/${routerId}`;
+}
+
+function viewAccessPoint(apId) {
+    window.location.href = `/organization/${orgId}/access-points/${apId}`;
+}
+
+// Load network details and stats
 async function loadNetworkDetails() {
     showLoading();
     try {
-        // Load routers
         await loadRouters();
-        
-        // Load access points
         await loadAccessPoints();
-        
-        // Load stats
         await loadStats();
-        
     } catch (error) {
         console.error('Failed to load network details:', error);
-        showToast('Failed to load network details', 'error');
     }
     hideLoading();
 }
@@ -173,38 +369,35 @@ async function loadRouters() {
         });
         const data = await response.json();
         
-        const tbody = $('#routersList');
-        tbody.empty();
+        const tbody = document.getElementById('routersList');
         
         if (data.routers && data.routers.length > 0) {
-            data.routers.forEach(router => {
-                const statusClass = router.status === 'online' ? 'status-active' : 'status-inactive';
-                tbody.append(`
-                    <tr>
-                        <td><strong>${escapeHtml(router.name)}</strong></td>
-                        <td><code>${router.ip_address}</code></td>
-                        <td><span class="status-badge ${statusClass}">${router.status || 'unknown'}</span></td>
-                        <td>${router.model || '-'}</td>
-                        <td>${router.last_seen_at ? formatDate(router.last_seen_at) : '-'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="viewRouter('${router.id}')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteRouter('${router.id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `);
-            });
-            $('#routerCount').text(data.routers.length);
+            tbody.innerHTML = data.routers.map(router => `
+                <tr>
+                    <td><strong>${escapeHtml(router.name)}</strong></td>
+                    <td><code>${router.ip_address || '-'}</code></td>
+                    <td>
+                        <span class="status-badge ${router.status === 'online' ? 'status-active' : 'status-inactive'}">
+                            <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
+                            ${router.status || 'unknown'}
+                        </span>
+                    </td>
+                    <td>${router.model || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewRouter('${router.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('routerCount').textContent = data.routers.length;
         } else {
-            tbody.html('<tr><td colspan="6" class="text-center">No routers in this network<td></tr>');
-            $('#routerCount').text(0);
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No routers in this network</td></tr>';
+            document.getElementById('routerCount').textContent = '0';
         }
     } catch (error) {
         console.error('Failed to load routers:', error);
-        $('#routersList').html('<tr><td colspan="6" class="text-center text-danger">Failed to load routers<td></tr>');
+        document.getElementById('routersList').innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load routers</td></tr>';
     }
 }
 
@@ -216,128 +409,83 @@ async function loadAccessPoints() {
         });
         const data = await response.json();
         
-        const tbody = $('#apsList');
-        tbody.empty();
+        const tbody = document.getElementById('apsList');
         
         if (data.access_points && data.access_points.length > 0) {
-            data.access_points.forEach(ap => {
-                const statusClass = ap.status === 'online' ? 'status-active' : 'status-inactive';
-                tbody.append(`
-                    <tr>
-                        <td><strong>${escapeHtml(ap.name)}</strong></td>
-                        <td><code>${ap.ssid}</code></td>
-                        <td><code>${ap.mac_address}</code></td>
-                        <td>${ap.location || '-'}</td>
-                        <td><span class="status-badge ${statusClass}">${ap.status || 'unknown'}</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="viewAccessPoint('${ap.id}')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteAccessPoint('${ap.id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `);
-            });
-            $('#apCount').text(data.access_points.length);
+            tbody.innerHTML = data.access_points.map(ap => `
+                <tr>
+                    <td><strong>${escapeHtml(ap.name)}</strong></td>
+                    <td><code>${ap.ssid || '-'}</code></td>
+                    <td><code>${ap.mac_address || '-'}</code></td>
+                    <td>${ap.location || '-'}</td>
+                    <td>
+                        <span class="status-badge ${ap.status === 'online' ? 'status-active' : 'status-inactive'}">
+                            <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
+                            ${ap.status || 'unknown'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewAccessPoint('${ap.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('apCount').textContent = data.access_points.length;
         } else {
-            tbody.html('<tr><td colspan="6" class="text-center">No access points in this network<td></tr>');
-            $('#apCount').text(0);
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No access points in this network</td></tr>';
+            document.getElementById('apCount').textContent = '0';
         }
     } catch (error) {
         console.error('Failed to load access points:', error);
-        $('#apsList').html('<tr><td colspan="6" class="text-center text-danger">Failed to load access points<td></tr>');
+        document.getElementById('apsList').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load access points</td></tr>';
     }
 }
 
 // Load statistics
 async function loadStats() {
     try {
-        // This would be a dedicated endpoint
         const response = await fetch(`/api/v1/networks/${networkId}/stats`, {
             headers: { 'Authorization': 'Bearer ' + localStorage.getItem('access_token') }
         });
         const stats = await response.json();
         
-        $('#activeSessions').text(stats.active_sessions || 0);
-        $('#bandwidthUsage').text(stats.bandwidth_gbps || 0);
+        document.getElementById('activeSessions').textContent = stats.active_sessions || 0;
+        document.getElementById('bandwidthUsage').textContent = stats.bandwidth_gbps || 0;
     } catch (error) {
         console.error('Failed to load stats:', error);
-        $('#activeSessions').text('0');
-        $('#bandwidthUsage').text('0');
+        document.getElementById('activeSessions').textContent = '0';
+        document.getElementById('bandwidthUsage').textContent = '0';
     }
 }
 
-// Edit network
-function editNetwork() {
-    window.location.href = `/organization/networks/${networkId}/edit`;
-}
-
-// Add router
-function addRouter() {
-    window.location.href = `/organization/routers/create?network_id=${networkId}`;
-}
-
-// Add access point
-function addAccessPoint() {
-    window.location.href = `/organization/access-points/create?network_id=${networkId}`;
-}
-
-// View router
-function viewRouter(routerId) {
-    window.location.href = `/organization/routers/${routerId}`;
-}
-
-// Delete router
-async function deleteRouter(routerId) {
-    if (!confirm('Are you sure you want to remove this router from the network?')) return;
-    
-    showLoading();
-    try {
-        const response = await fetch(`/api/v1/routers/${routerId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('access_token') }
-        });
-        
-        if (response.ok) {
-            showToast('Router removed successfully', 'success');
-            loadRouters();
-        } else {
-            showToast('Failed to remove router', 'error');
-        }
-    } catch (error) {
-        showToast('Network error', 'error');
-    }
-    hideLoading();
-}
-
-// Delete access point
-async function deleteAccessPoint(apId) {
-    if (!confirm('Are you sure you want to remove this access point?')) return;
-    
-    showLoading();
-    try {
-        const response = await fetch(`/api/v1/access-points/${apId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('access_token') }
-        });
-        
-        if (response.ok) {
-            showToast('Access point removed successfully', 'success');
-            loadAccessPoints();
-        } else {
-            showToast('Failed to remove access point', 'error');
-        }
-    } catch (error) {
-        showToast('Network error', 'error');
-    }
-    hideLoading();
+// Helper function
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Initialize
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     loadNetworkDetails();
 });
+
+// Add animation style
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 {% endblock %}
