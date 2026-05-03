@@ -7,6 +7,10 @@ import bcrypt
 from app.core.database.base import BaseModel
 from app.core.database.mixins import TimestampMixin
 
+from uuid import uuid4
+
+from app.core.database.session import db
+
 class User(BaseModel, TimestampMixin):
     __tablename__ = 'users'
     
@@ -119,18 +123,43 @@ class User(BaseModel, TimestampMixin):
         
         return data
 
+
+
 class RefreshToken(BaseModel):
     __tablename__ = 'refresh_tokens'
     
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    token = Column(String(500), unique=True, nullable=False)
+    token = Column(String(2048
+        ), unique=True, nullable=False)
+    session_id = Column(String(36), nullable=True, index=True)
     expires_at = Column(DateTime, nullable=False)
     revoked = Column(Boolean, default=False)
-    revoked_at = Column(DateTime)
-    user_agent = Column(Text)
-    ip_address = Column(INET)
+    revoked_at = Column(DateTime, nullable=True)
+    user_agent = Column(String(500), nullable=True)
+    ip_address = Column(INET, nullable=True)
+    device_fingerprint = Column(String(64), nullable=True)
     
+    # Relationships
     user = relationship('User', back_populates='refresh_tokens')
+    
+    def is_valid(self) -> bool:
+        """Check if token is still valid"""
+        from datetime import datetime
+        return not self.revoked and self.expires_at > datetime.utcnow()
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary for API responses"""
+        return {
+            'id': str(self.id),
+            'user_id': str(self.user_id),
+            'session_id': self.session_id,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+            'revoked': self.revoked,
+            'user_agent': self.user_agent,
+            'ip_address': str(self.ip_address) if self.ip_address else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
 
 class AuditLog(BaseModel):
     __tablename__ = 'audit_logs'

@@ -9,7 +9,7 @@ from app.models.auth import User, RefreshToken, AuditLog
 from app.core.database.session import db
 from app.core.logging.logger import logger
 
- 
+
 # USER REPOSITORY 
 class UserRepository:
 
@@ -153,7 +153,7 @@ class UserRepository:
             logger.error(f"Database error in update_login_attempts: {e}", exc_info=True)
             raise
 
- 
+
 # REFRESH TOKEN REPOSITORY 
 class RefreshTokenRepository:
 
@@ -161,10 +161,15 @@ class RefreshTokenRepository:
         self.model = RefreshToken
 
     def create(self, data: Dict[str, Any]) -> RefreshToken:
+        """
+        Create a new refresh token record
+        Expected data: user_id, token, session_id, expires_at, user_agent, ip_address, device_fingerprint
+        """
         try:
             token = self.model(**data)
             db.session.add(token)
             db.session.commit()
+            logger.debug(f"Created refresh token for user {token.user_id}, session: {token.session_id}")
             return token
 
         except SQLAlchemyError as e:
@@ -173,6 +178,9 @@ class RefreshTokenRepository:
             raise
 
     def get_valid_token(self, token: str) -> Optional[RefreshToken]:
+        """
+        Get a valid (non-revoked, not expired) refresh token by token string
+        """
         try:
             stmt = select(self.model).where(
                 and_(
@@ -187,7 +195,30 @@ class RefreshTokenRepository:
             logger.error(f"Database error in get_valid_token: {e}", exc_info=True)
             raise
 
+    def get_valid_token_by_session(self, user_id: UUID, session_id: str) -> Optional[RefreshToken]:
+        """
+        Get a valid refresh token for a specific session
+        """
+        try:
+            stmt = select(self.model).where(
+                and_(
+                    self.model.user_id == user_id,
+                    self.model.session_id == session_id,
+                    self.model.revoked == False,
+                    self.model.expires_at > datetime.utcnow()
+                )
+            ).order_by(desc(self.model.created_at)).limit(1)
+            
+            return db.session.execute(stmt).scalar_one_or_none()
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_valid_token_by_session: {e}", exc_info=True)
+            raise
+
     def revoke_user_tokens(self, user_id: UUID):
+        """
+        Revoke ALL refresh tokens for a user (logout from all devices)
+        """
         try:
             stmt = (
                 update(self.model)
@@ -201,15 +232,156 @@ class RefreshTokenRepository:
                 )
             )
 
-            db.session.execute(stmt)
+            result = db.session.execute(stmt)
             db.session.commit()
+            logger.info(f"Revoked {result.rowcount} refresh tokens for user {user_id}")
 
         except SQLAlchemyError as e:
             db.session.rollback()
             logger.error(f"Database error in revoke_user_tokens: {e}", exc_info=True)
             raise
 
- 
+    def revoke_session_tokens(self, user_id: UUID, session_id: str):
+        """
+        Revoke ALL refresh tokens for a specific session (logout single device)
+        """
+        try:
+            stmt = (
+                update(self.model)
+                .where(
+                    self.model.user_id == user_id,
+                    self.model.session_id == session_id,
+                    self.model.revoked == False
+                )
+                .values(
+                    revoked=True,
+                    revoked_at=datetime.utcnow()
+                )
+            )
+
+            result = db.session.execute(stmt)
+            db.session.commit()
+            logger.info(f"Revoked {result.rowcount} refresh tokens for user {user_id}, session {session_id}")
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"Database error in revoke_session_tokens: {e}", exc_info=True)
+            raise
+
+    def revoke_single_token(self, token_id: UUID) -> bool:
+        """
+        Revoke a single refresh token by ID
+        """
+        try:
+            stmt = (
+                update(self.model)
+                .where(
+                    self.model.id == token_id,
+                    self.model.revoked == False
+                )
+                .values(
+                    revoked=True,
+                    revoked_at=datetime.utcnow()
+                )
+            )
+            result = db.session.execute(stmt)
+            db.session.commit()
+            
+            success = result.rowcount > 0
+            if success:
+                logger.info(f"Revoked single refresh token: {token_id}")
+            return success
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"Database error in revoke_single_token: {e}", exc_info=True)
+            raise
+
+    def revoke_token_by_value(self, token: str) -> bool:
+        """
+        Revoke a refresh token by its token value
+        """
+        try:
+            stmt = (
+                update(self.model)
+                .where(
+                    self.model.token == token,
+                    self.model.revoked == False
+                )
+                .values(
+                    revoked=True,
+                    revoked_at=datetime.utcnow()
+                )
+            )
+            result = db.session.execute(stmt)
+            db.session.commit()
+            
+            success = result.rowcount > 0
+            if success:
+                logger.info(f"Revoked refresh token by value")
+            return success
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"Database error in revoke_token_by_value: {e}", exc_info=True)
+            raise
+
+    def get_active_sessions(self, user_id: UUID) -> List[Dict[str, Any]]:
+        """
+        Get all active sessions for a user (for session management UI)
+        """
+        try:
+            stmt = select(self.model).where(
+                and_(
+                    self.model.user_id == user_id,
+                    self.model.revoked == False,
+                    self.model.expires_at > datetime.utcnow()
+                )
+            ).order_by(desc(self.model.created_at))
+            
+            tokens = db.session.execute(stmt).scalars().all()
+            
+            # Return unique sessions (group by session_id)
+            sessions = {}
+            for token in tokens:
+                if token.session_id and token.session_id not in sessions:
+                    sessions[token.session_id] = {
+                        'session_id': token.session_id,
+                        'created_at': token.created_at.isoformat() if token.created_at else None,
+                        'expires_at': token.expires_at.isoformat() if token.expires_at else None,
+                        'user_agent': token.user_agent,
+                        'ip_address': token.ip_address,
+                        'device_fingerprint': token.device_fingerprint
+                    }
+            
+            return list(sessions.values())
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_active_sessions: {e}", exc_info=True)
+            raise
+
+    def cleanup_expired_tokens(self) -> int:
+        """
+        Delete or mark as expired old tokens (maintenance)
+        """
+        try:
+            stmt = (
+                update(self.model)
+                .where(self.model.expires_at <= datetime.utcnow())
+                .values(revoked=True, revoked_at=datetime.utcnow())
+            )
+            result = db.session.execute(stmt)
+            db.session.commit()
+            
+            logger.info(f"Cleaned up {result.rowcount} expired refresh tokens")
+            return result.rowcount
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"Database error in cleanup_expired_tokens: {e}", exc_info=True)
+            raise
+
+
 # AUDIT LOG REPOSITORY 
 class AuditLogRepository:
 
