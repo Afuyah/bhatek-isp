@@ -64,6 +64,7 @@ def create_app(config_name=None):
         logger.warning("JWT_SECRET_KEY not set. Authentication will fail for API endpoints!")
     
     # Define exempt paths for web interface (no JWT required)
+        # Define exempt paths for web interface (no JWT required)
     exempt_paths = [
         # Health checks
         '/health',
@@ -79,7 +80,6 @@ def create_app(config_name=None):
         '/dashboard',
         '/super-admin',
         
-        
         # Hotspot routes (public)
         '/hotspot',
         
@@ -87,12 +87,20 @@ def create_app(config_name=None):
         '/static',
         '/favicon.ico',
         
-        # API auth endpoints (no JWT required for login/register)
+        # API auth endpoints 
         '/api/v1/auth/login',
         '/api/v1/auth/register',
         '/api/v1/auth/refresh',
         '/api/v1/auth/forgot-password',
         '/api/v1/auth/reset-password',
+        
+        # Email verification & registration 
+        '/api/v1/auth/send-verification',
+        '/api/v1/auth/verify-email',
+        '/api/v1/auth/register-organization',
+        '/api/v1/auth/resend-verification',
+        '/api/v1/auth/check-email',
+        '/api/v1/auth/check-slug',
     ]
     
     # Wrap in correct order (last wrapped = first executed)
