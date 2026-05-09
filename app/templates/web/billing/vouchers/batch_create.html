@@ -4,81 +4,293 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --primary: #1a56db;
+        --primary-dark: #1e40af;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+    }
+
+    .batch-container {
+        padding: 1rem;
+    }
+    
+    @media (min-width: 768px) {
+        .batch-container {
+            padding: 1.5rem;
+        }
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .page-title h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 0.25rem;
+    }
+    
+    .page-title p {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+        margin: 0;
+    }
+
+    .btn-back {
+        background: var(--gray-100);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+    
+    .btn-back:hover {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 1rem;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+    
+    .form-header {
+        padding: 1.25rem 1.5rem;
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .form-header h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-body {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--gray-700);
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-label .required {
+        color: #dc2626;
+        margin-left: 0.25rem;
+    }
+    
+    .form-select, .form-input {
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .form-select:focus, .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
+    }
+    
+    textarea.form-input {
+        resize: vertical;
+        min-height: 80px;
+    }
+    
     .help-text {
         font-size: 0.7rem;
-        color: #6c757d;
-        margin-top: 0.25rem;
+        color: var(--gray-500);
+        margin-top: 0.375rem;
     }
-    .form-container {
-        max-width: 800px;
-        margin: 0 auto;
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
     }
+    
+    .section-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin: 1rem 0 1rem 0;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--gray-200);
+    }
+    
     .info-alert {
-        background: #e0f2fe;
-        border: 1px solid #7dd3fc;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
         border-radius: 0.5rem;
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-        font-size: 0.7rem;
-        color: #0369a1;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.75rem;
+        color: #1e40af;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-divider {
+        margin: 1.5rem 0 1rem;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    
+    .btn-secondary {
+        background: var(--gray-100);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        text-decoration: none;
+    }
+    
+    .btn-secondary:hover {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+    
+    .btn-primary {
+        background: var(--primary);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+    
+    .btn-primary:hover {
+        background: var(--primary-dark);
+    }
+
+    @media (max-width: 640px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        .form-header, .form-body {
+            padding: 1rem;
+        }
+        .page-title h1 {
+            font-size: 1.25rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1">Create Voucher Batch</h4>
-            <p class="text-muted mb-0">Generate multiple vouchers at once</p>
+<div class="batch-container">
+    <div class="page-header">
+        <div class="page-title">
+            <h1>Create Voucher Batch</h1>
+            <p>Generate multiple prepaid vouchers at once</p>
         </div>
-        <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back
+        <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back to Vouchers
         </a>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <div class="info-alert">
-                <i class="fas fa-info-circle me-2"></i>
-                Batch creation will generate {{ form_data.quantity if form_data else 'multiple' }} unique vouchers. 
-                This may take a few moments for large batches.
-            </div>
-
+    <div class="form-card">
+        <div class="form-header">
+            <h3>
+                <i class="fas fa-layer-group" style="color: var(--primary);"></i>
+                Batch Configuration
+            </h3>
+        </div>
+        
+        <div class="form-body">
             <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label">Batch Name <span class="text-danger">*</span></label>
-                    <input type="text" name="batch_name" class="form-control" required value="{{ form_data.batch_name if form_data else '' }}" placeholder="e.g., December Promo 2024">
+                <div class="form-group">
+                    <label class="form-label">Batch Name <span class="required">*</span></label>
+                    <input type="text" name="batch_name" class="form-input" required 
+                           value="{{ form_data.batch_name if form_data else '' }}" 
+                           placeholder="e.g., December Promo 2024">
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Plan <span class="text-danger">*</span></label>
+                <div class="form-group">
+                    <label class="form-label">Select Plan <span class="required">*</span></label>
                     <select name="plan_id" class="form-select" required>
-                        <option value="">Select Plan...</option>
+                        <option value="">Choose a plan...</option>
                         {% for plan in plans %}
                         <option value="{{ plan.id }}" {% if form_data and form_data.plan_id == plan.id|string %}selected{% endif %}>
-                            {{ plan.name }} - KES {{ plan.price }} ({{ plan.validity_display }})
+                            {{ plan.name }} - KES {{ "%.2f"|format(plan.price) }} 
+                            {% if plan.validity_display %}({{ plan.validity_display }}){% endif %}
                         </option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Quantity <span class="text-danger">*</span></label>
-                        <input type="number" name="quantity" class="form-control" required value="{{ form_data.quantity if form_data else '' }}" placeholder="e.g., 100">
-                        <div class="help-text">Maximum 1000 vouchers per batch</div>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity <span class="required">*</span></label>
+                    <input type="number" name="quantity" class="form-input" required 
+                           value="{{ form_data.quantity if form_data else '' }}" 
+                           placeholder="e.g., 100" min="1" max="1000">
+                    <div class="help-text">Maximum 1,000 vouchers per batch</div>
                 </div>
 
-                <h6 class="mt-3 mb-2">Validity Settings (Optional)</h6>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
+                <div class="section-title">
+                    <i class="fas fa-clock me-2"></i> Validity Settings (Optional)
+                </div>
+                
+                <div class="info-alert">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Leave these fields empty to use the plan's default validity period</span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Validity Value</label>
-                        <input type="number" name="validity_value" class="form-control" value="{{ form_data.validity_value if form_data else '' }}" placeholder="e.g., 30, 2, 1">
-                        <div class="help-text">Leave empty to use plan's default validity</div>
+                        <input type="number" name="validity_value" class="form-input" 
+                               value="{{ form_data.validity_value if form_data else '' }}" 
+                               placeholder="e.g., 30, 2, 1" min="1">
+                        <div class="help-text">Override plan's validity value</div>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="form-group">
                         <label class="form-label">Validity Unit</label>
                         <select name="validity_unit" class="form-select">
                             <option value="">Use Plan Default</option>
@@ -88,18 +300,26 @@
                             <option value="months" {% if form_data and form_data.validity_unit == 'months' %}selected{% endif %}>Months</option>
                             <option value="years" {% if form_data and form_data.validity_unit == 'years' %}selected{% endif %}>Years</option>
                         </select>
+                        <div class="help-text">Override plan's validity unit</div>
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Notes</label>
-                    <textarea name="notes" class="form-control" rows="2" placeholder="Optional notes...">{{ form_data.notes if form_data else '' }}</textarea>
+                <div class="form-group">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea name="notes" class="form-input" rows="3" 
+                              placeholder="Internal notes about this voucher batch...">{{ form_data.notes if form_data else '' }}</textarea>
+                    <div class="help-text">These notes are only visible to administrators</div>
                 </div>
 
-                <hr>
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Batch</button>
+                <div class="form-divider"></div>
+
+                <div class="form-actions">
+                    <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="btn-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Create Batch
+                    </button>
                 </div>
             </form>
         </div>

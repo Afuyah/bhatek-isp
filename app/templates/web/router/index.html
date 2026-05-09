@@ -5,42 +5,42 @@
 {% block extra_css %}
 <style>
     /* ========================================
-       ROUTERS LIST - MODERN DESIGN
+       ROUTERS MODULE - PROFESSIONAL TABLE DESIGN
+       Clean, Modern, Mobile-First
        ========================================= */
     
     :root {
-        --primary: #2d6a4f;
-        --primary-light: #40916c;
-        --primary-dark: #1b4332;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --info: #3b82f6;
-        --gray-50: #f8fafc;
-        --gray-100: #f1f5f9;
-        --gray-200: #e2e8f0;
-        --gray-300: #cbd5e1;
-        --gray-400: #94a3b8;
-        --gray-500: #64748b;
-        --gray-600: #475569;
-        --gray-700: #334155;
-        --gray-800: #1e293b;
+        --primary: #1a56db;
+        --primary-dark: #1e40af;
+        --primary-light: #3b82f6;
+        --success: #059669;
+        --danger: #dc2626;
+        --warning: #d97706;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
     }
 
-    /* Container */
     .routers-container {
         padding: 0.75rem;
     }
-
-    @media (min-width: 768px) {
+    
+    @media (min-width: 640px) {
         .routers-container {
             padding: 1rem;
         }
     }
-
-    @media (min-width: 1200px) {
+    
+    @media (min-width: 1024px) {
         .routers-container {
-            padding: 1.5rem;
+            padding: 1.25rem;
         }
     }
 
@@ -53,30 +53,23 @@
         gap: 0.75rem;
         margin-bottom: 1rem;
     }
-
-    @media (min-width: 768px) {
-        .page-header {
-            margin-bottom: 1.5rem;
-            gap: 1rem;
-        }
+    
+    .page-title h1 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 0.125rem 0;
     }
-
-    .page-title h4 {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.2rem;
-        color: var(--gray-800);
-    }
-
+    
     .page-title p {
         font-size: 0.7rem;
         color: var(--gray-500);
-        margin-bottom: 0;
+        margin: 0;
     }
-
-    @media (min-width: 768px) {
-        .page-title h4 {
-            font-size: 1.25rem;
+    
+    @media (min-width: 640px) {
+        .page-title h1 {
+            font-size: 1.5rem;
         }
         .page-title p {
             font-size: 0.8rem;
@@ -84,419 +77,283 @@
     }
 
     .btn-add {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        background: var(--primary);
         border: none;
         color: white;
         padding: 0.4rem 0.875rem;
-        font-size: 0.7rem;
-        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border-radius: 0.375rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
         transition: all 0.2s;
     }
-
-    @media (min-width: 768px) {
+    
+    .btn-add:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+    
+    @media (min-width: 640px) {
         .btn-add {
             padding: 0.5rem 1rem;
             font-size: 0.8rem;
         }
     }
 
-    .btn-add:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
-        color: white;
-    }
-
-    /* Stats Cards */
+    /* Stats Cards - Minimal */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
+        gap: 0.5rem;
         margin-bottom: 1rem;
     }
-
+    
     @media (min-width: 640px) {
         .stats-grid {
             grid-template-columns: repeat(4, 1fr);
-            gap: 0.875rem;
+            gap: 0.75rem;
         }
     }
-
-    @media (min-width: 768px) {
-        .stats-grid {
-            gap: 1rem;
-            margin-bottom: 1.25rem;
-        }
-    }
-
+    
     .stat-card {
         background: white;
-        border-radius: 0.875rem;
-        padding: 0.875rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
         border: 1px solid var(--gray-200);
-        transition: all 0.2s;
+        border-radius: 0.5rem;
+        padding: 0.625rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
-
-    @media (min-width: 768px) {
-        .stat-card {
-            padding: 1rem;
-            border-radius: 1rem;
-        }
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        border-color: transparent;
-    }
-
-    .stat-info h3 {
-        font-size: 1.25rem;
+    
+    .stat-number {
+        font-size: 1.1rem;
         font-weight: 700;
-        margin-bottom: 0;
         color: var(--gray-800);
     }
-
-    .stat-info p {
-        margin-bottom: 0;
+    
+    .stat-label {
+        font-size: 0.6rem;
         color: var(--gray-500);
-        font-size: 0.65rem;
     }
-
-    @media (min-width: 768px) {
-        .stat-info h3 {
-            font-size: 1.5rem;
-        }
-        .stat-info p {
-            font-size: 0.7rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .stat-info h3 {
-            font-size: 1.75rem;
-        }
-        .stat-info p {
-            font-size: 0.75rem;
-        }
-    }
-
+    
     .stat-icon {
-        font-size: 1.25rem;
-        opacity: 0.7;
+        font-size: 1rem;
+        color: var(--gray-400);
     }
-
-    @media (min-width: 768px) {
+    
+    @media (min-width: 640px) {
+        .stat-number {
+            font-size: 1.25rem;
+        }
         .stat-icon {
-            font-size: 1.5rem;
+            font-size: 1.125rem;
         }
     }
 
     /* Filter Bar */
     .filter-bar {
         background: white;
-        border-radius: 0.875rem;
-        padding: 0.875rem;
-        margin-bottom: 1rem;
         border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
     }
-
-    @media (min-width: 768px) {
-        .filter-bar {
-            padding: 1rem;
-            border-radius: 1rem;
-            margin-bottom: 1.25rem;
-        }
-    }
-
+    
     .filter-form {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
         align-items: flex-end;
     }
-
+    
     .filter-group {
         flex: 1;
-        min-width: calc(50% - 0.5rem);
+        min-width: 100px;
     }
-
-    @media (min-width: 640px) {
-        .filter-group {
-            min-width: auto;
-        }
-    }
-
+    
     .filter-group label {
         font-size: 0.65rem;
-        font-weight: 600;
+        font-weight: 500;
         color: var(--gray-500);
         margin-bottom: 0.25rem;
         display: block;
     }
-
-    .filter-group select,
-    .filter-group input {
-        font-size: 0.7rem;
-        padding: 0.35rem 0.5rem;
-        border-radius: 0.4rem;
-        border-color: var(--gray-200);
+    
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.375rem;
+        background: white;
     }
-
-    @media (min-width: 768px) {
-        .filter-group label {
-            font-size: 0.7rem;
-        }
-        .filter-group select,
-        .filter-group input {
-            font-size: 0.75rem;
-            padding: 0.4rem 0.6rem;
-        }
+    
+    .filter-group input:focus,
+    .filter-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.1);
     }
-
+    
+    .filter-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
     .btn-reset {
         background: var(--gray-100);
         border: 1px solid var(--gray-200);
         color: var(--gray-600);
-        padding: 0.35rem 0.75rem;
+        padding: 0.4rem 0.75rem;
         font-size: 0.7rem;
-        border-radius: 0.4rem;
-        transition: all 0.2s;
+        border-radius: 0.375rem;
+        cursor: pointer;
     }
-
+    
     .btn-reset:hover {
         background: var(--gray-200);
     }
 
-    /* Router Cards Grid */
-    .routers-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
+    /* Table Container */
+    .table-container {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        overflow-x: auto;
         margin-bottom: 1rem;
     }
-
+    
+    .routers-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+        min-width: 800px;
+    }
+    
+    .routers-table thead th {
+        text-align: left;
+        padding: 0.75rem 0.75rem;
+        background: var(--gray-50);
+        font-weight: 600;
+        color: var(--gray-600);
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+    
+    .routers-table tbody td {
+        padding: 0.625rem 0.75rem;
+        border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-700);
+        vertical-align: middle;
+    }
+    
+    .routers-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+    
     @media (min-width: 768px) {
-        .routers-grid {
-            gap: 1rem;
+        .routers-table thead th {
+            padding: 0.875rem 1rem;
+        }
+        .routers-table tbody td {
+            padding: 0.75rem 1rem;
+            font-size: 0.8rem;
         }
     }
 
-    /* Router Card */
-    .router-card {
-        background: white;
-        border-radius: 0.875rem;
-        padding: 0.875rem;
-        border: 1px solid var(--gray-200);
-        transition: all 0.2s;
-    }
-
-    @media (min-width: 768px) {
-        .router-card {
-            padding: 1rem;
-            border-radius: 1rem;
-        }
-    }
-
-    .router-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    }
-
-    .card-content {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    @media (min-width: 768px) {
-        .card-content {
-            flex-direction: row;
-            align-items: center;
-            gap: 1rem;
-        }
-    }
-
-    /* Router Info */
-    .router-info {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        flex: 2;
-    }
-
-    .router-icon {
-        width: 40px;
-        height: 40px;
-        background: var(--gray-100);
-        border-radius: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    @media (min-width: 768px) {
-        .router-icon {
-            width: 48px;
-            height: 48px;
-        }
-    }
-
-    .router-icon i {
-        font-size: 1.1rem;
-        color: var(--primary);
-    }
-
-    @media (min-width: 768px) {
-        .router-icon i {
-            font-size: 1.25rem;
-        }
-    }
-
-    .router-details h5 {
-        font-size: 0.85rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
+    /* Cell Styles */
+    .router-name {
+        font-weight: 600;
         color: var(--gray-800);
+        margin-bottom: 0.125rem;
     }
-
-    @media (min-width: 768px) {
-        .router-details h5 {
-            font-size: 0.95rem;
-        }
+    
+    .router-model {
+        font-size: 0.65rem;
+        color: var(--gray-500);
     }
-
-    .badge-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem;
+    
+    .ip-cell {
+        font-family: monospace;
+        font-size: 0.7rem;
     }
-
+    
     .status-badge {
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
-        padding: 0.2rem 0.5rem;
-        border-radius: 1rem;
-        font-size: 0.6rem;
-        font-weight: 600;
+        gap: 0.375rem;
     }
-
-    @media (min-width: 768px) {
-        .status-badge {
-            font-size: 0.65rem;
-            padding: 0.25rem 0.6rem;
-        }
+    
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
     }
-
-    .status-online { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-    .status-offline { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-    .status-error { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-    .status-unknown { background: rgba(100, 116, 139, 0.1); color: var(--gray-500); }
-
-    .badge-model {
-        background: var(--gray-100);
-        color: var(--gray-600);
-        padding: 0.2rem 0.5rem;
-        border-radius: 1rem;
-        font-size: 0.6rem;
+    
+    .status-dot.online { background: var(--success); }
+    .status-dot.offline { background: var(--danger); }
+    .status-dot.error { background: var(--warning); }
+    .status-dot.unknown { background: var(--gray-400); }
+    
+    .status-text {
+        font-size: 0.7rem;
         font-weight: 500;
     }
-
-    .badge-inactive {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--danger);
-        padding: 0.2rem 0.5rem;
-        border-radius: 1rem;
-        font-size: 0.6rem;
-    }
-
-    /* Router Meta */
-    .router-meta {
-        flex: 2;
-    }
-
-    .ip-address {
+    
+    .metrics-cell {
+        font-family: monospace;
         font-size: 0.7rem;
-        color: var(--gray-600);
-        margin-bottom: 0.25rem;
     }
-
-    .ip-address i {
-        width: 16px;
-        color: var(--gray-400);
-    }
-
-    .location-text {
+    
+    .last-seen-cell {
         font-size: 0.65rem;
         color: var(--gray-500);
+        white-space: nowrap;
     }
-
-    @media (min-width: 768px) {
-        .ip-address {
-            font-size: 0.75rem;
-        }
-        .location-text {
-            font-size: 0.7rem;
-        }
-    }
-
-    /* Router Status */
-    .router-status {
-        flex: 1.5;
-    }
-
-    .last-seen {
-        font-size: 0.65rem;
-        color: var(--gray-500);
-        margin-bottom: 0.25rem;
-    }
-
-    .metrics {
+    
+    .action-buttons {
         display: flex;
-        gap: 0.75rem;
+        gap: 0.25rem;
+        flex-wrap: wrap;
     }
-
-    .metric {
-        font-size: 0.65rem;
+    
+    .btn-icon {
+        background: none;
+        border: none;
+        padding: 0.3rem 0.5rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.75rem;
+    }
+    
+    .btn-view {
+        color: var(--primary);
+    }
+    
+    .btn-view:hover {
+        background: rgba(26, 86, 219, 0.1);
+    }
+    
+    .btn-edit {
         color: var(--gray-600);
     }
-
-    @media (min-width: 768px) {
-        .last-seen {
-            font-size: 0.7rem;
-        }
-        .metric {
-            font-size: 0.7rem;
-        }
+    
+    .btn-edit:hover {
+        background: var(--gray-100);
     }
-
-    /* Action Buttons */
-    .router-actions {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: flex-start;
+    
+    .btn-delete {
+        color: var(--danger);
     }
-
-    @media (min-width: 768px) {
-        .router-actions {
-            justify-content: flex-end;
-        }
-    }
-
-    .btn-action {
-        padding: 0.35rem 0.6rem;
-        font-size: 0.65rem;
-        border-radius: 0.4rem;
-    }
-
-    @media (min-width: 768px) {
-        .btn-action {
-            padding: 0.4rem 0.7rem;
-            font-size: 0.7rem;
-        }
+    
+    .btn-delete:hover {
+        background: rgba(220, 38, 38, 0.1);
     }
 
     /* Empty State */
@@ -504,53 +361,27 @@
         text-align: center;
         padding: 2rem 1rem;
         background: white;
-        border-radius: 1rem;
         border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
     }
-
-    @media (min-width: 768px) {
-        .empty-state {
-            padding: 3rem 2rem;
-        }
-    }
-
+    
     .empty-state i {
         font-size: 2rem;
         color: var(--gray-300);
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
     }
-
-    @media (min-width: 768px) {
-        .empty-state i {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-    }
-
-    .empty-state h5 {
-        font-size: 0.9rem;
-        margin-bottom: 0.25rem;
-        color: var(--gray-700);
-    }
-
+    
     .empty-state p {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         color: var(--gray-500);
-        margin-bottom: 1rem;
+        margin: 0 0 1rem 0;
     }
-
-    @media (min-width: 768px) {
-        .empty-state h5 {
-            font-size: 1rem;
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hide-mobile {
+            display: none;
         }
-        .empty-state p {
-            font-size: 0.75rem;
-        }
-    }
-
-    /* Modal */
-    .modal-content-custom {
-        border-radius: 0.875rem;
     }
 </style>
 {% endblock %}
@@ -560,44 +391,44 @@
     <!-- Header -->
     <div class="page-header">
         <div class="page-title">
-            <h4>Router Management</h4>
-            <p>Manage routers in {{ organization.name }}</p>
+            <h1>Routers</h1>
+            <p>Manage network routers and devices</p>
         </div>
         <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="btn-add">
-            <i class="fas fa-plus me-1"></i>Add Router
+            <i class="fas fa-plus"></i> Add Router
         </a>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Stats Cards - Only show if routers exist -->
     {% if routers %}
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-info">
-                <h3>{{ routers|length }}</h3>
-                <p>Total Routers</p>
+            <div>
+                <div class="stat-number">{{ routers|length }}</div>
+                <div class="stat-label">Total</div>
             </div>
             <div class="stat-icon"><i class="fas fa-server"></i></div>
         </div>
         <div class="stat-card">
-            <div class="stat-info">
-                <h3>{{ routers|selectattr('status', 'equalto', 'online')|list|length }}</h3>
-                <p>Online</p>
+            <div>
+                <div class="stat-number">{{ routers|selectattr('status', 'equalto', 'online')|list|length }}</div>
+                <div class="stat-label">Online</div>
             </div>
             <div class="stat-icon"><i class="fas fa-check-circle" style="color: var(--success);"></i></div>
         </div>
         <div class="stat-card">
-            <div class="stat-info">
-                <h3>{{ routers|selectattr('status', 'equalto', 'offline')|list|length }}</h3>
-                <p>Offline</p>
+            <div>
+                <div class="stat-number">{{ routers|selectattr('status', 'equalto', 'offline')|list|length }}</div>
+                <div class="stat-label">Offline</div>
             </div>
             <div class="stat-icon"><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i></div>
         </div>
         <div class="stat-card">
-            <div class="stat-info">
-                <h3>{{ routers|selectattr('is_active', 'equalto', false)|list|length }}</h3>
-                <p>Inactive</p>
+            <div>
+                <div class="stat-number">{{ routers|selectattr('status', 'equalto', 'error')|list|length }}</div>
+                <div class="stat-label">Error</div>
             </div>
-            <div class="stat-icon"><i class="fas fa-ban" style="color: var(--gray-400);"></i></div>
+            <div class="stat-icon"><i class="fas fa-bug"></i></div>
         </div>
     </div>
     {% endif %}
@@ -607,7 +438,7 @@
         <div class="filter-form">
             <div class="filter-group">
                 <label>Status</label>
-                <select id="statusFilter" class="form-select">
+                <select id="statusFilter">
                     <option value="">All</option>
                     <option value="online">Online</option>
                     <option value="offline">Offline</option>
@@ -617,7 +448,7 @@
             </div>
             <div class="filter-group">
                 <label>Network</label>
-                <select id="networkFilter" class="form-select">
+                <select id="networkFilter">
                     <option value="">All Networks</option>
                     {% for net in networks %}
                     <option value="{{ net.id }}">{{ net.name }}</option>
@@ -628,84 +459,84 @@
                 <label>Search</label>
                 <input type="text" id="searchInput" placeholder="Name or IP...">
             </div>
-            <div>
+            <div class="filter-actions">
                 <button class="btn-reset" onclick="resetFilters()">Reset</button>
             </div>
         </div>
     </div>
 
-    <!-- Routers List -->
+    <!-- Routers Table -->
     {% if routers %}
-    <div class="routers-grid" id="routersContainer">
-        {% for router in routers %}
-        <div class="router-card" data-name="{{ router.name|lower }}" data-ip="{{ router.ip_address }}" data-status="{{ router.status }}" data-network="{{ router.network_id or '' }}">
-            <div class="card-content">
-                <div class="router-info">
-                    <div class="router-icon">
-                        <i class="fas fa-server"></i>
-                    </div>
-                    <div class="router-details">
-                        <h5>{{ router.name }}</h5>
-                        <div class="badge-group">
-                            <span class="status-badge status-{{ router.status if router.status in ['online','offline','error'] else 'unknown' }}">
-                                <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
-                                {{ router.status|capitalize if router.status else 'Unknown' }}
-                            </span>
-                            {% if router.model %}
-                            <span class="badge-model">{{ router.model }}</span>
-                            {% endif %}
-                            {% if not router.is_active %}
-                            <span class="badge-inactive">Inactive</span>
-                            {% endif %}
+    <div class="table-container">
+        <table class="routers-table">
+            <thead>
+                <tr>
+                    <th>Router</th>
+                    <th>IP Address</th>
+                    <th class="hide-mobile">Network</th>
+                    <th>Status</th>
+                    <th class="hide-mobile">Last Seen</th>
+                    <th style="width: 80px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="routersTableBody">
+                {% for router in routers %}
+                <tr class="router-row" 
+                    data-name="{{ router.name|lower }}" 
+                    data-ip="{{ router.ip_address }}" 
+                    data-status="{{ router.status|default('unknown') }}" 
+                    data-network="{{ router.network_id or '' }}">
+                    <td>
+                        <div class="router-name">{{ router.name }}</div>
+                        <div class="router-model">{{ router.model or 'Unknown Model' }}</div>
+                    </td>
+                    <td class="ip-cell">{{ router.ip_address }}:{{ router.api_port }}</td>
+                    <td class="hide-mobile">{{ router.network.name if router.network else '—' }}</td>
+                    <td>
+                        <span class="status-badge">
+                            <span class="status-dot {{ router.status|default('unknown') }}"></span>
+                            <span class="status-text">{{ (router.status|default('unknown'))|capitalize }}</span>
+                        </span>
+                        {% if not router.is_active %}
+                        <span class="status-text" style="color: var(--danger); margin-left: 0.5rem;">(Inactive)</span>
+                        {% endif %}
+                    </td>
+                    <td class="last-seen-cell hide-mobile">
+                        {% if router.last_seen_at %}
+                            {{ router.last_seen_at.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn-icon btn-view" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" class="btn-icon btn-edit" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn-icon btn-delete" 
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                    data-router-id="{{ router.id }}" 
+                                    data-router-name="{{ router.name }}"
+                                    title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
-                    </div>
-                </div>
-
-                <div class="router-meta">
-                    <div class="ip-address">
-                        <i class="fas fa-network-wired me-1"></i>{{ router.ip_address }}:{{ router.api_port }}
-                    </div>
-                    {% if router.location %}
-                    <div class="location-text">
-                        <i class="fas fa-location-dot me-1"></i>{{ router.location }}
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="router-status">
-                    <div class="last-seen">
-                        <i class="far fa-clock me-1"></i>Last: {{ router.last_seen_at.strftime('%Y-%m-%d %H:%M') if router.last_seen_at else 'Never' }}
-                    </div>
-                    {% if router.cpu_usage %}
-                    <div class="metrics">
-                        <span class="metric">CPU: {{ router.cpu_usage }}%</span>
-                        <span class="metric">RAM: {{ router.memory_usage }}%</span>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="router-actions">
-                    <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn btn-outline-primary btn-action">
-                        <i class="fas fa-eye"></i>
-                    </a>
-                    <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" class="btn btn-outline-secondary btn-action">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    <button class="btn btn-outline-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal" data-router-id="{{ router.id }}" data-router-name="{{ router.name }}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
     {% else %}
+    <!-- Empty State -->
     <div class="empty-state">
         <i class="fas fa-server"></i>
-        <h5>No Routers Found</h5>
-        <p>Add your first router to start managing your network infrastructure</p>
+        <p>No routers found</p>
         <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="btn-add">
-            <i class="fas fa-plus me-1"></i>Add Router
+            <i class="fas fa-plus"></i> Add Router
         </a>
     </div>
     {% endif %}
@@ -714,7 +545,7 @@
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content modal-content-custom">
+        <div class="modal-content">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title">Confirm Delete</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -726,7 +557,7 @@
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form id="deleteForm" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Delete Router</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
             </div>
         </div>
@@ -738,31 +569,35 @@
         const status = document.getElementById('statusFilter').value;
         const network = document.getElementById('networkFilter').value;
         const search = document.getElementById('searchInput').value.toLowerCase();
-        const cards = document.querySelectorAll('.router-card');
+        const rows = document.querySelectorAll('.router-row');
         let visibleCount = 0;
         
-        cards.forEach(card => {
-            const cardStatus = card.dataset.status;
-            const cardNetwork = card.dataset.network;
-            const cardName = card.dataset.name;
-            const cardIp = card.dataset.ip;
+        rows.forEach(row => {
+            const rowStatus = row.getAttribute('data-status');
+            const rowNetwork = row.getAttribute('data-network');
+            const rowName = row.getAttribute('data-name');
+            const rowIp = row.getAttribute('data-ip');
             let show = true;
-            if (status && cardStatus !== status) show = false;
-            if (network && cardNetwork !== network) show = false;
-            if (search && !cardName.includes(search) && !cardIp.includes(search)) show = false;
-            card.style.display = show ? '' : 'none';
+            
+            if (status && rowStatus !== status) show = false;
+            if (network && rowNetwork !== network) show = false;
+            if (search && !rowName.includes(search) && !rowIp.includes(search)) show = false;
+            
+            row.style.display = show ? '' : 'none';
             if (show) visibleCount++;
         });
         
+        const tableBody = document.getElementById('routersTableBody');
         const existingMsg = document.getElementById('noResultsMsg');
-        if (!existingMsg && visibleCount === 0 && cards.length > 0) {
-            const container = document.getElementById('routersContainer');
-            const msg = document.createElement('div');
-            msg.id = 'noResultsMsg';
-            msg.className = 'empty-state';
-            msg.innerHTML = '<i class="fas fa-search"></i><h5>No matching routers</h5><p class="text-muted">Try adjusting your filters</p>';
-            container.appendChild(msg);
-        } else if (existingMsg && visibleCount > 0) {
+        
+        if (visibleCount === 0 && rows.length > 0) {
+            if (!existingMsg) {
+                const msgRow = document.createElement('tr');
+                msgRow.id = 'noResultsMsg';
+                msgRow.innerHTML = '<td colspan="6" class="empty-state" style="text-align: center;"><i class="fas fa-search"></i><p>No matching routers</p></td>';
+                tableBody.appendChild(msgRow);
+            }
+        } else if (existingMsg) {
             existingMsg.remove();
         }
     }

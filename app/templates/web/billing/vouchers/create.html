@@ -1,95 +1,627 @@
 {% extends "web/organization/base.html" %}
 
-{% block title %}{{ organization.name }} - Create Voucher{% endblock %}
+{% block title %}{{ organization.name }} - Routers{% endblock %}
 
 {% block extra_css %}
 <style>
-    .help-text {
-        font-size: 0.7rem;
-        color: #6c757d;
-        margin-top: 0.25rem;
+    /* ========================================
+       ROUTERS MODULE - PROFESSIONAL TABLE DESIGN
+       Clean, Modern, Mobile-First
+       ========================================= */
+    
+    :root {
+        --primary: #1a56db;
+        --primary-dark: #1e40af;
+        --primary-light: #3b82f6;
+        --success: #059669;
+        --danger: #dc2626;
+        --warning: #d97706;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
     }
-    .form-container {
-        max-width: 800px;
-        margin: 0 auto;
+
+    .routers-container {
+        padding: 0.75rem;
+    }
+    
+    @media (min-width: 640px) {
+        .routers-container {
+            padding: 1rem;
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .routers-container {
+            padding: 1.25rem;
+        }
+    }
+
+    /* Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .page-title h1 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 0.125rem 0;
+    }
+    
+    .page-title p {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        margin: 0;
+    }
+    
+    @media (min-width: 640px) {
+        .page-title h1 {
+            font-size: 1.5rem;
+        }
+        .page-title p {
+            font-size: 0.8rem;
+        }
+    }
+
+    .btn-add {
+        background: var(--primary);
+        border: none;
+        color: white;
+        padding: 0.4rem 0.875rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border-radius: 0.375rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        transition: all 0.2s;
+    }
+    
+    .btn-add:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+    
+    @media (min-width: 640px) {
+        .btn-add {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Stats Cards - Minimal */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    @media (min-width: 640px) {
+        .stats-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+    }
+    
+    .stat-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        padding: 0.625rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .stat-number {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--gray-800);
+    }
+    
+    .stat-label {
+        font-size: 0.6rem;
+        color: var(--gray-500);
+    }
+    
+    .stat-icon {
+        font-size: 1rem;
+        color: var(--gray-400);
+    }
+    
+    @media (min-width: 640px) {
+        .stat-number {
+            font-size: 1.25rem;
+        }
+        .stat-icon {
+            font-size: 1.125rem;
+        }
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .filter-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+    
+    .filter-group {
+        flex: 1;
+        min-width: 100px;
+    }
+    
+    .filter-group label {
+        font-size: 0.65rem;
+        font-weight: 500;
+        color: var(--gray-500);
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.375rem;
+        background: white;
+    }
+    
+    .filter-group input:focus,
+    .filter-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.1);
+    }
+    
+    .filter-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-reset {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        color: var(--gray-600);
+        padding: 0.4rem 0.75rem;
+        font-size: 0.7rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+    }
+    
+    .btn-reset:hover {
+        background: var(--gray-200);
+    }
+
+    /* Table Container */
+    .table-container {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        margin-bottom: 1rem;
+    }
+    
+    .routers-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+        min-width: 800px;
+    }
+    
+    .routers-table thead th {
+        text-align: left;
+        padding: 0.75rem 0.75rem;
+        background: var(--gray-50);
+        font-weight: 600;
+        color: var(--gray-600);
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+    
+    .routers-table tbody td {
+        padding: 0.625rem 0.75rem;
+        border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-700);
+        vertical-align: middle;
+    }
+    
+    .routers-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+    
+    @media (min-width: 768px) {
+        .routers-table thead th {
+            padding: 0.875rem 1rem;
+        }
+        .routers-table tbody td {
+            padding: 0.75rem 1rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Cell Styles */
+    .router-name {
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 0.125rem;
+    }
+    
+    .router-model {
+        font-size: 0.65rem;
+        color: var(--gray-500);
+    }
+    
+    .ip-cell {
+        font-family: monospace;
+        font-size: 0.7rem;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+    
+    .status-dot.online { background: var(--success); }
+    .status-dot.offline { background: var(--danger); }
+    .status-dot.error { background: var(--warning); }
+    .status-dot.unknown { background: var(--gray-400); }
+    
+    .status-text {
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+    
+    .metrics-cell {
+        font-family: monospace;
+        font-size: 0.7rem;
+    }
+    
+    .last-seen-cell {
+        font-size: 0.65rem;
+        color: var(--gray-500);
+        white-space: nowrap;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-icon {
+        background: none;
+        border: none;
+        padding: 0.3rem 0.5rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.75rem;
+    }
+    
+    .btn-view {
+        color: var(--primary);
+    }
+    
+    .btn-view:hover {
+        background: rgba(26, 86, 219, 0.1);
+    }
+    
+    .btn-edit {
+        color: var(--gray-600);
+    }
+    
+    .btn-edit:hover {
+        background: var(--gray-100);
+    }
+    
+    .btn-delete {
+        color: var(--danger);
+    }
+    
+    .btn-delete:hover {
+        background: rgba(220, 38, 38, 0.1);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+    }
+    
+    .empty-state i {
+        font-size: 2rem;
+        color: var(--gray-300);
+        margin-bottom: 0.5rem;
+    }
+    
+    .empty-state p {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        margin: 0 0 1rem 0;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hide-mobile {
+            display: none;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1">Create Single Voucher</h4>
-            <p class="text-muted mb-0">Generate a single prepaid voucher</p>
+<div class="routers-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h1>Routers</h1>
+            <p>Manage network routers and devices</p>
         </div>
-        <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back
+        <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="btn-add">
+            <i class="fas fa-plus"></i> Add Router
         </a>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label">Plan <span class="text-danger">*</span></label>
-                    <select name="plan_id" class="form-select" required>
-                        <option value="">Select Plan...</option>
-                        {% for plan in plans %}
-                        <option value="{{ plan.id }}" {% if form_data and form_data.plan_id == plan.id|string %}selected{% endif %}>
-                            {{ plan.name }} - KES {{ plan.price }} ({{ plan.validity_display }})
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
+    <!-- Stats Cards - Only show if routers exist -->
+    {% if routers %}
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div>
+                <div class="stat-number">{{ routers|length }}</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-icon"><i class="fas fa-server"></i></div>
+        </div>
+        <div class="stat-card">
+            <div>
+                <div class="stat-number">{{ routers|selectattr('status', 'equalto', 'online')|list|length }}</div>
+                <div class="stat-label">Online</div>
+            </div>
+            <div class="stat-icon"><i class="fas fa-check-circle" style="color: var(--success);"></i></div>
+        </div>
+        <div class="stat-card">
+            <div>
+                <div class="stat-number">{{ routers|selectattr('status', 'equalto', 'offline')|list|length }}</div>
+                <div class="stat-label">Offline</div>
+            </div>
+            <div class="stat-icon"><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i></div>
+        </div>
+        <div class="stat-card">
+            <div>
+                <div class="stat-number">{{ routers|selectattr('status', 'equalto', 'error')|list|length }}</div>
+                <div class="stat-label">Error</div>
+            </div>
+            <div class="stat-icon"><i class="fas fa-bug"></i></div>
+        </div>
+    </div>
+    {% endif %}
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Validity Value (Optional)</label>
-                        <input type="number" name="validity_value" class="form-control" value="{{ form_data.validity_value if form_data else '' }}" placeholder="e.g., 30, 2, 1">
-                        <div class="help-text">Leave empty to use plan's default validity</div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Validity Unit</label>
-                        <select name="validity_unit" class="form-select">
-                            <option value="">Use Plan Default</option>
-                            <option value="minutes" {% if form_data and form_data.validity_unit == 'minutes' %}selected{% endif %}>Minutes</option>
-                            <option value="hours" {% if form_data and form_data.validity_unit == 'hours' %}selected{% endif %}>Hours</option>
-                            <option value="days" {% if form_data and form_data.validity_unit == 'days' %}selected{% endif %}>Days</option>
-                            <option value="months" {% if form_data and form_data.validity_unit == 'months' %}selected{% endif %}>Months</option>
-                            <option value="years" {% if form_data and form_data.validity_unit == 'years' %}selected{% endif %}>Years</option>
-                        </select>
-                    </div>
-                </div>
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-form">
+            <div class="filter-group">
+                <label>Status</label>
+                <select id="statusFilter">
+                    <option value="">All</option>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                    <option value="error">Error</option>
+                    <option value="unknown">Unknown</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Network</label>
+                <select id="networkFilter">
+                    <option value="">All Networks</option>
+                    {% for net in networks %}
+                    <option value="{{ net.id }}">{{ net.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" id="searchInput" placeholder="Name or IP...">
+            </div>
+            <div class="filter-actions">
+                <button class="btn-reset" onclick="resetFilters()">Reset</button>
+            </div>
+        </div>
+    </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Max Uses</label>
-                        <input type="number" name="max_uses" class="form-control" value="{{ form_data.max_uses if form_data else '1' }}" placeholder="1">
-                        <div class="help-text">Number of times this voucher can be used</div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Activation Type</label>
-                        <select name="activation_type" class="form-select">
-                            <option value="immediate" {% if not form_data or form_data.activation_type == 'immediate' %}selected{% endif %}>Immediate</option>
-                            <option value="first_use" {% if form_data and form_data.activation_type == 'first_use' %}selected{% endif %}>First Use</option>
-                        </select>
-                        <div class="help-text">When the voucher validity starts</div>
-                    </div>
-                </div>
+    <!-- Routers Table -->
+    {% if routers %}
+    <div class="table-container">
+        <table class="routers-table">
+            <thead>
+                <tr>
+                    <th>Router</th>
+                    <th>IP Address</th>
+                    <th class="hide-mobile">Network</th>
+                    <th>Status</th>
+                    <th class="hide-mobile">Last Seen</th>
+                    <th style="width: 80px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="routersTableBody">
+                {% for router in routers %}
+                <tr class="router-row" 
+                    data-name="{{ router.name|lower }}" 
+                    data-ip="{{ router.ip_address }}" 
+                    data-status="{{ router.status|default('unknown') }}" 
+                    data-network="{{ router.network_id or '' }}">
+                    <td>
+                        <div class="router-name">{{ router.name }}</div>
+                        <div class="router-model">{{ router.model or 'Unknown Model' }}</div>
+                    </td>
+                    <td class="ip-cell">{{ router.ip_address }}:{{ router.api_port }}</td>
+                    <td class="hide-mobile">{{ router.network.name if router.network else '—' }}</td>
+                    <td>
+                        <span class="status-badge">
+                            <span class="status-dot {{ router.status|default('unknown') }}"></span>
+                            <span class="status-text">{{ (router.status|default('unknown'))|capitalize }}</span>
+                        </span>
+                        {% if not router.is_active %}
+                        <span class="status-text" style="color: var(--danger); margin-left: 0.5rem;">(Inactive)</span>
+                        {% endif %}
+                    </td>
+                    <td class="last-seen-cell hide-mobile">
+                        {% if router.last_seen_at %}
+                            {{ router.last_seen_at.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn-icon btn-view" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" class="btn-icon btn-edit" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn-icon btn-delete" 
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                    data-router-id="{{ router.id }}" 
+                                    data-router-name="{{ router.name }}"
+                                    title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="fas fa-server"></i>
+        <p>No routers found</p>
+        <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="btn-add">
+            <i class="fas fa-plus"></i> Add Router
+        </a>
+    </div>
+    {% endif %}
+</div>
 
-                <div class="mb-3">
-                    <label class="form-label">Notes</label>
-                    <textarea name="notes" class="form-control" rows="2" placeholder="Optional notes...">{{ form_data.notes if form_data else '' }}</textarea>
-                </div>
-
-                <hr>
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Voucher</button>
-                </div>
-            </form>
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Delete router <strong id="deleteRouterName"></strong>?</p>
+                <small class="text-muted">All associated hotspot and PPPoE configurations will be removed.</small>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    function filterRouters() {
+        const status = document.getElementById('statusFilter').value;
+        const network = document.getElementById('networkFilter').value;
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('.router-row');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            const rowStatus = row.getAttribute('data-status');
+            const rowNetwork = row.getAttribute('data-network');
+            const rowName = row.getAttribute('data-name');
+            const rowIp = row.getAttribute('data-ip');
+            let show = true;
+            
+            if (status && rowStatus !== status) show = false;
+            if (network && rowNetwork !== network) show = false;
+            if (search && !rowName.includes(search) && !rowIp.includes(search)) show = false;
+            
+            row.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+        
+        const tableBody = document.getElementById('routersTableBody');
+        const existingMsg = document.getElementById('noResultsMsg');
+        
+        if (visibleCount === 0 && rows.length > 0) {
+            if (!existingMsg) {
+                const msgRow = document.createElement('tr');
+                msgRow.id = 'noResultsMsg';
+                msgRow.innerHTML = '<td colspan="6" class="empty-state" style="text-align: center;"><i class="fas fa-search"></i><p>No matching routers</p></td>';
+                tableBody.appendChild(msgRow);
+            }
+        } else if (existingMsg) {
+            existingMsg.remove();
+        }
+    }
+    
+    function resetFilters() {
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('networkFilter').value = '';
+        document.getElementById('searchInput').value = '';
+        filterRouters();
+    }
+    
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const routerId = button.getAttribute('data-router-id');
+            const routerName = button.getAttribute('data-router-name');
+            document.getElementById('deleteRouterName').textContent = routerName;
+            document.getElementById('deleteForm').action = `/organization/{{ organization.id }}/routers/${routerId}/delete`;
+        });
+    }
+    
+    document.getElementById('statusFilter').addEventListener('change', filterRouters);
+    document.getElementById('networkFilter').addEventListener('change', filterRouters);
+    document.getElementById('searchInput').addEventListener('input', filterRouters);
+</script>
 {% endblock %}
