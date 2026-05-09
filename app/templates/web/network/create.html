@@ -4,363 +4,594 @@
 
 {% block extra_css %}
 <style>
+    /* ========================================
+       CREATE NETWORK FORM - MODERN DESIGN
+       ========================================= */
+    
+    :root {
+        --primary: #2d6a4f;
+        --primary-light: #40916c;
+        --primary-dark: #1b4332;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+    }
+
+    /* Container */
+    .create-network-container {
+        padding: 0.75rem;
+    }
+
+    @media (min-width: 768px) {
+        .create-network-container {
+            padding: 1rem;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .create-network-container {
+            padding: 1.5rem;
+        }
+    }
+
+    /* Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        .page-header {
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+    }
+
+    .page-title h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+        color: var(--gray-800);
+    }
+
+    .page-title p {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        margin-bottom: 0;
+    }
+
+    @media (min-width: 768px) {
+        .page-title h4 {
+            font-size: 1.25rem;
+        }
+        .page-title p {
+            font-size: 0.8rem;
+        }
+    }
+
+    .btn-back {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        color: var(--gray-600);
+        padding: 0.4rem 0.875rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-back:hover {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    @media (min-width: 768px) {
+        .btn-back {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Form Container */
     .form-container {
         background: white;
-        border-radius: 20px;
-        padding: 2rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-radius: 1rem;
+        padding: 1rem;
+        border: 1px solid var(--gray-200);
     }
-    
+
+    @media (min-width: 768px) {
+        .form-container {
+            padding: 1.25rem;
+            border-radius: 1.125rem;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .form-container {
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+        }
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+    }
+
     .form-label {
         font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #1a2e2a;
+        margin-bottom: 0.35rem;
+        color: var(--gray-700);
+        font-size: 0.75rem;
+        display: block;
     }
-    
-    .form-label .required {
-        color: #dc3545;
-        margin-left: 0.25rem;
+
+    @media (min-width: 768px) {
+        .form-label {
+            font-size: 0.8rem;
+            margin-bottom: 0.4rem;
+        }
     }
-    
-    .form-control, .form-select {
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        padding: 0.625rem 1rem;
+
+    .required {
+        color: var(--danger);
+        margin-left: 0.2rem;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
         transition: all 0.2s;
+        background: white;
     }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #2d6a4f;
+
+    @media (min-width: 768px) {
+        .form-control,
+        .form-select {
+            padding: 0.6rem 0.875rem;
+            font-size: 0.8rem;
+            border-radius: 0.5rem;
+        }
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
         box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
     }
-    
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+
     .form-text {
-        font-size: 0.75rem;
-        color: #6c757d;
+        font-size: 0.6rem;
+        color: var(--gray-500);
         margin-top: 0.25rem;
     }
-    
-    .btn-save {
-        background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
-        border: none;
-        color: white;
-        padding: 0.625rem 1.5rem;
-        border-radius: 10px;
-        font-weight: 600;
-        transition: all 0.3s;
+
+    @media (min-width: 768px) {
+        .form-text {
+            font-size: 0.65rem;
+        }
     }
-    
-    .btn-save:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(45, 106, 79, 0.3);
-        color: white;
+
+    /* Type Cards */
+    .type-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
-    
-    .btn-cancel {
-        background: #f1f3f5;
-        border: none;
-        color: #495057;
-        padding: 0.625rem 1.5rem;
-        border-radius: 10px;
-        font-weight: 600;
-        transition: all 0.2s;
+
+    @media (min-width: 640px) {
+        .type-grid {
+            flex-direction: row;
+            gap: 0.75rem;
+        }
+        .type-grid .type-card {
+            flex: 1;
+        }
     }
-    
-    .btn-cancel:hover {
-        background: #e9ecef;
-        color: #212529;
-    }
-    
+
     .type-card {
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 1rem;
+        border: 2px solid var(--gray-200);
+        border-radius: 0.75rem;
+        padding: 0.875rem;
         cursor: pointer;
         transition: all 0.2s;
-        margin-bottom: 0.5rem;
+        text-align: center;
     }
-    
+
+    @media (min-width: 768px) {
+        .type-card {
+            padding: 1rem;
+            border-radius: 1rem;
+        }
+    }
+
     .type-card:hover {
-        border-color: #2d6a4f;
-        background: #f8fafc;
+        border-color: var(--primary);
+        background: var(--gray-50);
     }
-    
+
     .type-card.selected {
-        border-color: #2d6a4f;
+        border-color: var(--primary);
         background: linear-gradient(135deg, rgba(45, 106, 79, 0.05) 0%, rgba(64, 145, 108, 0.05) 100%);
     }
-    
+
     .type-card input[type="radio"] {
         display: none;
     }
-    
+
     .type-icon {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.25rem;
+        margin-bottom: 0.35rem;
     }
-    
+
+    @media (min-width: 768px) {
+        .type-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+    }
+
     .type-title {
         font-weight: 600;
-        margin-bottom: 0.25rem;
+        font-size: 0.75rem;
+        margin-bottom: 0.2rem;
+        color: var(--gray-700);
     }
-    
+
     .type-desc {
-        font-size: 0.7rem;
-        color: #6c757d;
+        font-size: 0.6rem;
+        color: var(--gray-500);
     }
-    
+
+    @media (min-width: 768px) {
+        .type-title {
+            font-size: 0.85rem;
+        }
+        .type-desc {
+            font-size: 0.65rem;
+        }
+    }
+
+    /* Slug Preview */
     .slug-preview {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
+        background: var(--gray-50);
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
         font-family: monospace;
-        font-size: 0.875rem;
-        color: #2d6a4f;
+        font-size: 0.7rem;
+        color: var(--primary);
         margin-top: 0.5rem;
         display: none;
+        border: 1px solid var(--gray-200);
+        word-break: break-all;
     }
-    
+
     .slug-preview.active {
         display: block;
+    }
+
+    /* Form Check */
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-check-input {
+        width: 1rem;
+        height: 1rem;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        font-size: 0.75rem;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    @media (min-width: 768px) {
+        .form-actions {
+            gap: 1rem;
+            padding-top: 1.25rem;
+        }
+    }
+
+    .btn-cancel {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        color: var(--gray-600);
+        padding: 0.5rem 1rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-cancel:hover {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+        color: white;
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.6;
+        transform: none;
+    }
+
+    @media (min-width: 768px) {
+        .btn-cancel,
+        .btn-submit {
+            padding: 0.6rem 1.25rem;
+            font-size: 0.75rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
+<div class="create-network-container">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1">Create New Network</h4>
-            <p class="text-muted mb-0">Add a new network to {{ organization.name }}</p>
+    <div class="page-header">
+        <div class="page-title">
+            <h4>Create New Network</h4>
+            <p>Add a new network to {{ organization.name }}</p>
         </div>
-        <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Networks
+        <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
-    
+
     <!-- Form Container -->
     <div class="form-container">
         <form method="POST" id="createNetworkForm">
             <!-- Network Name -->
-            <div class="mb-4">
-                <label class="form-label">
-                    Network Name <span class="required">*</span>
-                </label>
-                <input type="text" 
-                       class="form-control" 
-                       id="networkName" 
-                       name="name" 
-                       required 
-                       placeholder="e.g., Headquarters, Branch Office, Guest WiFi"
-                       value="{{ form_data.name if form_data else '' }}">
+            <div class="form-group">
+                <label class="form-label">Network Name <span class="required">*</span></label>
+                <input type="text" id="networkName" name="name" class="form-control" required 
+                       value="{{ form_data.name if form_data else '' }}" 
+                       placeholder="e.g., Headquarters, Branch Office, Guest WiFi">
                 <div class="form-text">Choose a descriptive name for this network</div>
             </div>
-            
+
             <!-- Slug (Auto-generated) -->
-            <div class="mb-4">
+            <div class="form-group">
                 <label class="form-label">Slug (URL Identifier)</label>
-                <input type="text" 
-                       class="form-control" 
-                       id="networkSlug" 
-                       name="slug" 
-                       placeholder="auto-generated from name"
-                       value="{{ form_data.slug if form_data else '' }}">
+                <input type="text" id="networkSlug" name="slug" class="form-control" 
+                       value="{{ form_data.slug if form_data else '' }}" 
+                       placeholder="auto-generated from name">
                 <div class="form-text">Leave empty to auto-generate from name. Use only lowercase letters, numbers, and hyphens.</div>
                 <div id="slugPreview" class="slug-preview">
                     <i class="fas fa-link me-2"></i>
                     <span id="slugPreviewUrl"></span>
                 </div>
             </div>
-            
+
             <!-- Network Type -->
-            <div class="mb-4">
-                <label class="form-label mb-3">
-                    Network Type <span class="required">*</span>
-                </label>
-                <div class="row">
-                    <div class="col-md-4 mb-2">
-                        <div class="type-card" data-type="hotspot">
-                            <input type="radio" name="type" value="hotspot" id="typeHotspot" {% if form_data and form_data.type == 'hotspot' %}checked{% endif %}>
-                            <div class="text-center">
-                                <div class="type-icon">
-                                    <i class="fas fa-wifi text-primary"></i>
-                                </div>
-                                <div class="type-title">Hotspot</div>
-                                <div class="type-desc">Public WiFi with captive portal</div>
-                            </div>
+            <div class="form-group">
+                <label class="form-label mb-2">Network Type <span class="required">*</span></label>
+                <div class="type-grid">
+                    <div class="type-card" data-type="hotspot">
+                        <input type="radio" name="type" value="hotspot" id="typeHotspot" 
+                               {% if form_data and form_data.type == 'hotspot' %}checked{% endif %}>
+                        <div class="type-icon">
+                            <i class="fas fa-wifi" style="color: var(--info);"></i>
                         </div>
+                        <div class="type-title">Hotspot</div>
+                        <div class="type-desc">Public WiFi with captive portal</div>
                     </div>
-                    <div class="col-md-4 mb-2">
-                        <div class="type-card" data-type="pppoe">
-                            <input type="radio" name="type" value="pppoe" id="typePppoe" {% if form_data.type == 'pppoe' %}checked{% endif %}>
-                            <div class="text-center">
-                                <div class="type-icon">
-                                    <i class="fas fa-network-wired text-success"></i>
-                                </div>
-                                <div class="type-title">PPPoE</div>
-                                <div class="type-desc">Point-to-Point Protocol over Ethernet</div>
-                            </div>
+                    <div class="type-card" data-type="pppoe">
+                        <input type="radio" name="type" value="pppoe" id="typePppoe" 
+                               {% if form_data.type == 'pppoe' %}checked{% endif %}>
+                        <div class="type-icon">
+                            <i class="fas fa-network-wired" style="color: var(--success);"></i>
                         </div>
+                        <div class="type-title">PPPoE</div>
+                        <div class="type-desc">Point-to-Point Protocol over Ethernet</div>
                     </div>
-                    <div class="col-md-4 mb-2">
-                        <div class="type-card" data-type="hybrid">
-                            <input type="radio" name="type" value="hybrid" id="typeHybrid" {% if not form_data or form_data.type == 'hybrid' %}checked{% endif %}>
-                            <div class="text-center">
-                                <div class="type-icon">
-                                    <i class="fas fa-code-branch text-warning"></i>
-                                </div>
-                                <div class="type-title">Hybrid</div>
-                                <div class="type-desc">Both Hotspot and PPPoE</div>
-                            </div>
+                    <div class="type-card" data-type="hybrid">
+                        <input type="radio" name="type" value="hybrid" id="typeHybrid" 
+                               {% if not form_data or form_data.type == 'hybrid' %}checked{% endif %}>
+                        <div class="type-icon">
+                            <i class="fas fa-code-branch" style="color: var(--warning);"></i>
                         </div>
+                        <div class="type-title">Hybrid</div>
+                        <div class="type-desc">Both Hotspot and PPPoE</div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Description -->
-            <div class="mb-4">
+            <div class="form-group">
                 <label class="form-label">Description</label>
-                <textarea class="form-control" 
-                          id="networkDescription" 
-                          name="description" 
-                          rows="3" 
-                          placeholder="Optional description of this network">{{ form_data.description if form_data else '' }}</textarea>
-                <div class="form-text">Brief description of the network's purpose and location</div>
+                <textarea name="description" class="form-control" rows="2" 
+                          placeholder="Brief description of the network's purpose and location">{{ form_data.description if form_data else '' }}</textarea>
             </div>
-            
+
             <!-- Active Status -->
-            <div class="mb-4">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="networkActive" name="is_active" value="true" {% if not form_data or form_data.is_active != false %}checked{% endif %}>
-                    <label class="form-check-label" for="networkActive">
-                        <i class="fas fa-circle me-1" style="font-size: 0.5rem; color: #10b981;"></i>
-                        Active
-                    </label>
-                </div>
-                <div class="form-text">Inactive networks won't be available for new routers</div>
+            <div class="form-check">
+                <input type="checkbox" name="is_active" class="form-check-input" id="networkActive" 
+                       {% if not form_data or form_data.is_active != false %}checked{% endif %}>
+                <label class="form-check-label" for="networkActive">Active</label>
             </div>
-            
-            <!-- Settings (JSON) -->
-            <div class="mb-4">
+            <div class="form-text" style="margin-top: -0.25rem; margin-bottom: 0.5rem;">Inactive networks won't be available for new routers</div>
+
+            <!-- Advanced Settings -->
+            <div class="form-group">
                 <label class="form-label">Advanced Settings (JSON)</label>
-                <textarea class="form-control" 
-                          id="networkSettings" 
-                          name="settings" 
-                          rows="5" 
+                <textarea name="settings" class="form-control" rows="3" 
                           placeholder='{
   "ip_pool": "192.168.1.0/24",
-  "vlan_id": 100,
-  "bandwidth_profile": "default"
+  "vlan_id": 100
 }'>{{ form_data.settings if form_data and form_data.settings else '' }}</textarea>
-                <div class="form-text">
-                    Optional custom settings in JSON format. Examples: IP pool, VLAN ID, bandwidth limits
-                </div>
+                <div class="form-text">Optional custom settings in JSON format</div>
             </div>
-            
+
             <!-- Form Actions -->
-            <div class="d-flex gap-2 justify-content-end pt-3 border-top">
-                <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="btn btn-cancel">
-                    <i class="fas fa-times me-2"></i>Cancel
+            <div class="form-actions">
+                <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="btn-cancel">
+                    Cancel
                 </a>
-                <button type="submit" class="btn btn-save" id="submitBtn">
-                    <i class="fas fa-save me-2"></i>Create Network
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fas fa-save"></i> Create Network
                 </button>
             </div>
         </form>
     </div>
 </div>
-{% endblock %}
 
 {% block extra_js %}
 <script>
-// Type selection cards
-document.querySelectorAll('.type-card').forEach(card => {
-    card.addEventListener('click', function() {
-        const radio = this.querySelector('input[type="radio"]');
-        radio.checked = true;
+    // Type selection cards
+    document.querySelectorAll('.type-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            
+            document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+        });
         
-        // Update selected class
-        document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
-        this.classList.add('selected');
+        if (card.querySelector('input[type="radio"]').checked) {
+            card.classList.add('selected');
+        }
     });
-    
-    // Set initial selected class
-    if (card.querySelector('input[type="radio"]').checked) {
-        card.classList.add('selected');
+
+    // Auto-generate slug from name
+    const nameInput = document.getElementById('networkName');
+    const slugInput = document.getElementById('networkSlug');
+    const slugPreview = document.getElementById('slugPreview');
+    const slugPreviewUrl = document.getElementById('slugPreviewUrl');
+
+    function generateSlug(name) {
+        return name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-');
     }
-});
 
-// Auto-generate slug from name
-const nameInput = document.getElementById('networkName');
-const slugInput = document.getElementById('networkSlug');
-const slugPreview = document.getElementById('slugPreview');
-const slugPreviewUrl = document.getElementById('slugPreviewUrl');
-
-function generateSlug(name) {
-    return name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-');
-}
-
-function updateSlugPreview() {
-    let slug = slugInput.value.trim();
-    const name = nameInput.value.trim();
-    
-    if (!slug && name) {
-        slug = generateSlug(name);
-    }
-    
-    if (slug) {
-        const previewUrl = `/organization/{{ organization.id }}/networks/by-slug/${slug}`;
-        slugPreviewUrl.textContent = previewUrl;
-        slugPreview.classList.add('active');
-    } else {
-        slugPreview.classList.remove('active');
-    }
-}
-
-nameInput.addEventListener('input', function() {
-    if (!slugInput.value || slugInput.value === generateSlug(this.value)) {
-        slugInput.value = generateSlug(this.value);
-    }
-    updateSlugPreview();
-});
-
-slugInput.addEventListener('input', updateSlugPreview);
-
-// Initial preview
-if (nameInput.value) {
-    slugInput.value = generateSlug(nameInput.value);
-    updateSlugPreview();
-}
-
-// Validate JSON settings before submit
-document.getElementById('createNetworkForm').addEventListener('submit', function(e) {
-    const settingsText = document.getElementById('networkSettings').value.trim();
-    
-    if (settingsText) {
-        try {
-            JSON.parse(settingsText);
-        } catch (e) {
-            e.preventDefault();
-            alert('Invalid JSON in Settings field. Please check the format.');
-            return false;
+    function updateSlugPreview() {
+        let slug = slugInput.value.trim();
+        const name = nameInput.value.trim();
+        
+        if (!slug && name) {
+            slug = generateSlug(name);
+        }
+        
+        if (slug) {
+            const previewUrl = `/organization/{{ organization.id }}/networks/by-slug/${slug}`;
+            slugPreviewUrl.textContent = previewUrl;
+            slugPreview.classList.add('active');
+        } else {
+            slugPreview.classList.remove('active');
         }
     }
-    
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
-    return true;
-});
 
-// Restore form data on error
-{% if form_data %}
-// Form data restored from previous attempt
-{% endif %}
+    nameInput.addEventListener('input', function() {
+        if (!slugInput.value || slugInput.value === generateSlug(this.value)) {
+            slugInput.value = generateSlug(this.value);
+        }
+        updateSlugPreview();
+    });
+
+    slugInput.addEventListener('input', updateSlugPreview);
+
+    if (nameInput.value) {
+        slugInput.value = generateSlug(nameInput.value);
+        updateSlugPreview();
+    }
+
+    // Validate JSON settings before submit
+    const form = document.getElementById('createNetworkForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', function(e) {
+        const settingsText = document.getElementById('networkSettings').value.trim();
+        
+        if (settingsText) {
+            try {
+                JSON.parse(settingsText);
+            } catch (e) {
+                e.preventDefault();
+                alert('Invalid JSON in Settings field. Please check the format.');
+                return false;
+            }
+        }
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        return true;
+    });
 </script>
+{% endblock %}
 {% endblock %}
