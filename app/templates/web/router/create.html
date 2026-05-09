@@ -4,45 +4,367 @@
 
 {% block extra_css %}
 <style>
+    /* ========================================
+       ADD ROUTER FORM - MODERN DESIGN
+       ========================================= */
+    
+    :root {
+        --primary: #2d6a4f;
+        --primary-light: #40916c;
+        --primary-dark: #1b4332;
+        --success: #10b981;
+        --danger: #ef4444;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+    }
+
+    /* Container */
+    .add-router-container {
+        padding: 0.75rem;
+    }
+
+    @media (min-width: 768px) {
+        .add-router-container {
+            padding: 1rem;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .add-router-container {
+            padding: 1.5rem;
+        }
+    }
+
+    /* Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        .page-header {
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+    }
+
+    .page-title h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+        color: var(--gray-800);
+    }
+
+    .page-title p {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        margin-bottom: 0;
+    }
+
+    @media (min-width: 768px) {
+        .page-title h4 {
+            font-size: 1.25rem;
+        }
+        .page-title p {
+            font-size: 0.8rem;
+        }
+    }
+
+    .btn-back {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        color: var(--gray-600);
+        padding: 0.4rem 0.875rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-back:hover {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    @media (min-width: 768px) {
+        .btn-back {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Form Container */
     .form-container {
         background: white;
-        border-radius: 20px;
-        padding: 2rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-radius: 1rem;
+        padding: 1rem;
+        border: 1px solid var(--gray-200);
         max-width: 800px;
         margin: 0 auto;
     }
-    .form-label { font-weight: 600; margin-bottom: 0.5rem; color: #1a2e2a; }
-    .required:after { content: "*"; color: #dc3545; margin-left: 0.25rem; }
-    .form-control, .form-select { border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.625rem 1rem; }
-    .form-control:focus, .form-select:focus { border-color: #2d6a4f; box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
-    .form-text { font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem; }
-    .btn-save { background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%); border: none; color: white; padding: 0.625rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s; }
-    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(45,106,79,0.3); color: white; }
-    .btn-cancel { background: #f1f3f5; border: none; color: #495057; padding: 0.625rem 1.5rem; border-radius: 10px; }
-    .test-result { margin-top: 1rem; padding: 0.75rem; border-radius: 8px; display: none; }
-    .test-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-    .test-failed { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+
+    @media (min-width: 768px) {
+        .form-container {
+            padding: 1.25rem;
+            border-radius: 1.125rem;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .form-container {
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+        }
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+        color: var(--gray-700);
+        font-size: 0.75rem;
+        display: block;
+    }
+
+    @media (min-width: 768px) {
+        .form-label {
+            font-size: 0.8rem;
+            margin-bottom: 0.4rem;
+        }
+    }
+
+    .required {
+        color: var(--danger);
+        margin-left: 0.2rem;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    @media (min-width: 768px) {
+        .form-control,
+        .form-select {
+            padding: 0.6rem 0.875rem;
+            font-size: 0.8rem;
+            border-radius: 0.5rem;
+        }
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+    }
+
+    .form-text {
+        font-size: 0.6rem;
+        color: var(--gray-500);
+        margin-top: 0.25rem;
+    }
+
+    @media (min-width: 768px) {
+        .form-text {
+            font-size: 0.65rem;
+        }
+    }
+
+    /* Form Check */
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .form-check-input {
+        width: 1rem;
+        height: 1rem;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        font-size: 0.75rem;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+
+    @media (min-width: 768px) {
+        .form-check-label {
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Row Layout */
+    .form-row {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .form-row {
+            flex-direction: row;
+            gap: 1rem;
+        }
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+    }
+
+    /* Test Result */
+    .test-result {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.7rem;
+        display: none;
+    }
+
+    @media (min-width: 768px) {
+        .test-result {
+            padding: 0.875rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    .test-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .test-failed {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    /* Buttons */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    @media (min-width: 768px) {
+        .form-actions {
+            gap: 1rem;
+            padding-top: 1.25rem;
+        }
+    }
+
+    .btn-cancel {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        color: var(--gray-600);
+        padding: 0.5rem 1rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-cancel:hover {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+        color: white;
+    }
+
+    .btn-save:disabled {
+        opacity: 0.6;
+        transform: none;
+    }
+
+    @media (min-width: 768px) {
+        .btn-cancel,
+        .btn-save {
+            padding: 0.6rem 1.25rem;
+            font-size: 0.75rem;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1">Add Router</h4>
-            <p class="text-muted mb-0">Add a new router to {{ organization.name }}</p>
+<div class="add-router-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h4>Add Router</h4>
+            <p>Add a new router to {{ organization.name }}</p>
         </div>
-        <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back
+        <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 
+    <!-- Form Container -->
     <div class="form-container">
         <form method="POST" id="routerForm">
             <!-- Network Selection -->
-            <div class="mb-3">
-                <label class="form-label">Network <span class="required"></span></label>
+            <div class="form-group">
+                <label class="form-label">Network <span class="required">*</span></label>
                 <select name="network_id" class="form-select" required>
                     <option value="">Select Network...</option>
                     {% for net in networks %}
@@ -53,66 +375,69 @@
             </div>
 
             <!-- Basic Info -->
-            <div class="mb-3">
-                <label class="form-label">Router Name <span class="required"></span></label>
+            <div class="form-group">
+                <label class="form-label">Router Name <span class="required">*</span></label>
                 <input type="text" name="name" class="form-control" required value="{{ form_data.name if form_data else '' }}" placeholder="e.g., Main Office Router">
             </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">IP Address <span class="required"></span></label>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">IP Address <span class="required">*</span></label>
                     <input type="text" name="ip_address" class="form-control" required value="{{ form_data.ip_address if form_data else '' }}" placeholder="192.168.1.1">
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="form-group">
                     <label class="form-label">API Port</label>
-                    <input type="number" name="api_port" class="form-control" value="{{ form_data.api_port if form_data else 8728 }}">
+                    <input type="number" name="api_port" class="form-control" value="{{ form_data.api_port if form_data else 8728 }}" placeholder="8728">
                     <div class="form-text">MikroTik API port (default 8728)</div>
                 </div>
             </div>
 
             <!-- Credentials -->
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Username <span class="required"></span></label>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Username <span class="required">*</span></label>
                     <input type="text" name="username" class="form-control" required value="{{ form_data.username if form_data else '' }}" placeholder="admin">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Password <span class="required"></span></label>
+                <div class="form-group">
+                    <label class="form-label">Password <span class="required">*</span></label>
                     <input type="password" name="password" class="form-control" required value="{{ form_data.password if form_data else '' }}">
                 </div>
             </div>
 
             <!-- Location & Description -->
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Location</label>
-                <input type="text" name="location" class="form-control" value="{{ form_data.location if form_data else '' }}" placeholder="e.g., Server Room A">
+                <input type="text" name="location" class="form-control" value="{{ form_data.location if form_data else '' }}" placeholder="e.g., Server Room A, Floor 2">
             </div>
 
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Description</label>
                 <textarea name="description" class="form-control" rows="2" placeholder="Optional description...">{{ form_data.description if form_data else '' }}</textarea>
             </div>
 
             <!-- Active Status -->
-            <div class="mb-3 form-check form-switch">
+            <div class="form-check">
                 <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if not form_data or form_data.is_active != false %}checked{% endif %}>
                 <label class="form-check-label" for="isActive">Active</label>
-                <div class="form-text">Inactive routers won't be monitored or synced</div>
             </div>
+            <div class="form-text" style="margin-top: -0.25rem; margin-bottom: 1rem;">Inactive routers won't be monitored or synced</div>
 
             <!-- Test Connection Option -->
-            <div class="mb-3 form-check">
+            <div class="form-check">
                 <input type="checkbox" name="test_connection" class="form-check-input" id="testConnection" checked>
                 <label class="form-check-label" for="testConnection">Test connection after adding</label>
             </div>
 
+            <!-- Test Result -->
             <div id="testResult" class="test-result"></div>
 
-            <!-- Submit Buttons -->
-            <div class="d-flex gap-2 justify-content-end pt-3 border-top mt-3">
-                <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="btn btn-cancel">Cancel</a>
-                <button type="submit" class="btn btn-save" id="submitBtn">
-                    <i class="fas fa-save me-2"></i>Add Router
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="btn-cancel">
+                    Cancel
+                </a>
+                <button type="submit" class="btn-save" id="submitBtn">
+                    <i class="fas fa-save"></i> Add Router
                 </button>
             </div>
         </form>
@@ -120,15 +445,22 @@
 </div>
 
 <script>
-    document.getElementById('routerForm').addEventListener('submit', async (e) => {
-        const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('routerForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const testConnectionCheckbox = document.getElementById('testConnection');
+    const testResultDiv = document.getElementById('testResult');
+
+    form.addEventListener('submit', async (e) => {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
-        
-        const testConnection = document.getElementById('testConnection').checked;
-        if (!testConnection) return true;
-        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+        const testConnection = testConnectionCheckbox.checked;
+        if (!testConnection) {
+            return true;
+        }
+
         e.preventDefault();
+        
         const formData = new FormData(e.target);
         const data = {
             ip_address: formData.get('ip_address'),
@@ -136,35 +468,43 @@
             password: formData.get('password'),
             port: parseInt(formData.get('api_port')) || 8728
         };
-        
-        const resultDiv = document.getElementById('testResult');
-        resultDiv.style.display = 'block';
-        resultDiv.className = 'test-result';
-        resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing connection...';
-        
+
+        testResultDiv.style.display = 'block';
+        testResultDiv.className = 'test-result';
+        testResultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing connection...';
+
         try {
+            const token = localStorage.getItem('access_token');
             const response = await fetch('/api/v1/routers/test', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('access_token') },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
                 body: JSON.stringify(data)
             });
+            
             const result = await response.json();
+            
             if (response.ok && result.success) {
-                resultDiv.className = 'test-result test-success';
-                resultDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>Connection successful! Router is reachable.';
-                setTimeout(() => { e.target.submit(); }, 1000);
+                testResultDiv.className = 'test-result test-success';
+                testResultDiv.innerHTML = '<i class="fas fa-check-circle"></i> Connection successful! Router is reachable.';
+                setTimeout(() => {
+                    form.submit();
+                }, 1000);
             } else {
-                resultDiv.className = 'test-result test-failed';
-                resultDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Connection failed: ' + (result.error || result.message || 'Unknown error') + '. You can still add the router.';
+                testResultDiv.className = 'test-result test-failed';
+                testResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (result.error || result.message || 'Connection failed') + '. You can still add the router.';
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Add Router Anyway';
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Add Router Anyway';
             }
         } catch (error) {
-            resultDiv.className = 'test-result test-failed';
-            resultDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Test error: ' + error.message + '. You can still add the router.';
+            testResultDiv.className = 'test-result test-failed';
+            testResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + error.message + '. You can still add the router.';
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Add Router Anyway';
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Add Router Anyway';
         }
+        
         return false;
     });
 </script>
