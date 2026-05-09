@@ -226,14 +226,34 @@ def show(org_id, network_id, current_user=None, current_organization=None):
     try:
         network_uuid = UUID(network_id)
         
-        # Fetch network via service (no HTTP call)
+        # Fetch network via service
         network = network_service.get_network(network_uuid, current_organization.id)
+        
+        #  Fetch routers belonging to this network directly
+        from app.modules.router.service import RouterService
+        router_service = RouterService()
+        routers = router_service.get_routers_by_network(network_uuid, current_organization.id)
+        
+        #  Convert routers to dict for template
+        routers_data = []
+        for router in routers:
+            router_dict = router.to_dict()
+            routers_data.append(router_dict)
+        
+        # Placeholders for APs and sessions (will be implemented later)
+        access_points = []
+        active_sessions = 0
+        bandwidth_usage = 0
         
         return render_template(
             'web/network/show.html',
             organization=current_organization,
             user=current_user,
-            network=network.to_dict()
+            network=network.to_dict(),
+            routers=routers_data, 
+            access_points=access_points, 
+            active_sessions=active_sessions, 
+            bandwidth_usage=bandwidth_usage 
         )
         
     except ValueError:
@@ -243,7 +263,6 @@ def show(org_id, network_id, current_user=None, current_organization=None):
         logger.error(f"Error fetching network {network_id}: {e}", exc_info=True)
         flash('Network not found', 'danger')
         return redirect(url_for('network_web.index', org_id=org_id))
-
 
 @network_web_bp.route('/<network_id>/edit', methods=['GET', 'POST'])
 @web_network_access_required

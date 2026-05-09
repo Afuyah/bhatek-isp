@@ -28,8 +28,9 @@ class Network(BaseModel, OrganizationMixin, TimestampMixin):
     def __repr__(self):
         return f'<Network {self.name}>'
     
-    def to_dict(self):
-        return {
+    def to_dict(self, include_counts: bool = True):
+        """Convert network to dictionary with optional router/AP counts"""
+        data = {
             'id': str(self.id),
             'name': self.name,
             'slug': self.slug,
@@ -38,12 +39,15 @@ class Network(BaseModel, OrganizationMixin, TimestampMixin):
             'settings': self.settings,
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
-
-
-
-
-
-
         
+        # Add counts if requested
+        if include_counts:
+            # Count routers associated with this network
+            data['router_count'] = self.routers.count() if hasattr(self, 'routers') else 0
+            # Placeholders for future modules
+            data['ap_count'] = 0  # Will be updated when AP module is ready
+            data['active_sessions'] = 0 
+        
+        return data

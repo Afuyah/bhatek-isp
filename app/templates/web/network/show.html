@@ -66,6 +66,21 @@
         color: #dc2626;
     }
     
+    .status-online {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-offline {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    
+    .status-unknown {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+    
     .stat-card {
         background: white;
         border-radius: 16px;
@@ -89,22 +104,6 @@
         justify-content: center;
         border-radius: 50%;
         font-size: 1.5rem;
-    }
-    
-    .bg-primary {
-        background-color: #2d6a4f !important;
-    }
-    
-    .bg-success {
-        background-color: #10b981 !important;
-    }
-    
-    .bg-warning {
-        background-color: #f59e0b !important;
-    }
-    
-    .bg-info {
-        background-color: #06b6d4 !important;
     }
     
     .btn-outline-primary {
@@ -162,12 +161,12 @@
                 </div>
             </div>
             <div class="btn-group">
-                <button class="btn btn-outline-primary" onclick="editNetwork()">
+                <a href="{{ url_for('network_web.edit', org_id=organization.id, network_id=network.id) }}" class="btn btn-outline-primary">
                     <i class="fas fa-edit me-2"></i>Edit
-                </button>
-                <button class="btn btn-primary" onclick="addRouter()">
+                </a>
+                <a href="{{ url_for('router_web.create', org_id=organization.id) }}?network_id={{ network.id }}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>Add Router
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -175,29 +174,29 @@
     <!-- Stats Row -->
     <div class="row mb-4">
         <div class="col-md-3 mb-3">
-            <div class="stat-card text-center" onclick="viewRouters()">
+            <div class="stat-card text-center" onclick="window.location.href='{{ url_for('router_web.index', org_id=organization.id) }}?network_id={{ network.id }}'">
                 <div class="stat-icon bg-primary bg-opacity-10 text-primary mx-auto mb-3">
                     <i class="fas fa-server"></i>
                 </div>
-                <h3 id="routerCount">0</h3>
+                <h3>{{ routers|length }}</h3>
                 <p class="text-muted mb-0">Routers</p>
             </div>
         </div>
         <div class="col-md-3 mb-3">
-            <div class="stat-card text-center" onclick="viewAccessPoints()">
+            <div class="stat-card text-center" onclick="window.location.href='#'">
                 <div class="stat-icon bg-success bg-opacity-10 text-success mx-auto mb-3">
                     <i class="fas fa-wifi"></i>
                 </div>
-                <h3 id="apCount">0</h3>
+                <h3>{{ access_points|length }}</h3>
                 <p class="text-muted mb-0">Access Points</p>
             </div>
         </div>
         <div class="col-md-3 mb-3">
-            <div class="stat-card text-center" onclick="viewSessions()">
+            <div class="stat-card text-center" onclick="window.location.href='#'">
                 <div class="stat-icon bg-warning bg-opacity-10 text-warning mx-auto mb-3">
                     <i class="fas fa-users"></i>
                 </div>
-                <h3 id="activeSessions">0</h3>
+                <h3>{{ active_sessions }}</h3>
                 <p class="text-muted mb-0">Active Sessions</p>
             </div>
         </div>
@@ -206,20 +205,20 @@
                 <div class="stat-icon bg-info bg-opacity-10 text-info mx-auto mb-3">
                     <i class="fas fa-chart-line"></i>
                 </div>
-                <h3 id="bandwidthUsage">0</h3>
+                <h3>{{ bandwidth_usage }}</h3>
                 <p class="text-muted mb-0">Bandwidth (Gbps)</p>
             </div>
         </div>
     </div>
     
     <!-- Settings Card -->
-    {% if network.settings %}
+    {% if network.settings and network.settings != {} %}
     <div class="data-card">
         <div class="data-card-header">
             <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Network Settings</h5>
         </div>
         <div class="bg-light p-3 rounded" style="font-family: monospace; font-size: 0.85rem;">
-            <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">{{ network.settings|tojson(indent=2) if network.settings else '{}' }}</pre>
+            <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">{{ network.settings|tojson(indent=2) }}</pre>
         </div>
     </div>
     {% endif %}
@@ -228,9 +227,9 @@
     <div class="data-card">
         <div class="data-card-header">
             <h5 class="mb-0"><i class="fas fa-server me-2"></i>Routers in this Network</h5>
-            <button class="btn btn-sm btn-primary" onclick="addRouter()">
+            <a href="{{ url_for('router_web.create', org_id=organization.id) }}?network_id={{ network.id }}" class="btn btn-sm btn-primary">
                 <i class="fas fa-plus"></i> Add Router
-            </button>
+            </a>
         </div>
         <div class="table-responsive">
             <table class="table table-hover">
@@ -243,16 +242,37 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="routersList">
-                    <tr>
-                        <td colspan="5" class="text-center text-muted">No routers in this network</td>
-                    </tr>
+                <tbody>
+                    {% if routers %}
+                        {% for router in routers %}
+                        <tr>
+                            <td><strong>{{ router.name }}</strong></td>
+                            <td><code>{{ router.ip_address }}:{{ router.api_port }}</code></td>
+                            <td>
+                                <span class="status-badge status-{{ router.status if router.status in ['online','offline'] else 'unknown' }}">
+                                    <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
+                                    {{ router.status|capitalize if router.status else 'Unknown' }}
+                                </span>
+                            </td>
+                            <td>{{ router.model or '-' }}</td>
+                            <td>
+                                <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No routers in this network</td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
     </div>
     
-    <!-- Access Points List -->
+    <!-- Access Points List (Placeholder) -->
     <div class="data-card mt-4">
         <div class="data-card-header">
             <h5 class="mb-0"><i class="fas fa-wifi me-2"></i>Access Points in this Network</h5>
@@ -272,9 +292,9 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="apsList">
+                <tbody>
                     <tr>
-                        <td colspan="6" class="text-center text-muted">No access points in this network</td>
+                        <td colspan="6" class="text-center text-muted">Access point module coming soon</td>
                     </tr>
                 </tbody>
             </table>
@@ -283,209 +303,16 @@
 </div>
 
 <script>
-const networkId = '{{ network.id }}';
 const orgId = '{{ organization.id }}';
-
-// Simple toast notification
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast-notification toast-${type}`;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#10b981' : '#ef4444'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        z-index: 9999;
-        animation: slideIn 0.3s ease;
-    `;
-    toast.innerHTML = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
-// Loading indicator
-function showLoading() {
-    // You can implement a loading spinner here
-}
-
-function hideLoading() {
-    // You can hide loading spinner here
-}
-
-// Navigation functions
-function editNetwork() {
-    window.location.href = `/organization/${orgId}/networks/${networkId}/edit`;
-}
+const networkId = '{{ network.id }}';
 
 function addRouter() {
     window.location.href = `/organization/${orgId}/routers/create?network_id=${networkId}`;
 }
 
 function addAccessPoint() {
+    // Will be implemented when AP module is ready
     window.location.href = `/organization/${orgId}/access-points/create?network_id=${networkId}`;
 }
-
-function viewRouters() {
-    window.location.href = `/organization/${orgId}/networks/${networkId}/routers`;
-}
-
-function viewAccessPoints() {
-    window.location.href = `/organization/${orgId}/networks/${networkId}/access-points`;
-}
-
-function viewSessions() {
-    window.location.href = `/organization/${orgId}/networks/${networkId}/sessions`;
-}
-
-function viewRouter(routerId) {
-    window.location.href = `/organization/${orgId}/routers/${routerId}`;
-}
-
-function viewAccessPoint(apId) {
-    window.location.href = `/organization/${orgId}/access-points/${apId}`;
-}
-
-// Load network details and stats
-async function loadNetworkDetails() {
-    showLoading();
-    try {
-        await loadRouters();
-        await loadAccessPoints();
-        await loadStats();
-    } catch (error) {
-        console.error('Failed to load network details:', error);
-    }
-    hideLoading();
-}
-
-// Load routers
-async function loadRouters() {
-    try {
-        const response = await fetch(`/api/v1/routers/?network_id=${networkId}`, {
-            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('access_token') }
-        });
-        const data = await response.json();
-        
-        const tbody = document.getElementById('routersList');
-        
-        if (data.routers && data.routers.length > 0) {
-            tbody.innerHTML = data.routers.map(router => `
-                <tr>
-                    <td><strong>${escapeHtml(router.name)}</strong></td>
-                    <td><code>${router.ip_address || '-'}</code></td>
-                    <td>
-                        <span class="status-badge ${router.status === 'online' ? 'status-active' : 'status-inactive'}">
-                            <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
-                            ${router.status || 'unknown'}
-                        </span>
-                    </td>
-                    <td>${router.model || '-'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewRouter('${router.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-            document.getElementById('routerCount').textContent = data.routers.length;
-        } else {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No routers in this network</td></tr>';
-            document.getElementById('routerCount').textContent = '0';
-        }
-    } catch (error) {
-        console.error('Failed to load routers:', error);
-        document.getElementById('routersList').innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load routers</td></tr>';
-    }
-}
-
-// Load access points
-async function loadAccessPoints() {
-    try {
-        const response = await fetch(`/api/v1/access-points/?network_id=${networkId}`, {
-            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('access_token') }
-        });
-        const data = await response.json();
-        
-        const tbody = document.getElementById('apsList');
-        
-        if (data.access_points && data.access_points.length > 0) {
-            tbody.innerHTML = data.access_points.map(ap => `
-                <tr>
-                    <td><strong>${escapeHtml(ap.name)}</strong></td>
-                    <td><code>${ap.ssid || '-'}</code></td>
-                    <td><code>${ap.mac_address || '-'}</code></td>
-                    <td>${ap.location || '-'}</td>
-                    <td>
-                        <span class="status-badge ${ap.status === 'online' ? 'status-active' : 'status-inactive'}">
-                            <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
-                            ${ap.status || 'unknown'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewAccessPoint('${ap.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-            document.getElementById('apCount').textContent = data.access_points.length;
-        } else {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No access points in this network</td></tr>';
-            document.getElementById('apCount').textContent = '0';
-        }
-    } catch (error) {
-        console.error('Failed to load access points:', error);
-        document.getElementById('apsList').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load access points</td></tr>';
-    }
-}
-
-// Load statistics
-async function loadStats() {
-    try {
-        const response = await fetch(`/api/v1/networks/${networkId}/stats`, {
-            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('access_token') }
-        });
-        const stats = await response.json();
-        
-        document.getElementById('activeSessions').textContent = stats.active_sessions || 0;
-        document.getElementById('bandwidthUsage').textContent = stats.bandwidth_gbps || 0;
-    } catch (error) {
-        console.error('Failed to load stats:', error);
-        document.getElementById('activeSessions').textContent = '0';
-        document.getElementById('bandwidthUsage').textContent = '0';
-    }
-}
-
-// Helper function
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    loadNetworkDetails();
-});
-
-// Add animation style
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(style);
 </script>
 {% endblock %}
