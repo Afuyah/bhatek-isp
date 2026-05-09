@@ -1,0 +1,164 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - {{ router.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-card { background: white; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .info-row { display: flex; padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0; }
+    .info-label { width: 140px; font-weight: 600; color: #475569; }
+    .info-value { flex: 1; color: #1e293b; }
+    .status-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .status-online { background: #d1fae5; color: #065f46; }
+    .status-offline { background: #fee2e2; color: #dc2626; }
+    .status-error { background: #fef3c7; color: #d97706; }
+    .action-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+    .action-btn { padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; transition: all 0.2s; }
+    .health-meter { width: 100%; background: #e2e8f0; border-radius: 10px; overflow: hidden; height: 8px; }
+    .health-fill { height: 100%; border-radius: 10px; transition: width 0.3s; }
+    .health-fill.cpu { background: #3b82f6; }
+    .health-fill.memory { background: #10b981; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('router_web.index', org_id=organization.id) }}">Routers</a></li>
+                    <li class="breadcrumb-item active">{{ router.name }}</li>
+                </ol>
+            </nav>
+            <div class="d-flex align-items-center gap-2">
+                <h4 class="mb-0">{{ router.name }}</h4>
+                <span class="status-badge status-{{ router.status if router.status in ['online','offline','error'] else 'unknown' }}">
+                    <i class="fas fa-circle fa-xs"></i> {{ router.status|capitalize if router.status else 'Unknown' }}
+                </span>
+                {% if not router.is_active %}<span class="badge bg-danger">Inactive</span>{% endif %}
+            </div>
+        </div>
+        <div>
+            <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-edit me-2"></i>Edit
+            </a>
+            <button class="btn btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="fas fa-trash me-2"></i>Delete
+            </button>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons mb-4">
+        <button class="btn btn-primary action-btn" onclick="testConnection()">
+            <i class="fas fa-plug me-1"></i> Test Connection
+        </button>
+        <button class="btn btn-secondary action-btn" onclick="syncRouter()">
+            <i class="fas fa-sync me-1"></i> Sync Configuration
+        </button>
+        <button class="btn btn-info action-btn" onclick="discoverRouter()">
+            <i class="fas fa-microchip me-1"></i> Discover Capabilities
+        </button>
+        <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}#radius" class="btn btn-warning action-btn">
+            <i class="fas fa-shield-alt me-1"></i> Configure RADIUS
+        </a>
+    </div>
+
+    <!-- Basic Info -->
+    <div class="info-card">
+        <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
+        <div class="info-row"><div class="info-label">Name</div><div class="info-value">{{ router.name }}</div></div>
+        <div class="info-row"><div class="info-label">Network</div><div class="info-value">{{ network_name if network_name else 'Not assigned' }}</div></div>
+        <div class="info-row"><div class="info-label">IP Address</div><div class="info-value"><code>{{ router.ip_address }}:{{ router.api_port }}</code></div></div>
+        <div class="info-row"><div class="info-label">Model</div><div class="info-value">{{ router.model or 'Unknown' }}</div></div>
+        <div class="info-row"><div class="info-label">RouterOS Version</div><div class="info-value">{{ router.routeros_version or 'Unknown' }}</div></div>
+        <div class="info-row"><div class="info-label">Location</div><div class="info-value">{{ router.location or 'Not specified' }}</div></div>
+        <div class="info-row"><div class="info-label">Description</div><div class="info-value">{{ router.description or 'No description' }}</div></div>
+    </div>
+
+    <!-- Health Metrics -->
+    <div class="info-card">
+        <h5 class="mb-3"><i class="fas fa-chart-line me-2"></i>Health Metrics</h5>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="small text-muted">CPU Usage</div>
+                <div class="health-meter mt-1"><div class="health-fill cpu" style="width: {{ router.cpu_usage|default(0) }}%"></div></div>
+                <div class="mt-1">{{ router.cpu_usage|default(0) }}%</div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="small text-muted">Memory Usage</div>
+                <div class="health-meter mt-1"><div class="health-fill memory" style="width: {{ router.memory_usage|default(0) }}%"></div></div>
+                <div class="mt-1">{{ router.memory_usage|default(0) }}%</div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="small text-muted">Uptime</div>
+                <div class="mt-2">{{ (router.uptime_seconds|default(0) // 3600) }} hours</div>
+            </div>
+        </div>
+        <div class="info-row"><div class="info-label">Last Seen</div><div class="info-value">{{ router.last_seen_at|datetimeformat if router.last_seen_at else 'Never' }}</div></div>
+        <div class="info-row"><div class="info-label">Last Sync</div><div class="info-value">{{ router.last_sync_at|datetimeformat if router.last_sync_at else 'Never' }}</div></div>
+        {% if router.last_error %}<div class="info-row"><div class="info-label">Last Error</div><div class="info-value text-danger">{{ router.last_error }}</div></div>{% endif %}
+    </div>
+
+    <!-- Hotspot Servers -->
+    <div class="info-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="fas fa-wifi me-2"></i>Hotspot Servers</h5>
+            <button class="btn btn-sm btn-primary" onclick="addHotspot()">Add Hotspot</button>
+        </div>
+        {% if hotspot_servers %}
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>Name</th><th>Interface</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>{% for hs in hotspot_servers %}
+                <tr><td>{{ hs.name }}</td><td>{{ hs.interface or '-' }}</td><td>{% if hs.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+                <td><button class="btn btn-sm btn-link" onclick="editHotspot('{{ hs.id }}')"><i class="fas fa-edit"></i></button></td></tr>
+                {% endfor %}</tbody>
+            </table>
+        </div>{% else %}<p class="text-muted mb-0">No hotspot servers configured.</p>{% endif %}
+    </div>
+
+    <!-- PPPoE Servers -->
+    <div class="info-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="fas fa-network-wired me-2"></i>PPPoE Servers</h5>
+            <button class="btn btn-sm btn-primary" onclick="addPppoe()">Add PPPoE Server</button>
+        </div>
+        {% if pppoe_servers %}
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>Name</th><th>Interface</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>{% for ps in pppoe_servers %}
+                <tr><td>{{ ps.name }}</td><td>{{ ps.interface or '-' }}</td><td>{% if ps.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+                <td><button class="btn btn-sm btn-link" onclick="editPppoe('{{ ps.id }}')"><i class="fas fa-edit"></i></button></td></tr>
+                {% endfor %}</tbody>
+            </table>
+        </div>{% else %}<p class="text-muted mb-0">No PPPoE servers configured.</p>{% endif %}
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Confirm Delete</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p>Delete router <strong>{{ router.name }}</strong>? This will remove all associated hotspot servers and configurations.</p></div>
+    <div class="modal-footer">
+        <form method="POST" action="{{ url_for('router_web.delete', org_id=organization.id, router_id=router.id) }}">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger">Delete Router</button>
+        </form>
+    </div>
+</div></div></div>
+
+<script>
+function testConnection() { fetch('{{ url_for("router_web.test_connection", org_id=organization.id, router_id=router.id) }}', {method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(d=>{if(d.success){showToast('Connection successful!','success');location.reload();}else{showToast('Connection failed: '+d.error,'danger');}}).catch(e=>showToast('Error testing connection','danger')); }
+function syncRouter() { fetch('{{ url_for("router_web.sync", org_id=organization.id, router_id=router.id) }}', {method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(d=>{if(d.success){showToast('Sync completed successfully!','success');location.reload();}else{showToast('Sync failed: '+d.error,'danger');}}).catch(e=>showToast('Error syncing router','danger')); }
+function discoverRouter() { fetch('{{ url_for("router_web.discover", org_id=organization.id, router_id=router.id) }}', {method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(d=>{if(d.success){showToast('Discovery completed!','success');location.reload();}else{showToast('Discovery failed: '+d.message,'warning');}}).catch(e=>showToast('Error discovering router','danger')); }
+function addHotspot() { window.location.href = '/organization/{{ organization.id }}/hotspot-servers/create?router_id={{ router.id }}'; }
+function addPppoe() { window.location.href = '/organization/{{ organization.id }}/pppoe-servers/create?router_id={{ router.id }}'; }
+function editHotspot(id) { window.location.href = '/organization/{{ organization.id }}/hotspot-servers/'+id+'/edit'; }
+function editPppoe(id) { window.location.href = '/organization/{{ organization.id }}/pppoe-servers/'+id+'/edit'; }
+function showToast(msg,type){const t=document.createElement('div');t.className='alert alert-'+type;t.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;';t.innerText=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
+</script>
+{% endblock %}

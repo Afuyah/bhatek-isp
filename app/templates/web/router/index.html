@@ -1,0 +1,287 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Routers{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-info h3 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0; color: #1e293b; }
+    .stat-info p { margin-bottom: 0; color: #64748b; font-size: 0.875rem; }
+    .stat-icon { font-size: 2rem; opacity: 0.7; }
+    
+    .router-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+    }
+    .router-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.625rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .status-online { background: #d1fae5; color: #065f46; }
+    .status-offline { background: #fee2e2; color: #dc2626; }
+    .status-error { background: #fef3c7; color: #d97706; }
+    .status-unknown { background: #f1f5f9; color: #64748b; }
+    
+    .filter-bar {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+    .filter-group { flex: 1; min-width: 150px; }
+    .filter-group label { font-size: 0.75rem; font-weight: 600; margin-bottom: 0.25rem; color: #64748b; }
+    .empty-state { text-align: center; padding: 3rem; background: white; border-radius: 16px; }
+    .empty-state i { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">Router Management</h4>
+            <p class="text-muted mb-0">Manage routers in {{ organization.name }}</p>
+        </div>
+        <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="btn btn-gradient">
+            <i class="fas fa-plus me-2"></i>Add Router
+        </a>
+    </div>
+
+    <!-- Stats Summary (optional, only if stats available) -->
+    {% if routers %}
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>{{ routers|length }}</h3>
+                <p>Total Routers</p>
+            </div>
+            <div class="stat-icon"><i class="fas fa-server"></i></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>{{ routers|selectattr('status', 'equalto', 'online')|list|length }}</h3>
+                <p>Online</p>
+            </div>
+            <div class="stat-icon"><i class="fas fa-check-circle text-success"></i></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>{{ routers|selectattr('status', 'equalto', 'offline')|list|length }}</h3>
+                <p>Offline</p>
+            </div>
+            <div class="stat-icon"><i class="fas fa-exclamation-triangle text-danger"></i></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filters -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label>Status</label>
+            <select id="statusFilter" class="form-select form-select-sm">
+                <option value="">All</option>
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+                <option value="error">Error</option>
+                <option value="unknown">Unknown</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Network</label>
+            <select id="networkFilter" class="form-select form-select-sm">
+                <option value="">All Networks</option>
+                {% for net in networks %}
+                <option value="{{ net.id }}">{{ net.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Search</label>
+            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Name or IP...">
+        </div>
+        <div>
+            <button class="btn btn-sm btn-secondary" onclick="resetFilters()">Reset</button>
+        </div>
+    </div>
+
+    <!-- Routers List -->
+    {% if routers %}
+    <div id="routersContainer">
+        {% for router in routers %}
+        <div class="router-card" data-name="{{ router.name|lower }}" data-ip="{{ router.ip_address }}" data-status="{{ router.status }}" data-network="{{ router.network_id or '' }}">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="router-icon bg-light rounded-circle p-3">
+                            <i class="fas fa-server fa-lg text-primary"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">{{ router.name }}</h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="status-badge status-{{ router.status if router.status in ['online','offline','error'] else 'unknown' }}">
+                                    <i class="fas fa-circle fa-xs"></i>
+                                    {{ router.status|capitalize if router.status else 'Unknown' }}
+                                </span>
+                                {% if router.model %}
+                                <span class="badge bg-secondary">{{ router.model }}</span>
+                                {% endif %}
+                                {% if not router.is_active %}
+                                <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div><i class="fas fa-network-wired me-2 text-muted"></i>{{ router.ip_address }}:{{ router.api_port }}</div>
+                    {% if router.location %}
+                    <div class="small text-muted mt-1"><i class="fas fa-location-dot me-1"></i>{{ router.location }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-3">
+                    <div class="small text-muted">Last seen: {{ router.last_seen_at|datetimeformat if router.last_seen_at else 'Never' }}</div>
+                    {% if router.cpu_usage %}
+                    <div class="mt-1">
+                        <span class="small">CPU: {{ router.cpu_usage }}%</span>
+                        <span class="small ms-2">Memory: {{ router.memory_usage }}%</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-2 text-end">
+                    <div class="btn-group">
+                        <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-router-id="{{ router.id }}" data-router-name="{{ router.name }}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-server"></i>
+        <h5>No Routers Found</h5>
+        <p class="text-muted">Add your first router to start managing your network infrastructure.</p>
+        <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="btn btn-gradient mt-2">
+            <i class="fas fa-plus me-2"></i>Add Router
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete router <strong id="deleteRouterName"></strong>?</p>
+                <p class="text-danger small">This action cannot be undone. All associated hotspot servers and configurations will be removed.</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="POST">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Router</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterRouters() {
+        const status = document.getElementById('statusFilter').value;
+        const network = document.getElementById('networkFilter').value;
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.router-card');
+        let visibleCount = 0;
+        
+        cards.forEach(card => {
+            const cardStatus = card.dataset.status;
+            const cardNetwork = card.dataset.network;
+            const cardName = card.dataset.name;
+            const cardIp = card.dataset.ip;
+            let show = true;
+            if (status && cardStatus !== status) show = false;
+            if (network && cardNetwork !== network) show = false;
+            if (search && !cardName.includes(search) && !cardIp.includes(search)) show = false;
+            card.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+        
+        const emptyMsg = document.getElementById('noResultsMsg');
+        if (!emptyMsg && visibleCount === 0 && cards.length > 0) {
+            const container = document.getElementById('routersContainer');
+            const msg = document.createElement('div');
+            msg.id = 'noResultsMsg';
+            msg.className = 'empty-state';
+            msg.innerHTML = '<i class="fas fa-search"></i><h5>No matching routers</h5><p class="text-muted">Try adjusting your filters.</p>';
+            container.appendChild(msg);
+        } else if (emptyMsg && visibleCount > 0) { emptyMsg.remove(); }
+        else if (emptyMsg && visibleCount === 0) {}
+    }
+    
+    function resetFilters() {
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('networkFilter').value = '';
+        document.getElementById('searchInput').value = '';
+        filterRouters();
+    }
+    
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const routerId = button.getAttribute('data-router-id');
+            const routerName = button.getAttribute('data-router-name');
+            document.getElementById('deleteRouterName').textContent = routerName;
+            document.getElementById('deleteForm').action = `/organization/{{ organization.id }}/routers/${routerId}/delete`;
+        });
+    }
+    
+    document.getElementById('statusFilter').addEventListener('change', filterRouters);
+    document.getElementById('networkFilter').addEventListener('change', filterRouters);
+    document.getElementById('searchInput').addEventListener('input', filterRouters);
+</script>
+{% endblock %}

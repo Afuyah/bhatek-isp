@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, DateTime, JSON, Integer, ForeignKey
+from sqlalchemy import Column, String, Boolean, DateTime, JSON, Integer, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID, INET
 from sqlalchemy.orm import relationship
 from app.core.database.base import  BaseModel
@@ -18,6 +18,7 @@ class Router(BaseModel, OrganizationMixin, TimestampMixin):
     password_encrypted = Column(String, nullable=False)
     ssh_port = Column(Integer, default=22)
     ssh_key_encrypted = Column(String)
+    description = Column(Text, nullable=True)
     location = Column(String(255))
     latitude = Column(String(10))
     longitude = Column(String(11))
@@ -45,7 +46,7 @@ class HotspotServer(BaseModel, OrganizationMixin, TimestampMixin):
     name = Column(String(255), nullable=False)
     hotspot_id = Column(String(50), nullable=False)
     interface = Column(String(50))
-    address_pool = Column(INET)
+    address_pool = Column(String(50)) 
     dns_name = Column(String(255))
     ssl_certificate = Column(String)
     ssl_key_encrypted = Column(String)

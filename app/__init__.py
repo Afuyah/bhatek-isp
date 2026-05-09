@@ -2,6 +2,7 @@ from flask import Flask, g, request
 from flask_cors import CORS
 from flask_migrate import Migrate
 import time
+from datetime import datetime
 from app.core.security.jwt import JWTService
 from app.core.config.settings import config
 from app.core.database.session import db
@@ -41,6 +42,52 @@ def create_app(config_name=None):
     # Register error handlers first
     register_error_handlers(app)
 
+    # ==========================================================================
+    # REGISTER TEMPLATE FILTERS
+    # ==========================================================================
+    
+    @app.template_filter('datetimeformat')
+    def datetimeformat(value, format='%b %d, %Y'):
+        """Format a datetime object or ISO string"""
+        if value is None:
+            return 'N/A'
+        if isinstance(value, str):
+            try:
+                value = datetime.fromisoformat(value.replace('Z', '+00:00'))
+            except ValueError:
+                return value[:19] if len(value) >= 19 else value
+        if hasattr(value, 'strftime'):
+            return value.strftime(format)
+        return str(value)[:19] if len(str(value)) >= 19 else str(value)
+    
+    @app.template_filter('format_date')
+    def format_date(value, format='%Y-%m-%d'):
+        """Format date only"""
+        if value is None:
+            return 'N/A'
+        if isinstance(value, str):
+            try:
+                value = datetime.fromisoformat(value.replace('Z', '+00:00'))
+            except ValueError:
+                return value[:10] if len(value) >= 10 else value
+        if hasattr(value, 'strftime'):
+            return value.strftime(format)
+        return str(value)[:10]
+    
+    @app.template_filter('format_datetime')
+    def format_datetime(value, format='%Y-%m-%d %H:%M'):
+        """Format datetime with time"""
+        if value is None:
+            return 'N/A'
+        if isinstance(value, str):
+            try:
+                value = datetime.fromisoformat(value.replace('Z', '+00:00'))
+            except ValueError:
+                return value[:16] if len(value) >= 16 else value
+        if hasattr(value, 'strftime'):
+            return value.strftime(format)
+        return str(value)[:16]
+
     # Middleware registration order (LIFO - Last In First Out)
     # These are applied from bottom to top, so order them from outermost to innermost
     # Starting from app.wsgi_app (innermost) and wrapping outward
@@ -64,7 +111,6 @@ def create_app(config_name=None):
         logger.warning("JWT_SECRET_KEY not set. Authentication will fail for API endpoints!")
     
     # Define exempt paths for web interface (no JWT required)
-        # Define exempt paths for web interface (no JWT required)
     exempt_paths = [
         # Health checks
         '/health',
@@ -101,15 +147,14 @@ def create_app(config_name=None):
         '/api/v1/auth/resend-verification',
         '/api/v1/auth/check-email',
         '/api/v1/auth/check-slug',
+
+        # Router test endpoint (no token required for testing)
+        '/api/v1/routers/test',
     ]
     
     # Wrap in correct order (last wrapped = first executed)
     # Execution order: Auth -> Tenant -> RequestID -> app
     wsgi_app = app.wsgi_app
-    
-    # Start with innermost (Auth) - will only protect API routes
-    # We need to pass the secret key and exempt paths
-    # But first, let's create a wrapper that only applies auth to API paths
     
     # Apply middlewares
     wsgi_app = RequestIDMiddleware(wsgi_app)
@@ -173,7 +218,9 @@ def create_app(config_name=None):
     from app.modules.session.routes import session_bp
     from app.modules.web import web_bp
     from app.modules.network.web_routes import network_web_bp
-    
+    from app.modules.router.web_routes import router_web_bp
+
+    app.register_blueprint(router_web_bp)
     app.register_blueprint(web_bp)
     app.register_blueprint(network_web_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')

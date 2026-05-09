@@ -1,6 +1,8 @@
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from dataclasses import dataclass, field
+from uuid import UUID
+
 
 @dataclass
 class MikroTikRouter:
@@ -17,22 +19,45 @@ class MikroTikRouter:
     last_seen_at: Optional[datetime] = None
     settings: Dict[str, Any] = field(default_factory=dict)
     
+    # Additional fields for compatibility with your Router model
+    organization_id: Optional[str] = None
+    network_id: Optional[str] = None
+    model: Optional[str] = None
+    routeros_version: Optional[str] = None
+    serial_number: Optional[str] = None
+    location: Optional[str] = None
+    description: Optional[str] = None
+    is_active: bool = True
+    
     def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for API responses"""
         return {
             'id': self.id,
             'name': self.name,
             'host': self.host,
+            'ip_address': self.host,  # Alias for compatibility
             'username': self.username,
             'port': self.port,
+            'api_port': self.port,  # Alias for compatibility
             'use_ssl': self.use_ssl,
+            'api_ssl': self.use_ssl,  # Alias for compatibility
             'connection_pool_size': self.connection_pool_size,
             'status': self.status,
             'last_seen_at': self.last_seen_at.isoformat() if self.last_seen_at else None,
-            'settings': self.settings
+            'settings': self.settings,
+            'organization_id': self.organization_id,
+            'network_id': self.network_id,
+            'model': self.model,
+            'routeros_version': self.routeros_version,
+            'serial_number': self.serial_number,
+            'location': self.location,
+            'description': self.description,
+            'is_active': self.is_active
         }
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'MikroTikRouter':
+        """Create from dictionary (from Router model)"""
         return cls(
             id=data.get('id'),
             name=data.get('name'),
@@ -44,8 +69,41 @@ class MikroTikRouter:
             connection_pool_size=data.get('connection_pool_size', 5),
             status=data.get('status', 'unknown'),
             last_seen_at=data.get('last_seen_at'),
-            settings=data.get('settings', {})
+            settings=data.get('settings', {}),
+            organization_id=str(data.get('organization_id')) if data.get('organization_id') else None,
+            network_id=str(data.get('network_id')) if data.get('network_id') else None,
+            model=data.get('model'),
+            routeros_version=data.get('routeros_version'),
+            serial_number=data.get('serial_number'),
+            location=data.get('location'),
+            description=data.get('description'),
+            is_active=data.get('is_active', True)
         )
+    
+    @classmethod
+    def from_router_model(cls, router_model) -> 'MikroTikRouter':
+        """Create from SQLAlchemy Router model"""
+        return cls(
+            id=str(router_model.id),
+            name=router_model.name,
+            host=str(router_model.ip_address),
+            username=router_model.username,
+            password=router_model.password_encrypted,  # Still encrypted, decrypt when used
+            port=router_model.api_port or 8728,
+            use_ssl=False,
+            status=router_model.status or 'unknown',
+            last_seen_at=router_model.last_seen_at,
+            settings=router_model.settings or {},
+            organization_id=str(router_model.organization_id) if router_model.organization_id else None,
+            network_id=str(router_model.network_id) if router_model.network_id else None,
+            model=router_model.model,
+            routeros_version=router_model.routeros_version,
+            serial_number=router_model.serial_number,
+            location=router_model.location,
+            description=router_model.description,
+            is_active=router_model.is_active
+        )
+
 
 @dataclass
 class HotspotUser:
@@ -96,6 +154,7 @@ class HotspotUser:
             limit_bytes_out=int(data.get('limit-bytes-out', 0)) if data.get('limit-bytes-out') else None
         )
 
+
 @dataclass
 class PPPoESecret:
     """PPPoE secret data model"""
@@ -136,6 +195,7 @@ class PPPoESecret:
             routes=data.get('routes')
         )
 
+
 @dataclass
 class HotspotActiveSession:
     """Active hotspot session data model"""
@@ -172,6 +232,7 @@ class HotspotActiveSession:
             bytes_out=int(data.get('bytes-out', 0)),
             session_id=data.get('.id')
         )
+
 
 @dataclass
 class PPPoEActiveSession:
@@ -210,6 +271,7 @@ class PPPoEActiveSession:
             radius_session_id=data.get('radius-session-id')
         )
 
+
 @dataclass
 class HotspotProfile:
     """Hotspot user profile data model"""
@@ -243,6 +305,7 @@ class HotspotProfile:
             status_autorefresh=data.get('status-autorefresh'),
             transparent_proxy=data.get('transparent-proxy') == 'true'
         )
+
 
 @dataclass
 class InterfaceStats:
@@ -295,3 +358,75 @@ class InterfaceStats:
             running=data.get('running') == 'true',
             enabled=data.get('disabled') != 'true'
         )
+
+
+@dataclass
+class RouterHealth:
+    """Router health metrics"""
+    cpu_load: int = 0
+    memory_used: int = 0
+    memory_total: int = 0
+    uptime_seconds: int = 0
+    temperature: Optional[float] = None
+    board_temp: Optional[float] = None
+    voltage: Optional[float] = None
+    
+    @property
+    def memory_usage_percent(self) -> float:
+        if self.memory_total > 0:
+            return (self.memory_used / self.memory_total) * 100
+        return 0
+    
+    @property
+    def uptime_hours(self) -> float:
+        return self.uptime_seconds / 3600
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'cpu_load': self.cpu_load,
+            'memory_used': self.memory_used,
+            'memory_total': self.memory_total,
+            'memory_usage_percent': self.memory_usage_percent,
+            'uptime_seconds': self.uptime_seconds,
+            'uptime_hours': self.uptime_hours,
+            'temperature': self.temperature,
+            'board_temp': self.board_temp,
+            'voltage': self.voltage
+        }
+    
+    @classmethod
+    def from_resource(cls, resource_data: Dict[str, Any]) -> 'RouterHealth':
+        uptime_str = resource_data.get('uptime', '0s')
+        uptime_seconds = cls._parse_uptime(uptime_str)
+        
+        return cls(
+            cpu_load=int(resource_data.get('cpu-load', 0)),
+            memory_used=int(resource_data.get('free-memory', 0)),
+            memory_total=int(resource_data.get('total-memory', 0)),
+            uptime_seconds=uptime_seconds,
+            temperature=float(resource_data.get('temperature')) if resource_data.get('temperature') else None,
+            board_temp=float(resource_data.get('board-temperature')) if resource_data.get('board-temperature') else None,
+            voltage=float(resource_data.get('voltage')) if resource_data.get('voltage') else None
+        )
+    
+    @staticmethod
+    def _parse_uptime(uptime_str: str) -> int:
+        """Parse MikroTik uptime string to seconds"""
+        seconds = 0
+        parts = uptime_str.split('w') if 'w' in uptime_str else [uptime_str]
+        if len(parts) > 1:
+            seconds += int(parts[0]) * 7 * 24 * 3600
+            uptime_str = parts[1]
+        
+        parts = uptime_str.split('d') if 'd' in uptime_str else [uptime_str]
+        if len(parts) > 1:
+            seconds += int(parts[0]) * 24 * 3600
+            uptime_str = parts[1]
+        
+        parts = uptime_str.split(':')
+        if len(parts) == 3:
+            seconds += int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+        elif len(parts) == 2:
+            seconds += int(parts[0]) * 60 + int(parts[1])
+        
+        return seconds

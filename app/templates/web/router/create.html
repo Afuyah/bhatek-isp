@@ -1,0 +1,171 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Add Router{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .form-label { font-weight: 600; margin-bottom: 0.5rem; color: #1a2e2a; }
+    .required:after { content: "*"; color: #dc3545; margin-left: 0.25rem; }
+    .form-control, .form-select { border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.625rem 1rem; }
+    .form-control:focus, .form-select:focus { border-color: #2d6a4f; box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
+    .form-text { font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem; }
+    .btn-save { background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%); border: none; color: white; padding: 0.625rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s; }
+    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(45,106,79,0.3); color: white; }
+    .btn-cancel { background: #f1f3f5; border: none; color: #495057; padding: 0.625rem 1.5rem; border-radius: 10px; }
+    .test-result { margin-top: 1rem; padding: 0.75rem; border-radius: 8px; display: none; }
+    .test-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .test-failed { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">Add Router</h4>
+            <p class="text-muted mb-0">Add a new router to {{ organization.name }}</p>
+        </div>
+        <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </a>
+    </div>
+
+    <div class="form-container">
+        <form method="POST" id="routerForm">
+            <!-- Network Selection -->
+            <div class="mb-3">
+                <label class="form-label">Network <span class="required"></span></label>
+                <select name="network_id" class="form-select" required>
+                    <option value="">Select Network...</option>
+                    {% for net in networks %}
+                    <option value="{{ net.id }}" {% if form_data and form_data.network_id == net.id|string %}selected{% endif %}>{{ net.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">Router belongs to a network for easier management</div>
+            </div>
+
+            <!-- Basic Info -->
+            <div class="mb-3">
+                <label class="form-label">Router Name <span class="required"></span></label>
+                <input type="text" name="name" class="form-control" required value="{{ form_data.name if form_data else '' }}" placeholder="e.g., Main Office Router">
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">IP Address <span class="required"></span></label>
+                    <input type="text" name="ip_address" class="form-control" required value="{{ form_data.ip_address if form_data else '' }}" placeholder="192.168.1.1">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">API Port</label>
+                    <input type="number" name="api_port" class="form-control" value="{{ form_data.api_port if form_data else 8728 }}">
+                    <div class="form-text">MikroTik API port (default 8728)</div>
+                </div>
+            </div>
+
+            <!-- Credentials -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Username <span class="required"></span></label>
+                    <input type="text" name="username" class="form-control" required value="{{ form_data.username if form_data else '' }}" placeholder="admin">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Password <span class="required"></span></label>
+                    <input type="password" name="password" class="form-control" required value="{{ form_data.password if form_data else '' }}">
+                </div>
+            </div>
+
+            <!-- Location & Description -->
+            <div class="mb-3">
+                <label class="form-label">Location</label>
+                <input type="text" name="location" class="form-control" value="{{ form_data.location if form_data else '' }}" placeholder="e.g., Server Room A">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control" rows="2" placeholder="Optional description...">{{ form_data.description if form_data else '' }}</textarea>
+            </div>
+
+            <!-- Active Status -->
+            <div class="mb-3 form-check form-switch">
+                <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if not form_data or form_data.is_active != false %}checked{% endif %}>
+                <label class="form-check-label" for="isActive">Active</label>
+                <div class="form-text">Inactive routers won't be monitored or synced</div>
+            </div>
+
+            <!-- Test Connection Option -->
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="test_connection" class="form-check-input" id="testConnection" checked>
+                <label class="form-check-label" for="testConnection">Test connection after adding</label>
+            </div>
+
+            <div id="testResult" class="test-result"></div>
+
+            <!-- Submit Buttons -->
+            <div class="d-flex gap-2 justify-content-end pt-3 border-top mt-3">
+                <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="btn btn-cancel">Cancel</a>
+                <button type="submit" class="btn btn-save" id="submitBtn">
+                    <i class="fas fa-save me-2"></i>Add Router
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('routerForm').addEventListener('submit', async (e) => {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+        
+        const testConnection = document.getElementById('testConnection').checked;
+        if (!testConnection) return true;
+        
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {
+            ip_address: formData.get('ip_address'),
+            username: formData.get('username'),
+            password: formData.get('password'),
+            port: parseInt(formData.get('api_port')) || 8728
+        };
+        
+        const resultDiv = document.getElementById('testResult');
+        resultDiv.style.display = 'block';
+        resultDiv.className = 'test-result';
+        resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing connection...';
+        
+        try {
+            const response = await fetch('/api/v1/routers/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('access_token') },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                resultDiv.className = 'test-result test-success';
+                resultDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>Connection successful! Router is reachable.';
+                setTimeout(() => { e.target.submit(); }, 1000);
+            } else {
+                resultDiv.className = 'test-result test-failed';
+                resultDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Connection failed: ' + (result.error || result.message || 'Unknown error') + '. You can still add the router.';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Add Router Anyway';
+            }
+        } catch (error) {
+            resultDiv.className = 'test-result test-failed';
+            resultDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Test error: ' + error.message + '. You can still add the router.';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Add Router Anyway';
+        }
+        return false;
+    });
+</script>
+{% endblock %}

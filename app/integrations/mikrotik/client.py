@@ -1,25 +1,29 @@
-import asyncio
 import hashlib
 import socket
 import ssl
 import struct
 import binascii
+import time
+import threading
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
-import threading
 
 from flask import current_app
 
 from app.core.logging.logger import logger
 from app.core.security.encryption import EncryptionService
 
+
 class MikroTikAPIError(Exception):
     """MikroTik API exception"""
     pass
 
+
 class MikroTikConnection:
-    """MikroTik API connection with async support and connection pooling"""
+    """
+    Low-level MikroTik API connection.
+    Handles socket communication, login challenge/response, and command execution.
+    """
     
     def __init__(self, host: str, username: str, password: str, 
                  port: int = 8728, use_ssl: bool = False, timeout: int = 30):
@@ -85,7 +89,7 @@ class MikroTikConnection:
             self._connected = False
     
     def _login(self):
-        """Authenticate with router"""
+        """Authenticate with router using challenge-response"""
         # Send login command
         self._send_command('/login')
         
@@ -117,11 +121,10 @@ class MikroTikConnection:
     
     def _calculate_response(self, challenge: str) -> str:
         """Calculate MD5 response for challenge"""
-        # Challenge format: "challenge" + password
         password_bytes = self.password.encode('utf-8')
         challenge_bytes = binascii.unhexlify(challenge)
         
-        # Calculate MD5
+        # Calculate MD5: MD5(challenge + password + challenge)
         md5 = hashlib.md5()
         md5.update(challenge_bytes)
         md5.update(password_bytes)
@@ -177,7 +180,7 @@ class MikroTikConnection:
         return data
     
     def execute(self, command: str, **kwargs) -> List[Dict[str, Any]]:
-        """Execute API command"""
+        """Execute API command and parse response"""
         with self._lock:
             if not self.is_connected:
                 self.connect()
@@ -225,13 +228,17 @@ class MikroTikConnection:
     def ping(self) -> bool:
         """Check if router is responsive"""
         try:
-            self.execute('/system/resource/print', timeout=5)
+            self.execute('/system/resource/print')
             return True
         except:
             return False
 
+
 class MikroTikClient:
-    """MikroTik API client with connection pooling and automatic retries"""
+    """
+    MikroTik API client with connection pooling, automatic retries, and full API support.
+    Production-ready for ISP management operations.
+    """
     
     def __init__(self):
         self._connections = {}
@@ -241,7 +248,7 @@ class MikroTikClient:
         self.connection_timeout = 300  # 5 minutes idle timeout
     
     def _get_connection_key(self, router_id: str, host: str, port: int) -> str:
-        """Generate connection key"""
+        """Generate unique connection key"""
         return f"{router_id}:{host}:{port}"
     
     def get_connection(self, router_data: Dict[str, Any]) -> MikroTikConnection:
@@ -303,7 +310,7 @@ class MikroTikClient:
     
     def execute(self, router_data: Dict[str, Any], command: str, 
                 retries: int = 3, **kwargs) -> List[Dict[str, Any]]:
-        """Execute command with automatic retry"""
+        """Execute command with automatic retry and exponential backoff"""
         last_error = None
         
         for attempt in range(retries):
@@ -326,223 +333,117 @@ class MikroTikClient:
                         del self._connections[key]
                 
                 if attempt < retries - 1:
-                    import time
                     time.sleep(2 ** attempt)  # Exponential backoff
                 else:
                     raise MikroTikAPIError(f"Command failed after {retries} attempts: {last_error}")
         
         raise MikroTikAPIError(f"Command failed: {last_error}")
     
-    def create_hotspot_user(self, router_data: Dict[str, Any], hotspot_server_id: str,
-                            username: str, password: str, profile: str,
-                            limit_uptime: str = None, limit_bytes_in: int = None,
-                            limit_bytes_out: int = None, comment: str = None) -> Dict[str, Any]:
-        """Create hotspot user on MikroTik"""
-        params = {
-            'server': hotspot_server_id,
-            'name': username,
-            'password': password,
-            'profile': profile
-        }
-        
-        if limit_uptime:
-            params['limit-uptime'] = limit_uptime
-        if limit_bytes_in:
-            params['limit-bytes-in'] = str(limit_bytes_in)
-        if limit_bytes_out:
-            params['limit-bytes-out'] = str(limit_bytes_out)
-        if comment:
-            params['comment'] = comment
-        
-        result = self.execute(router_data, '/ip/hotspot/user/add', **params)
-        
-        logger.info(f"Created hotspot user {username} on router {router_data.get('id')}")
-        return {'success': True, 'result': result}
+    # CONNECTION TESTING
     
-    def disable_hotspot_user(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
-        """Disable hotspot user"""
-        result = self.execute(router_data, '/ip/hotspot/user/set',
-                              numbers=username, disabled='yes')
-        logger.info(f"Disabled hotspot user {username}")
-        return {'success': True}
-    
-    def enable_hotspot_user(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
-        """Enable hotspot user"""
-        result = self.execute(router_data, '/ip/hotspot/user/set',
-                              numbers=username, disabled='no')
-        logger.info(f"Enabled hotspot user {username}")
-        return {'success': True}
-    
-    def remove_hotspot_user(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
-        """Remove hotspot user"""
-        result = self.execute(router_data, '/ip/hotspot/user/remove', numbers=username)
-        logger.info(f"Removed hotspot user {username}")
-        return {'success': True}
-    
-    def get_hotspot_users(self, router_data: Dict[str, Any], 
-                          hotspot_server_id: str = None) -> List[Dict[str, Any]]:
-        """Get all hotspot users"""
-        params = {}
-        if hotspot_server_id:
-            params['server'] = hotspot_server_id
-        
-        result = self.execute(router_data, '/ip/hotspot/user/print', **params)
-        
-        users = []
-        for user in result:
-            users.append({
-                'username': user.get('name'),
-                'password': user.get('password'),
-                'profile': user.get('profile'),
-                'server': user.get('server'),
-                'uptime': user.get('uptime'),
-                'bytes_in': int(user.get('bytes-in', 0)),
-                'bytes_out': int(user.get('bytes-out', 0)),
-                'disabled': user.get('disabled') == 'true',
-                'comment': user.get('comment')
-            })
-        
-        return users
-    
-    def create_pppoe_secret(self, router_data: Dict[str, Any], username: str,
-                             password: str, profile: str, service: str = None,
-                             comment: str = None, remote_address: str = None,
-                             remote_ipv6_prefix: str = None) -> Dict[str, Any]:
-        """Create PPPoE secret on MikroTik"""
-        params = {
-            'name': username,
-            'password': password,
-            'profile': profile
-        }
-        
-        if service:
-            params['service'] = service
-        if comment:
-            params['comment'] = comment
-        if remote_address:
-            params['remote-address'] = remote_address
-        if remote_ipv6_prefix:
-            params['remote-ipv6-prefix'] = remote_ipv6_prefix
-        
-        result = self.execute(router_data, '/ppp/secret/add', **params)
-        
-        logger.info(f"Created PPPoE secret {username} on router {router_data.get('id')}")
-        return {'success': True, 'result': result}
-    
-    def disable_pppoe_secret(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
-        """Disable PPPoE secret"""
-        result = self.execute(router_data, '/ppp/secret/set',
-                              numbers=username, disabled='yes')
-        logger.info(f"Disabled PPPoE secret {username}")
-        return {'success': True}
-    
-    def enable_pppoe_secret(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
-        """Enable PPPoE secret"""
-        result = self.execute(router_data, '/ppp/secret/set',
-                              numbers=username, disabled='no')
-        logger.info(f"Enabled PPPoE secret {username}")
-        return {'success': True}
-    
-    def remove_pppoe_secret(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
-        """Remove PPPoE secret"""
-        result = self.execute(router_data, '/ppp/secret/remove', numbers=username)
-        logger.info(f"Removed PPPoE secret {username}")
-        return {'success': True}
-    
-    def get_pppoe_secrets(self, router_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Get all PPPoE secrets"""
-        result = self.execute(router_data, '/ppp/secret/print')
-        
-        secrets = []
-        for secret in result:
-            secrets.append({
-                'username': secret.get('name'),
-                'password': secret.get('password'),
-                'profile': secret.get('profile'),
-                'service': secret.get('service'),
-                'remote_address': secret.get('remote-address'),
-                'disabled': secret.get('disabled') == 'true',
-                'comment': secret.get('comment')
-            })
-        
-        return secrets
-    
-    def get_active_sessions(self, router_data: Dict[str, Any], 
-                            hotspot_server_id: str = None) -> List[Dict[str, Any]]:
-        """Get active hotspot sessions"""
-        params = {}
-        if hotspot_server_id:
-            params['server'] = hotspot_server_id
-        
+    def test_connection(self, host: str, username: str, password: str, port: int = 8728) -> Dict[str, Any]:
+        """
+        Test connection to a router without needing stored router_data.
+        Used during router addition to validate credentials.
+        """
+        conn = None
         try:
-            result = self.execute(router_data, '/ip/hotspot/active/print', **params)
+            conn = MikroTikConnection(
+                host=host,
+                username=username,
+                password=password,
+                port=port,
+                timeout=10
+            )
+            conn.connect()
             
-            sessions = []
-            for session in result:
-                sessions.append({
-                    'username': session.get('user'),
-                    'mac_address': session.get('mac-address'),
-                    'ip_address': session.get('address'),
-                    'uptime': session.get('uptime'),
-                    'bytes_in': int(session.get('bytes-in', 0)),
-                    'bytes_out': int(session.get('bytes-out', 0)),
-                    'server': session.get('server')
-                })
+            # Get system info to verify connectivity
+            result = conn.execute('/system/resource/print')
             
-            return sessions
-        except MikroTikAPIError as e:
-            logger.error(f"Failed to get active sessions: {e}")
-            return []
+            if result and len(result) > 0:
+                resource = result[0]
+                return {
+                    'success': True,
+                    'connected': True,
+                    'router_info': {
+                        'version': resource.get('version', 'Unknown'),
+                        'board_name': resource.get('board-name', 'Unknown'),
+                        'cpu_load': resource.get('cpu-load', 'Unknown'),
+                        'uptime': resource.get('uptime', 'Unknown'),
+                        'free_memory': resource.get('free-memory', 'Unknown'),
+                        'total_memory': resource.get('total-memory', 'Unknown')
+                    }
+                }
+            else:
+                return {'success': False, 'connected': False, 'error': 'No response from router'}
+                
+        except TimeoutError:
+            return {'success': False, 'connected': False, 'error': 'Connection timeout. Router not reachable.'}
+        except ConnectionRefusedError:
+            return {'success': False, 'connected': False, 'error': 'Connection refused. API may be disabled.'}
+        except Exception as e:
+            error_msg = str(e).lower()
+            if 'authentication' in error_msg or 'login' in error_msg:
+                return {'success': False, 'connected': False, 'error': 'Authentication failed. Check username/password.'}
+            else:
+                logger.error(f"Connection test failed for {host}:{port}: {e}")
+                return {'success': False, 'connected': False, 'error': str(e)}
+        finally:
+            if conn:
+                try:
+                    conn.disconnect()
+                except:
+                    pass
     
-    def get_pppoe_active_sessions(self, router_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Get active PPPoE sessions"""
-        try:
-            result = self.execute(router_data, '/ppp/active/print')
-            
-            sessions = []
-            for session in result:
-                sessions.append({
-                    'username': session.get('name'),
-                    'service': session.get('service'),
-                    'remote_address': session.get('address'),
-                    'caller_id': session.get('caller-id'),
-                    'uptime': session.get('uptime'),
-                    'encoding': session.get('encoding'),
-                    'session_id': session.get('session-id')
-                })
-            
-            return sessions
-        except MikroTikAPIError as e:
-            logger.error(f"Failed to get PPPoE active sessions: {e}")
-            return []
+    # RADIUS CONFIGURATION
     
-    def disconnect_hotspot_user(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
-        """Disconnect hotspot user"""
+    def configure_radius(self, router_data: Dict[str, Any], 
+                         radius_server: str, radius_secret: str,
+                         radius_port: int = 1812, radius_acct_port: int = 1813) -> Dict[str, Any]:
+        """
+        Configure RADIUS on router for hotspot and PPPoE authentication.
+        """
         try:
-            # Find active session
-            sessions = self.get_active_sessions(router_data)
-            for session in sessions:
-                if session['username'] == username:
-                    # Remove session
-                    self.execute(router_data, '/ip/hotspot/active/remove',
-                                 numbers=username)
-                    logger.info(f"Disconnected hotspot user {username}")
+            # Check if RADIUS server already exists
+            existing = self.execute(router_data, '/radius/print')
+            server_exists = False
+            for item in existing:
+                if item.get('address') == radius_server:
+                    server_exists = True
                     break
             
-            return {'success': True}
+            if not server_exists:
+                # Add RADIUS server
+                self.execute(router_data, '/radius/add',
+                             address=radius_server,
+                             secret=radius_secret,
+                             service='hotspot,ppp',
+                             authentication_port=str(radius_port),
+                             accounting_port=str(radius_acct_port))
+                logger.info(f"RADIUS server added: {radius_server}")
+            else:
+                logger.info(f"RADIUS server already exists: {radius_server}")
+            
+            # Enable RADIUS for hotspot
+            self.execute(router_data, '/ip/hotspot/set', radius='yes')
+            
+            # Enable RADIUS for PPP (if PPPoE is used)
+            try:
+                self.execute(router_data, '/ppp/set', **{'use-radius': 'yes'})
+            except:
+                pass
+            
+            logger.info(f"RADIUS configured on router {router_data.get('ip_address')} with server {radius_server}")
+            return {'success': True, 'message': 'RADIUS configured successfully'}
+            
         except MikroTikAPIError as e:
-            logger.error(f"Failed to disconnect user {username}: {e}")
+            logger.error(f"Failed to configure RADIUS: {e}")
+            return {'success': False, 'error': str(e)}
+        except Exception as e:
+            logger.error(f"Failed to configure RADIUS: {e}")
             return {'success': False, 'error': str(e)}
     
-    def disconnect_pppoe_user(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
-        """Disconnect PPPoE user"""
-        try:
-            self.execute(router_data, '/ppp/active/remove', numbers=username)
-            logger.info(f"Disconnected PPPoE user {username}")
-            return {'success': True}
-        except MikroTikAPIError as e:
-            logger.error(f"Failed to disconnect PPPoE user {username}: {e}")
-            return {'success': False, 'error': str(e)}
+    # HEALTH & MONITORING
     
     def get_router_info(self, router_data: Dict[str, Any]) -> Dict[str, Any]:
         """Get router system information"""
@@ -573,6 +474,27 @@ class MikroTikClient:
             logger.error(f"Failed to get router info: {e}")
             return {}
     
+    def health_check(self, router_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Quick health check for router"""
+        try:
+            start_time = time.time()
+            result = self.execute(router_data, '/system/resource/print', retries=2)
+            response_time = (time.time() - start_time) * 1000
+            
+            if result and len(result) > 0:
+                resource = result[0]
+                return {
+                    'status': 'healthy',
+                    'response_time_ms': round(response_time, 2),
+                    'cpu_load': resource.get('cpu-load'),
+                    'uptime': resource.get('uptime'),
+                    'free_memory': resource.get('free-memory'),
+                    'total_memory': resource.get('total-memory')
+                }
+            return {'status': 'unhealthy', 'error': 'No response'}
+        except Exception as e:
+            return {'status': 'unhealthy', 'error': str(e)}
+    
     def get_interface_stats(self, router_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Get interface statistics"""
         try:
@@ -596,20 +518,121 @@ class MikroTikClient:
             logger.error(f"Failed to get interface stats: {e}")
             return []
     
-    def set_bandwidth_limit(self, router_data: Dict[str, Any], 
-                           target: str, upload: int, download: int) -> Dict[str, Any]:
-        """Set bandwidth limit for a user or IP"""
+    # HOTSPOT MANAGEMENT
+    
+    def get_hotspot_servers(self, router_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Get all hotspot servers from router"""
         try:
-            # Simple queue for simple bandwidth limiting
-            rate_limit = f"{upload}M/{download}M"
-            result = self.execute(router_data, '/queue/simple/add',
-                                  name=f"limit_{target}",
-                                  target=target,
-                                  max_limit=rate_limit)
-            logger.info(f"Set bandwidth limit {rate_limit} for {target}")
-            return {'success': True}
+            result = self.execute(router_data, '/ip/hotspot/print')
+            return result
         except Exception as e:
-            logger.error(f"Failed to set bandwidth limit: {e}")
+            logger.error(f"Failed to get hotspot servers: {e}")
+            return []
+    
+    def get_hotspot_users(self, router_data: Dict[str, Any], 
+                          hotspot_server_id: str = None) -> List[Dict[str, Any]]:
+        """Get all hotspot users"""
+        params = {}
+        if hotspot_server_id:
+            params['server'] = hotspot_server_id
+        
+        result = self.execute(router_data, '/ip/hotspot/user/print', **params)
+        
+        users = []
+        for user in result:
+            users.append({
+                'username': user.get('name'),
+                'password': user.get('password'),
+                'profile': user.get('profile'),
+                'server': user.get('server'),
+                'uptime': user.get('uptime'),
+                'bytes_in': int(user.get('bytes-in', 0)),
+                'bytes_out': int(user.get('bytes-out', 0)),
+                'disabled': user.get('disabled') == 'true',
+                'comment': user.get('comment')
+            })
+        
+        return users
+    
+    def create_hotspot_user(self, router_data: Dict[str, Any], hotspot_server_id: str,
+                            username: str, password: str, profile: str,
+                            limit_uptime: str = None, limit_bytes_in: int = None,
+                            limit_bytes_out: int = None, comment: str = None) -> Dict[str, Any]:
+        """Create hotspot user on MikroTik"""
+        params = {
+            'server': hotspot_server_id,
+            'name': username,
+            'password': password,
+            'profile': profile
+        }
+        
+        if limit_uptime:
+            params['limit-uptime'] = limit_uptime
+        if limit_bytes_in:
+            params['limit-bytes-in'] = str(limit_bytes_in)
+        if limit_bytes_out:
+            params['limit-bytes-out'] = str(limit_bytes_out)
+        if comment:
+            params['comment'] = comment
+        
+        self.execute(router_data, '/ip/hotspot/user/add', **params)
+        
+        logger.info(f"Created hotspot user {username} on router {router_data.get('id')}")
+        return {'success': True, 'username': username}
+    
+    def disable_hotspot_user(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
+        """Disable hotspot user"""
+        self.execute(router_data, '/ip/hotspot/user/set', numbers=username, disabled='yes')
+        logger.info(f"Disabled hotspot user {username}")
+        return {'success': True}
+    
+    def enable_hotspot_user(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
+        """Enable hotspot user"""
+        self.execute(router_data, '/ip/hotspot/user/set', numbers=username, disabled='no')
+        logger.info(f"Enabled hotspot user {username}")
+        return {'success': True}
+    
+    def remove_hotspot_user(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
+        """Remove hotspot user"""
+        self.execute(router_data, '/ip/hotspot/user/remove', numbers=username)
+        logger.info(f"Removed hotspot user {username}")
+        return {'success': True}
+    
+    def get_active_sessions(self, router_data: Dict[str, Any], 
+                            hotspot_server_id: str = None) -> List[Dict[str, Any]]:
+        """Get active hotspot sessions"""
+        params = {}
+        if hotspot_server_id:
+            params['server'] = hotspot_server_id
+        
+        try:
+            result = self.execute(router_data, '/ip/hotspot/active/print', **params)
+            
+            sessions = []
+            for session in result:
+                sessions.append({
+                    'username': session.get('user'),
+                    'mac_address': session.get('mac-address'),
+                    'ip_address': session.get('address'),
+                    'uptime': session.get('uptime'),
+                    'bytes_in': int(session.get('bytes-in', 0)),
+                    'bytes_out': int(session.get('bytes-out', 0)),
+                    'server': session.get('server')
+                })
+            
+            return sessions
+        except MikroTikAPIError as e:
+            logger.error(f"Failed to get active sessions: {e}")
+            return []
+    
+    def disconnect_hotspot_user(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
+        """Disconnect hotspot user"""
+        try:
+            self.execute(router_data, '/ip/hotspot/active/remove', numbers=username)
+            logger.info(f"Disconnected hotspot user {username}")
+            return {'success': True}
+        except MikroTikAPIError as e:
+            logger.error(f"Failed to disconnect user {username}: {e}")
             return {'success': False, 'error': str(e)}
     
     def get_hotspot_profiles(self, router_data: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -648,12 +671,154 @@ class MikroTikClient:
             if shared_users:
                 params['shared-users'] = str(shared_users)
             
-            result = self.execute(router_data, '/ip/hotspot/user/profile/add', **params)
+            self.execute(router_data, '/ip/hotspot/user/profile/add', **params)
             logger.info(f"Created hotspot profile {name}")
             return {'success': True}
         except Exception as e:
             logger.error(f"Failed to create hotspot profile: {e}")
             return {'success': False, 'error': str(e)}
+    
+    # PPPoE MANAGEMENT
+    
+    def get_pppoe_servers(self, router_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Get all PPPoE servers from router"""
+        try:
+            result = self.execute(router_data, '/interface/pppoe-server/server/print')
+            return result
+        except Exception as e:
+            logger.error(f"Failed to get PPPoE servers: {e}")
+            return []
+    
+    def get_pppoe_secrets(self, router_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Get all PPPoE secrets"""
+        result = self.execute(router_data, '/ppp/secret/print')
+        
+        secrets = []
+        for secret in result:
+            secrets.append({
+                'username': secret.get('name'),
+                'password': secret.get('password'),
+                'profile': secret.get('profile'),
+                'service': secret.get('service'),
+                'remote_address': secret.get('remote-address'),
+                'disabled': secret.get('disabled') == 'true',
+                'comment': secret.get('comment')
+            })
+        
+        return secrets
+    
+    def create_pppoe_secret(self, router_data: Dict[str, Any], username: str,
+                             password: str, profile: str, service: str = None,
+                             comment: str = None, remote_address: str = None,
+                             remote_ipv6_prefix: str = None) -> Dict[str, Any]:
+        """Create PPPoE secret on MikroTik"""
+        params = {
+            'name': username,
+            'password': password,
+            'profile': profile
+        }
+        
+        if service:
+            params['service'] = service
+        if comment:
+            params['comment'] = comment
+        if remote_address:
+            params['remote-address'] = remote_address
+        if remote_ipv6_prefix:
+            params['remote-ipv6-prefix'] = remote_ipv6_prefix
+        
+        self.execute(router_data, '/ppp/secret/add', **params)
+        
+        logger.info(f"Created PPPoE secret {username} on router {router_data.get('id')}")
+        return {'success': True, 'username': username}
+    
+    def disable_pppoe_secret(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
+        """Disable PPPoE secret"""
+        self.execute(router_data, '/ppp/secret/set', numbers=username, disabled='yes')
+        logger.info(f"Disabled PPPoE secret {username}")
+        return {'success': True}
+    
+    def enable_pppoe_secret(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
+        """Enable PPPoE secret"""
+        self.execute(router_data, '/ppp/secret/set', numbers=username, disabled='no')
+        logger.info(f"Enabled PPPoE secret {username}")
+        return {'success': True}
+    
+    def remove_pppoe_secret(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
+        """Remove PPPoE secret"""
+        self.execute(router_data, '/ppp/secret/remove', numbers=username)
+        logger.info(f"Removed PPPoE secret {username}")
+        return {'success': True}
+    
+    def get_pppoe_active_sessions(self, router_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Get active PPPoE sessions"""
+        try:
+            result = self.execute(router_data, '/ppp/active/print')
+            
+            sessions = []
+            for session in result:
+                sessions.append({
+                    'username': session.get('name'),
+                    'service': session.get('service'),
+                    'remote_address': session.get('address'),
+                    'caller_id': session.get('caller-id'),
+                    'uptime': session.get('uptime'),
+                    'encoding': session.get('encoding'),
+                    'session_id': session.get('session-id')
+                })
+            
+            return sessions
+        except MikroTikAPIError as e:
+            logger.error(f"Failed to get PPPoE active sessions: {e}")
+            return []
+    
+    def disconnect_pppoe_user(self, router_data: Dict[str, Any], username: str) -> Dict[str, Any]:
+        """Disconnect PPPoE user"""
+        try:
+            self.execute(router_data, '/ppp/active/remove', numbers=username)
+            logger.info(f"Disconnected PPPoE user {username}")
+            return {'success': True}
+        except MikroTikAPIError as e:
+            logger.error(f"Failed to disconnect PPPoE user {username}: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    # BANDWIDTH MANAGEMENT
+    
+    def set_bandwidth_limit(self, router_data: Dict[str, Any], 
+                           target: str, upload: int, download: int) -> Dict[str, Any]:
+        """Set bandwidth limit for a user or IP"""
+        try:
+            rate_limit = f"{upload}M/{download}M"
+            self.execute(router_data, '/queue/simple/add',
+                         name=f"limit_{target}",
+                         target=target,
+                         max_limit=rate_limit)
+            logger.info(f"Set bandwidth limit {rate_limit} for {target}")
+            return {'success': True}
+        except Exception as e:
+            logger.error(f"Failed to set bandwidth limit: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    def get_simple_queues(self, router_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Get all simple queues"""
+        try:
+            result = self.execute(router_data, '/queue/simple/print')
+            return result
+        except Exception as e:
+            logger.error(f"Failed to get simple queues: {e}")
+            return []
+    
+    def remove_simple_queue(self, router_data: Dict[str, Any], name: str) -> Dict[str, Any]:
+        """Remove a simple queue"""
+        try:
+            self.execute(router_data, '/queue/simple/remove', numbers=name)
+            logger.info(f"Removed simple queue: {name}")
+            return {'success': True}
+        except Exception as e:
+            logger.error(f"Failed to remove simple queue: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    # CONNECTION MANAGEMENT
     
     def close_all(self):
         """Close all connections"""
@@ -664,3 +829,4 @@ class MikroTikClient:
                 except:
                     pass
             self._connections.clear()
+            logger.info("All MikroTik connections closed")

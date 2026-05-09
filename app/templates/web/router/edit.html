@@ -1,0 +1,77 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Edit {{ router.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container { background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto; }
+    .form-label { font-weight: 600; margin-bottom: 0.5rem; color: #1a2e2a; }
+    .form-control, .form-select { border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.625rem 1rem; }
+    .form-control:focus { border-color: #2d6a4f; box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
+    .form-text { font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem; }
+    .btn-save { background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%); border: none; color: white; padding: 0.625rem 1.5rem; border-radius: 10px; font-weight: 600; }
+    .btn-cancel { background: #f1f3f5; border: none; color: #495057; padding: 0.625rem 1.5rem; border-radius: 10px; }
+    .section-title { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e2e8f0; }
+    .help-text { font-size: 0.7rem; color: #6c757d; margin-top: 0.25rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div><h4 class="mb-1">Edit Router</h4><p class="text-muted mb-0">Update router configuration</p></div>
+        <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+    </div>
+
+    <div class="form-container">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Network</label>
+                <select name="network_id" class="form-select">
+                    <option value="">Select Network...</option>{% for net in networks %}
+                    <option value="{{ net.id }}" {% if router.network_id == net.id %}selected{% endif %}>{{ net.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="mb-3"><label class="form-label">Router Name</label><input type="text" name="name" class="form-control" value="{{ router.name }}" required></div>
+            <div class="row"><div class="col-md-6 mb-3"><label class="form-label">IP Address</label><input type="text" name="ip_address" class="form-control" value="{{ router.ip_address }}" required></div>
+            <div class="col-md-6 mb-3"><label class="form-label">API Port</label><input type="number" name="api_port" class="form-control" value="{{ router.api_port }}"></div></div>
+            <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Username</label><input type="text" name="username" class="form-control" value="{{ router.username }}"></div>
+            <div class="col-md-6 mb-3"><label class="form-label">Password</label><input type="password" name="password" class="form-control" placeholder="Leave blank to keep current"></div></div>
+            <div class="mb-3"><label class="form-label">Location</label><input type="text" name="location" class="form-control" value="{{ router.location or '' }}"></div>
+            <div class="mb-3"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2">{{ router.description or '' }}</textarea></div>
+            <div class="mb-3 form-check form-switch"><input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if router.is_active %}checked{% endif %}><label class="form-check-label" for="isActive">Active</label></div>
+
+            <div class="section-title"><i class="fas fa-shield-alt me-2"></i>RADIUS Configuration</div>
+            <div class="help-text mb-3">Configure RADIUS for hotspot/PPPoE authentication</div>
+            <div id="radiusSection">
+                <div class="row"><div class="col-md-6 mb-3"><label class="form-label">RADIUS Server</label><input type="text" id="radius_server" class="form-control" placeholder="10.0.0.10"></div>
+                <div class="col-md-6 mb-3"><label class="form-label">RADIUS Secret</label><input type="password" id="radius_secret" class="form-control" placeholder="Shared secret"></div></div>
+                <button type="button" class="btn btn-sm btn-warning" onclick="configureRadius()"><i class="fas fa-save me-1"></i>Save RADIUS Settings</button>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end pt-3 border-top mt-4">
+                <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn btn-cancel">Cancel</a>
+                <button type="submit" class="btn btn-save"><i class="fas fa-save me-2"></i>Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+async function configureRadius() {
+    const server = document.getElementById('radius_server').value.trim();
+    const secret = document.getElementById('radius_secret').value.trim();
+    if (!server || !secret) { alert('Please enter both RADIUS server and secret'); return; }
+    try {
+        const response = await fetch('/api/v1/routers/{{ router.id }}/radius', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('access_token') },
+            body: JSON.stringify({ radius_server: server, radius_secret: secret })
+        });
+        const data = await response.json();
+        if (response.ok) alert('RADIUS configured successfully!');
+        else alert('Error: ' + (data.error || 'Unknown error'));
+    } catch(e) { alert('Error configuring RADIUS'); }
+}
+</script>
+{% endblock %}
