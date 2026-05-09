@@ -15,7 +15,7 @@ from app.core.exceptions.handlers import NotFoundError, BusinessError, Validatio
 
 
 class BillingController:
-    """Billing controller"""
+    """Billing controller for plans, subscriptions, vouchers, and invoices"""
     
     def __init__(self):
         self.service = BillingService()
@@ -27,7 +27,7 @@ class BillingController:
     @token_required
     @permission_required('plan_create')
     def create_plan(self):
-        """Create a new plan"""
+        """Create a new plan with dynamic validity"""
         try:
             data = PlanCreateSchema().load(request.json)
             plan = self.service.create_plan(g.organization_id, data)
@@ -46,7 +46,7 @@ class BillingController:
     
     @token_required
     def get_plans(self):
-        """Get all plans for organization"""
+        """Get all plans for organization with filters"""
         try:
             page = request.args.get('page', 1, type=int)
             per_page = request.args.get('per_page', 20, type=int)
@@ -111,7 +111,7 @@ class BillingController:
     @token_required
     @permission_required('plan_delete')
     def delete_plan(self, plan_id):
-        """Delete a plan (soft delete)"""
+        """Delete a plan (soft delete by default)"""
         try:
             plan_uuid = UUID(plan_id)
             soft = request.args.get('soft', 'true').lower() == 'true'
@@ -130,9 +130,9 @@ class BillingController:
     
     @token_required
     def get_public_plans(self):
-        """Get public plans for hotspot portal (no auth required for portal)"""
+        """Get public plans for hotspot portal"""
         try:
-            plans = self.service.plan_repo.get_public_plans(g.organization_id)
+            plans = self.service.get_public_plans(g.organization_id)
             return jsonify({
                 'plans': [p.to_dict() for p in plans]
             }), 200
@@ -147,14 +147,16 @@ class BillingController:
     @token_required
     @permission_required('voucher_create')
     def create_voucher(self):
-        """Create a single voucher"""
+        """Create a single voucher with dynamic validity"""
         try:
             data = VoucherCreateSchema().load(request.json)
             voucher = self.service.create_voucher(
                 organization_id=g.organization_id,
                 plan_id=UUID(data['plan_id']),
                 max_uses=data.get('max_uses', 1),
-                expires_in_days=data['expires_in_days'],
+                validity_value=data.get('validity_value'),
+                validity_unit=data.get('validity_unit'),
+                activation_type=data.get('activation_type', 'immediate'),
                 created_by=g.user_id
             )
             return jsonify({
@@ -175,7 +177,7 @@ class BillingController:
     @token_required
     @permission_required('voucher_create')
     def create_voucher_batch(self):
-        """Create a batch of vouchers"""
+        """Create a batch of vouchers with dynamic validity"""
         try:
             data = VoucherBatchCreateSchema().load(request.json)
             batch = self.service.create_voucher_batch(
@@ -183,7 +185,9 @@ class BillingController:
                 plan_id=UUID(data['plan_id']),
                 batch_name=data['batch_name'],
                 quantity=data['quantity'],
-                expires_in_days=data.get('expires_in_days', 30),
+                validity_value=data.get('validity_value'),
+                validity_unit=data.get('validity_unit'),
+                expires_in_days=data.get('expires_in_days'),
                 created_by=g.user_id
             )
             return jsonify({

@@ -2,20 +2,106 @@
 
 {% block title %}{{ organization.name }} - Edit {{ plan.name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .validity-unit-group {
+        display: flex;
+        gap: 1rem;
+    }
+    .validity-unit-group .form-group {
+        flex: 1;
+    }
+    .help-text {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .current-value {
+        background: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        border-left: 3px solid var(--primary);
+    }
+    .current-value strong {
+        color: var(--primary);
+    }
+    
+    /* Toggle Switch Styles */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: 0.3s;
+        border-radius: 24px;
+    }
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: #10b981;
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(26px);
+    }
+    .status-label {
+        margin-left: 0.75rem;
+        font-weight: 500;
+    }
+    .status-active {
+        color: #10b981;
+    }
+    .status-inactive {
+        color: #ef4444;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div><h4 class="mb-1">Edit Plan: {{ plan.name }}</h4><p class="text-muted mb-0">Update plan details</p></div>
-        <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+        <div>
+            <h4 class="mb-1">Edit Plan: {{ plan.name }}</h4>
+            <p class="text-muted mb-0">Update plan details and validity configuration</p>
+        </div>
+        <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </a>
     </div>
 
     <div class="card">
         <div class="card-body">
-            <form method="POST">
+            <form method="POST" id="planForm">
+                <!-- Basic Information -->
+                <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>Basic Information</h6>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Plan Name</label>
-                        <input type="text" name="name" class="form-control" value="{{ plan.name }}">
+                        <label class="form-label">Plan Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" required value="{{ plan.name }}">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label">Plan Type</label>
@@ -28,62 +114,158 @@
                     <div class="col-md-3 mb-3">
                         <label class="form-label">Billing Cycle</label>
                         <select name="billing_cycle" class="form-select">
-                            <option value="monthly" {% if plan.billing_cycle == 'monthly' %}selected{% endif %}>Monthly</option>
+                            <option value="one_time" {% if plan.billing_cycle == 'one_time' %}selected{% endif %}>One Time</option>
                             <option value="daily" {% if plan.billing_cycle == 'daily' %}selected{% endif %}>Daily</option>
                             <option value="weekly" {% if plan.billing_cycle == 'weekly' %}selected{% endif %}>Weekly</option>
+                            <option value="monthly" {% if plan.billing_cycle == 'monthly' %}selected{% endif %}>Monthly</option>
                             <option value="quarterly" {% if plan.billing_cycle == 'quarterly' %}selected{% endif %}>Quarterly</option>
                             <option value="yearly" {% if plan.billing_cycle == 'yearly' %}selected{% endif %}>Yearly</option>
                         </select>
                     </div>
                 </div>
 
+                <!-- Validity Configuration -->
+                <h6 class="mb-3 mt-3"><i class="fas fa-clock me-2"></i>Validity Configuration</h6>
+                
+                <!-- Current Validity Display -->
+                <div class="current-value">
+                    <strong>Current Validity:</strong> 
+                    {% if plan.validity_type == 'time_based' %}
+                        {% if plan.validity_value and plan.validity_unit %}
+                            {{ plan.validity_value }} {{ plan.validity_unit }}
+                        {% else %}
+                            {{ plan.validity_days }} days
+                        {% endif %}
+                    {% elif plan.validity_type == 'data_based' %}
+                        {% if plan.data_limit_mb >= 1024 %}
+                            {{ (plan.data_limit_mb / 1024)|round(0)|int }} GB
+                        {% else %}
+                            {{ plan.data_limit_mb }} MB
+                        {% endif %}
+                    {% else %}
+                        Unlimited
+                    {% endif %}
+                </div>
+
                 <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Validity Days</label>
-                        <input type="number" name="validity_days" class="form-control" value="{{ plan.validity_days or '' }}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Data Limit (MB)</label>
-                        <input type="number" name="data_limit_mb" class="form-control" value="{{ plan.data_limit_mb or '' }}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Device Limit</label>
-                        <input type="number" name="device_limit" class="form-control" value="{{ plan.device_limit or '1' }}">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Validity Type</label>
+                        <select name="validity_type" id="validityType" class="form-select">
+                            <option value="time_based" {% if plan.validity_type == 'time_based' %}selected{% endif %}>Time Based</option>
+                            <option value="data_based" {% if plan.validity_type == 'data_based' %}selected{% endif %}>Data Based</option>
+                            <option value="unlimited" {% if plan.validity_type == 'unlimited' %}selected{% endif %}>Unlimited</option>
+                        </select>
                     </div>
                 </div>
 
+                <!-- Time Based Validity Fields -->
+                <div id="timeBasedFields" class="row" style="{% if plan.validity_type == 'data_based' %}display: none;{% elif plan.validity_type == 'unlimited' %}display: none;{% endif %}">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Validity Value</label>
+                        <input type="number" name="validity_value" id="validityValue" class="form-control" 
+                               value="{{ plan.validity_value if plan.validity_value else '' }}" 
+                               placeholder="e.g., 30, 2, 1">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Validity Unit</label>
+                        <select name="validity_unit" id="validityUnit" class="form-select">
+                            <option value="minutes" {% if plan.validity_unit == 'minutes' %}selected{% endif %}>Minutes</option>
+                            <option value="hours" {% if plan.validity_unit == 'hours' %}selected{% endif %}>Hours</option>
+                            <option value="days" {% if plan.validity_unit == 'days' or not plan.validity_unit %}selected{% endif %}>Days</option>
+                            <option value="months" {% if plan.validity_unit == 'months' %}selected{% endif %}>Months</option>
+                            <option value="years" {% if plan.validity_unit == 'years' %}selected{% endif %}>Years</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Data Based Validity Fields -->
+                <div id="dataBasedFields" class="row" style="{% if plan.validity_type != 'data_based' %}display: none;{% endif %}">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Data Limit (MB)</label>
+                        <input type="number" name="data_limit_mb" id="dataLimitMb" class="form-control" 
+                               value="{{ plan.data_limit_mb or '' }}" 
+                               placeholder="e.g., 1024 (1GB), 10240 (10GB)">
+                        <div class="help-text">1 GB = 1024 MB</div>
+                    </div>
+                </div>
+
+                <!-- Bandwidth Configuration -->
+                <h6 class="mb-3 mt-3"><i class="fas fa-tachometer-alt me-2"></i>Bandwidth Configuration</h6>
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Download Speed (Mbps)</label>
-                        <input type="number" name="bandwidth_down_mbps" class="form-control" value="{{ plan.bandwidth_down_mbps or '' }}">
+                        <input type="number" name="bandwidth_down_mbps" class="form-control" 
+                               value="{{ plan.bandwidth_down_mbps or '' }}" 
+                               placeholder="0 = Unlimited">
+                        <div class="help-text">0 = Unlimited</div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Upload Speed (Mbps)</label>
-                        <input type="number" name="bandwidth_up_mbps" class="form-control" value="{{ plan.bandwidth_up_mbps or '' }}">
+                        <input type="number" name="bandwidth_up_mbps" class="form-control" 
+                               value="{{ plan.bandwidth_up_mbps or '' }}" 
+                               placeholder="0 = Unlimited">
+                        <div class="help-text">0 = Unlimited</div>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Price (KES)</label>
-                        <input type="number" step="0.01" name="price" class="form-control" value="{{ plan.price }}">
+                        <label class="form-label">Device Limit</label>
+                        <input type="number" name="device_limit" class="form-control" 
+                               value="{{ plan.device_limit or '1' }}" 
+                               placeholder="1">
                     </div>
                 </div>
 
+                <!-- Pricing -->
+                <h6 class="mb-3 mt-3"><i class="fas fa-tag me-2"></i>Pricing</h6>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Price (KES) <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" name="price" class="form-control" required value="{{ plan.price }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Setup Fee (KES)</label>
+                        <input type="number" step="0.01" name="setup_fee" class="form-control" value="{{ plan.setup_fee or '0' }}">
+                    </div>
+                </div>
+
+                <!-- Description -->
                 <div class="mb-3">
                     <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" rows="2">{{ plan.description or '' }}</textarea>
+                    <textarea name="description" class="form-control" rows="2" 
+                              placeholder="Plan description...">{{ plan.description or '' }}</textarea>
                 </div>
 
+                <!-- Status Switches (Toggle Buttons) -->
+                <h6 class="mb-3 mt-3"><i class="fas fa-toggle-on me-2"></i>Status</h6>
                 <div class="row mb-3">
-                    <div class="col-md-4">
-                        <div class="form-check form-switch">
-                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if plan.is_active %}checked{% endif %}>
-                            <label class="form-check-label" for="isActive">Active</label>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="is_active" id="activeToggle" {% if plan.is_active %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="status-label" id="activeStatusLabel">
+                                <span class="{% if plan.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                    <i class="fas {% if plan.is_active %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
+                                    {% if plan.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </span>
                         </div>
+                        <div class="help-text">When inactive, this plan won't be available for new subscriptions</div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="form-check form-switch">
-                            <input type="checkbox" name="is_public" class="form-check-input" id="isPublic" {% if plan.is_public %}checked{% endif %}>
-                            <label class="form-check-label" for="isPublic">Public</label>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="is_public" id="publicToggle" {% if plan.is_public %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="status-label" id="publicStatusLabel">
+                                <span class="{% if plan.is_public %}status-active{% else %}status-inactive{% endif %}">
+                                    <i class="fas {% if plan.is_public %}fa-globe{% else %}fa-lock{% endif %}"></i>
+                                    {% if plan.is_public %}Public{% else %}Private{% endif %}
+                                </span>
+                            </span>
                         </div>
+                        <div class="help-text">Public plans are visible on the customer portal</div>
                     </div>
                 </div>
 
@@ -96,4 +278,95 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Update status label when toggles change
+    document.getElementById('activeToggle').addEventListener('change', function() {
+        const label = document.getElementById('activeStatusLabel');
+        if (this.checked) {
+            label.innerHTML = '<span class="status-active"><i class="fas fa-check-circle"></i> Active</span>';
+        } else {
+            label.innerHTML = '<span class="status-inactive"><i class="fas fa-times-circle"></i> Inactive</span>';
+        }
+    });
+    
+    document.getElementById('publicToggle').addEventListener('change', function() {
+        const label = document.getElementById('publicStatusLabel');
+        if (this.checked) {
+            label.innerHTML = '<span class="status-active"><i class="fas fa-globe"></i> Public</span>';
+        } else {
+            label.innerHTML = '<span class="status-inactive"><i class="fas fa-lock"></i> Private</span>';
+        }
+    });
+    
+    // Toggle validity fields based on validity type
+    const validityType = document.getElementById('validityType');
+    const timeBasedFields = document.getElementById('timeBasedFields');
+    const dataBasedFields = document.getElementById('dataBasedFields');
+    const validityValue = document.getElementById('validityValue');
+    const validityUnit = document.getElementById('validityUnit');
+    const dataLimitMb = document.getElementById('dataLimitMb');
+    
+    function toggleValidityFields() {
+        const type = validityType.value;
+        
+        if (type === 'time_based') {
+            timeBasedFields.style.display = 'flex';
+            dataBasedFields.style.display = 'none';
+        } else if (type === 'data_based') {
+            timeBasedFields.style.display = 'none';
+            dataBasedFields.style.display = 'flex';
+        } else { // unlimited
+            timeBasedFields.style.display = 'none';
+            dataBasedFields.style.display = 'none';
+        }
+    }
+    
+    validityType.addEventListener('change', toggleValidityFields);
+    
+    // Validate unit value limits on submit
+    document.getElementById('planForm').addEventListener('submit', function(e) {
+        const type = validityType.value;
+        
+        if (type === 'time_based') {
+            const value = parseInt(validityValue.value);
+            const unit = validityUnit.value;
+            
+            if (value && (isNaN(value) || value < 1)) {
+                alert('Validity value must be a positive number');
+                e.preventDefault();
+                return;
+            }
+            
+            if (value && unit) {
+                let maxValue = 0;
+                switch(unit) {
+                    case 'minutes': maxValue = 525600; break;
+                    case 'hours': maxValue = 8760; break;
+                    case 'days': maxValue = 365; break;
+                    case 'months': maxValue = 24; break;
+                    case 'years': maxValue = 10; break;
+                }
+                
+                if (value > maxValue) {
+                    alert(`${unit.charAt(0).toUpperCase() + unit.slice(1)} cannot exceed ${maxValue}`);
+                    e.preventDefault();
+                    return;
+                }
+            }
+        }
+        
+        if (type === 'data_based') {
+            const dataLimit = parseInt(dataLimitMb.value);
+            if (dataLimit && (isNaN(dataLimit) || dataLimit < 1)) {
+                alert('Data limit must be a positive number');
+                e.preventDefault();
+                return;
+            }
+        }
+    });
+    
+    // Initialize on page load
+    toggleValidityFields();
+</script>
 {% endblock %}

@@ -10,7 +10,7 @@ from app.core.logging.logger import logger
 
 
 class PlanRepository:
-    """Repository for Plan operations"""
+    """Repository for Plan operations with dynamic validity support"""
     
     def __init__(self):
         self.model = Plan
@@ -76,13 +76,41 @@ class PlanRepository:
             logger.error(f"Database error in get_public_plans: {e}", exc_info=True)
             raise
     
+    def get_time_based_plans(self, organization_id: UUID) -> List[Plan]:
+        """Get time-based plans (for voucher generation)"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.is_active == True,
+                    self.model.validity_type == 'time_based'
+                )
+            ).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_time_based_plans: {e}", exc_info=True)
+            raise
+    
+    def get_data_based_plans(self, organization_id: UUID) -> List[Plan]:
+        """Get data-based plans"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.is_active == True,
+                    self.model.validity_type == 'data_based'
+                )
+            ).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_data_based_plans: {e}", exc_info=True)
+            raise
+    
     def create(self, data: Dict[str, Any]) -> Plan:
         """Create a new plan"""
         try:
             plan = self.model(**data)
             db.session.add(plan)
             db.session.commit()
-            logger.info(f"Created plan: {plan.name} (Type: {plan.plan_type})")
+            logger.info(f"Created plan: {plan.name} (Type: {plan.plan_type}, Validity: {plan.validity_display})")
             return plan
         except SQLAlchemyError as e:
             db.session.rollback()
@@ -231,6 +259,24 @@ class SubscriptionRepository:
             logger.error(f"Database error in get_expiring_soon: {e}", exc_info=True)
             raise
     
+    def get_expiring_in_hours(self, organization_id: UUID, hours: int = 24) -> List[Subscription]:
+        """Get subscriptions expiring within specified hours (for minute/hour plans)"""
+        try:
+            now = datetime.utcnow()
+            expiry_threshold = now + timedelta(hours=hours)
+            
+            return self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.status == 'active',
+                    self.model.expiry_time <= expiry_threshold,
+                    self.model.expiry_time > now
+                )
+            ).order_by(self.model.expiry_time).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_expiring_in_hours: {e}", exc_info=True)
+            raise
+    
     def create(self, data: Dict[str, Any]) -> Subscription:
         """Create a new subscription"""
         try:
@@ -342,22 +388,23 @@ class SubscriptionRepository:
             logger.error(f"Database error in count_by_subscriber: {e}", exc_info=True)
             raise
 
-
 class VoucherRepository:
-    """Repository for Voucher operations with tenant isolation"""
+    """Repository for Voucher operations with dynamic validity support"""
     
     def __init__(self):
         self.model = Voucher
     
-    def get_by_id(self, voucher_id: UUID, organization_id: UUID) -> Optional[Voucher]:
-        """Get voucher by ID"""
+    def get_by_id(self, voucher_id: UUID, organization_id: UUID, include_all: bool = False) -> Optional[Voucher]:
+        """Get voucher by ID with organization isolation"""
         try:
-            return self.model.query.filter(
-                and_(
-                    self.model.id == voucher_id,
-                    self.model.organization_id == organization_id
-                )
-            ).first()
+            filters = [
+                self.model.id == voucher_id,
+                self.model.organization_id == organization_id
+            ]
+            if not include_all:
+                filters.append(self.model.status == 'active')
+            
+            return self.model.query.filter(and_(*filters)).first()
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_by_id: {e}", exc_info=True)
             raise
@@ -399,9 +446,22 @@ class VoucherRepository:
                     self.model.batch_id == batch_id,
                     self.model.organization_id == organization_id
                 )
-            ).all()
+            ).order_by(self.model.code).all()
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_by_batch: {e}", exc_info=True)
+            raise
+    
+    def get_single_vouchers(self, organization_id: UUID) -> List[Voucher]:
+        """Get vouchers not belonging to any batch"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.batch_id.is_(None)
+                )
+            ).order_by(desc(self.model.created_at)).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_single_vouchers: {e}", exc_info=True)
             raise
     
     def get_by_subscriber(self, subscriber_id: UUID, organization_id: UUID) -> List[Voucher]:
@@ -415,6 +475,80 @@ class VoucherRepository:
             ).order_by(desc(self.model.used_at)).all()
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_by_subscriber: {e}", exc_info=True)
+            raise
+    
+    def get_unused_by_plan(self, plan_id: UUID, organization_id: UUID) -> List[Voucher]:
+        """Get unused vouchers for a specific plan"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.plan_id == plan_id,
+                    self.model.organization_id == organization_id,
+                    self.model.status == 'active',
+                    self.model.used_by_subscriber_id.is_(None)
+                )
+            ).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_unused_by_plan: {e}", exc_info=True)
+            raise
+    
+    def get_by_status(self, organization_id: UUID, status: str) -> List[Voucher]:
+        """Get vouchers by status"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.status == status
+                )
+            ).order_by(desc(self.model.created_at)).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_by_status: {e}", exc_info=True)
+            raise
+    
+    def count_by_status(self, organization_id: UUID, status: str) -> int:
+        """Count vouchers by status"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.status == status
+                )
+            ).count()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in count_by_status: {e}", exc_info=True)
+            raise
+    
+    def get_expired_vouchers(self, organization_id: UUID) -> List[Voucher]:
+        """Get all expired vouchers"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.status == 'active',
+                    self.model.expires_at < datetime.utcnow()
+                )
+            ).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_expired_vouchers: {e}", exc_info=True)
+            raise
+    
+    def mark_expired_vouchers(self, organization_id: UUID) -> int:
+        """Mark all expired vouchers as expired"""
+        try:
+            count = self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.status == 'active',
+                    self.model.expires_at < datetime.utcnow()
+                )
+            ).update({'status': 'expired'}, synchronize_session=False)
+            db.session.commit()
+            if count > 0:
+                logger.info(f"Marked {count} vouchers as expired")
+            return count
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"Database error in mark_expired_vouchers: {e}", exc_info=True)
             raise
     
     def create(self, data: Dict[str, Any]) -> Voucher:
@@ -443,10 +577,10 @@ class VoucherRepository:
             logger.error(f"Database error in create_batch: {e}", exc_info=True)
             raise
     
-    def use_voucher(self, voucher_id: UUID, subscriber_id: UUID, router_id: UUID) -> bool:
+    def use_voucher(self, voucher_id: UUID, subscriber_id: UUID, router_id: UUID = None) -> bool:
         """Mark a voucher as used"""
         try:
-            voucher = self.get_by_id(voucher_id, None)  # Organization check via get_by_id
+            voucher = self.get_by_id(voucher_id, None, include_all=True)
             if not voucher:
                 return False
             
@@ -455,7 +589,8 @@ class VoucherRepository:
                 voucher.status = 'used'
             voucher.used_by_subscriber_id = subscriber_id
             voucher.used_at = datetime.utcnow()
-            voucher.used_on_router_id = router_id
+            if router_id:
+                voucher.used_on_router_id = router_id
             
             db.session.commit()
             logger.info(f"Voucher {voucher.code} used by subscriber {subscriber_id}")
@@ -465,10 +600,30 @@ class VoucherRepository:
             logger.error(f"Database error in use_voucher: {e}", exc_info=True)
             raise
     
+    def activate_voucher(self, voucher_id: UUID, activation_time: datetime = None) -> bool:
+        """Activate a voucher (for first-use activation)"""
+        try:
+            voucher = self.get_by_id(voucher_id, None, include_all=True)
+            if not voucher:
+                return False
+            
+            if voucher.activation_type == 'first_use' and not voucher.activated_at:
+                voucher.activated_at = activation_time or datetime.utcnow()
+                # Update expiry based on activation
+                voucher.expires_at = voucher.calculate_expiry_from_activation(voucher.activated_at)
+                db.session.commit()
+                logger.info(f"Voucher {voucher.code} activated at {voucher.activated_at}")
+            
+            return True
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"Database error in activate_voucher: {e}", exc_info=True)
+            raise
+    
     def delete(self, voucher_id: UUID, organization_id: UUID) -> bool:
         """Delete a voucher"""
         try:
-            voucher = self.get_by_id(voucher_id, organization_id)
+            voucher = self.get_by_id(voucher_id, organization_id, include_all=True)
             if not voucher:
                 return False
             
@@ -483,7 +638,7 @@ class VoucherRepository:
 
 
 class VoucherBatchRepository:
-    """Repository for VoucherBatch operations"""
+    """Repository for VoucherBatch operations with dynamic validity"""
     
     def __init__(self):
         self.model = VoucherBatch
@@ -509,6 +664,19 @@ class VoucherBatchRepository:
             ).order_by(desc(self.model.created_at)).offset(skip).limit(limit).all()
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_by_organization: {e}", exc_info=True)
+            raise
+    
+    def get_by_status(self, organization_id: UUID, status: str) -> List[VoucherBatch]:
+        """Get batches by status"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.status == status
+                )
+            ).order_by(desc(self.model.created_at)).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_by_status: {e}", exc_info=True)
             raise
     
     def create(self, data: Dict[str, Any]) -> VoucherBatch:
@@ -600,6 +768,22 @@ class DiscountCouponRepository:
             ).order_by(desc(self.model.created_at)).offset(skip).limit(limit).all()
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_by_organization: {e}", exc_info=True)
+            raise
+    
+    def get_active_coupons(self, organization_id: UUID) -> List[DiscountCoupon]:
+        """Get all active coupons (valid now)"""
+        try:
+            now = datetime.utcnow()
+            return self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.is_active == True,
+                    self.model.valid_from <= now,
+                    self.model.valid_to >= now
+                )
+            ).order_by(self.model.valid_to).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_active_coupons: {e}", exc_info=True)
             raise
     
     def create(self, data: Dict[str, Any]) -> DiscountCoupon:

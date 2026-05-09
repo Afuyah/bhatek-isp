@@ -2,70 +2,660 @@
 
 {% block title %}{{ organization.name }} - Vouchers{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ========================================
+       PROFESSIONAL VOUCHERS PAGE v2.0
+       Clean, Modern, Responsive
+       ========================================= */
+    
+    :root {
+        --primary: #1a56db;
+        --primary-dark: #1e40af;
+        --success: #059669;
+        --danger: #dc2626;
+        --warning: #d97706;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+    }
+
+    /* Container */
+    .vouchers-container {
+        padding: 1rem;
+    }
+    
+    @media (min-width: 768px) {
+        .vouchers-container {
+            padding: 1.5rem;
+        }
+    }
+    
+    @media (min-width: 1200px) {
+        .vouchers-container {
+            padding: 2rem;
+        }
+    }
+
+    /* Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .page-title h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.025em;
+    }
+    
+    .page-title p {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+        margin: 0;
+    }
+    
+    @media (max-width: 640px) {
+        .page-title h1 {
+            font-size: 1.25rem;
+        }
+        .page-title p {
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-primary {
+        background: var(--primary);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background: white;
+        border: 1px solid var(--gray-200);
+        color: var(--gray-700);
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-secondary:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-300);
+    }
+
+    /* Tabs */
+    .tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+        background: none;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--gray-500);
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+    
+    .tab-btn:hover {
+        color: var(--primary);
+    }
+    
+    .tab-btn.active {
+        color: var(--primary);
+    }
+    
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--primary);
+    }
+    
+    @media (max-width: 640px) {
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Tab Content */
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Cards */
+    .card {
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+    
+    .card-header {
+        padding: 1rem 1rem;
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .card-header h3 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    @media (max-width: 640px) {
+        .card-header {
+            padding: 0.75rem;
+        }
+    }
+
+    /* Batch Card */
+    .batch-card {
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid var(--gray-200);
+        margin-bottom: 1rem;
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+    
+    .batch-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .batch-header {
+        padding: 1rem;
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .batch-title {
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0;
+    }
+    
+    .batch-status {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 1rem;
+        background: var(--gray-200);
+        color: var(--gray-600);
+    }
+    
+    .batch-body {
+        padding: 1rem;
+    }
+    
+    .batch-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .batch-stat {
+        text-align: center;
+    }
+    
+    .batch-stat-label {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        margin-bottom: 0.25rem;
+    }
+    
+    .batch-stat-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+    
+    @media (max-width: 640px) {
+        .batch-stats {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        .batch-body {
+            padding: 0.75rem;
+        }
+    }
+
+    /* Table Styles */
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+    
+    .data-table thead th {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        background: var(--gray-50);
+        font-weight: 600;
+        color: var(--gray-600);
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .data-table tbody td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-700);
+    }
+    
+    .data-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+    
+    @media (max-width: 640px) {
+        .data-table thead th,
+        .data-table tbody td {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Voucher Code */
+    .voucher-code {
+        font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+        font-size: 0.8rem;
+        font-weight: 500;
+        background: var(--gray-100);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        color: var(--gray-800);
+        letter-spacing: 0.025em;
+    }
+    
+    .copy-btn {
+        background: none;
+        border: none;
+        padding: 0.25rem;
+        cursor: pointer;
+        color: var(--gray-400);
+        transition: color 0.2s;
+        margin-left: 0.5rem;
+    }
+    
+    .copy-btn:hover {
+        color: var(--primary);
+    }
+
+    /* Badges */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 1rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+        gap: 0.25rem;
+    }
+    
+    .badge-active {
+        background: rgba(5, 150, 105, 0.1);
+        color: var(--success);
+    }
+    
+    .badge-used {
+        background: rgba(220, 38, 38, 0.1);
+        color: var(--danger);
+    }
+    
+    .badge-expired {
+        background: rgba(217, 119, 6, 0.1);
+        color: var(--warning);
+    }
+
+    /* Search Bar */
+    .search-bar {
+        margin-bottom: 1rem;
+    }
+    
+    .search-input {
+        width: 100%;
+        max-width: 300px;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--gray-400);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .empty-state p {
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    /* Buttons */
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        border-radius: 0.375rem;
+    }
+    
+    .btn-outline {
+        background: none;
+        border: 1px solid var(--gray-200);
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-outline:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div><h4 class="mb-1">Vouchers</h4><p class="text-muted mb-0">Manage prepaid vouchers and batches</p></div>
-        <div>
-            <a href="{{ url_for('billing_web.voucher_create', org_id=organization.id) }}" class="btn btn-outline-primary me-2">
-                <i class="fas fa-plus me-2"></i>Single Voucher
+<div class="vouchers-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h1>Vouchers</h1>
+            <p>Manage prepaid vouchers and batches</p>
+        </div>
+        <div class="action-buttons">
+            <a href="{{ url_for('billing_web.voucher_create', org_id=organization.id) }}" class="btn-primary">
+                <i class="fas fa-plus"></i> Single Voucher
             </a>
-            <a href="{{ url_for('billing_web.voucher_batch_create', org_id=organization.id) }}" class="btn btn-primary">
-                <i class="fas fa-layer-group me-2"></i>Create Batch
+            <a href="{{ url_for('billing_web.voucher_batch_create', org_id=organization.id) }}" class="btn-secondary">
+                <i class="fas fa-layer-group"></i> Create Batch
             </a>
         </div>
     </div>
 
-    {% if batches %}
-    <div class="row">
-        {% for batch in batches %}
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{ batch.batch_name }}</h5>
-                    <span class="badge {% if batch.status == 'generated' %}bg-success{% else %}bg-warning{% endif %}">{{ batch.status }}</span>
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="batches">Batches <span class="badge-count">{{ batches|length }}</span></button>
+        <button class="tab-btn" data-tab="singles">Single Vouchers <span class="badge-count">{{ single_vouchers|length }}</span></button>
+    </div>
+
+    <!-- Batches Tab -->
+    <div id="batches-tab" class="tab-content active">
+        {% if batches %}
+            {% for batch in batches %}
+            <div class="batch-card">
+                <div class="batch-header">
+                    <span class="batch-title">{{ batch.batch_name }}</span>
+                    <span class="batch-status">{{ batch.status|capitalize }}</span>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6">
-                            <small class="text-muted">Quantity</small>
-                            <h5>{{ batch.quantity }}</h5>
+                <div class="batch-body">
+                    <div class="batch-stats">
+                        <div class="batch-stat">
+                            <div class="batch-stat-label">Plan</div>
+                            <div class="batch-stat-value">{{ batch.plan.name if batch.plan else 'N/A' }}</div>
                         </div>
-                        <div class="col-6">
-                            <small class="text-muted">Plan</small>
-                            <h5>{{ batch.plan.name if batch.plan else 'N/A' }}</h5>
+                        <div class="batch-stat">
+                            <div class="batch-stat-label">Quantity</div>
+                            <div class="batch-stat-value">{{ batch.quantity }}</div>
                         </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-6">
-                            <small class="text-muted">Price per Voucher</small>
-                            <div>KES {{ batch.price_per_voucher }}</div>
+                        <div class="batch-stat">
+                            <div class="batch-stat-label">Price / Voucher</div>
+                            <div class="batch-stat-value">KES {{ "%.2f"|format(batch.price_per_voucher) }}</div>
                         </div>
-                        <div class="col-6">
-                            <small class="text-muted">Total Amount</small>
-                            <div>KES {{ batch.total_amount }}</div>
+                        <div class="batch-stat">
+                            <div class="batch-stat-label">Total Amount</div>
+                            <div class="batch-stat-value">KES {{ "%.2f"|format(batch.total_amount) }}</div>
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <small class="text-muted">Created: {{ batch.created_at.strftime('%Y-%m-%d') if batch.created_at else 'N/A' }}</small>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('billing_web.voucher_batch_detail', org_id=organization.id, batch_id=batch.id) }}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-eye me-1"></i>View Details
+                    <a href="{{ url_for('billing_web.voucher_batch_detail', org_id=organization.id, batch_id=batch.id) }}" class="btn-outline btn-sm">
+                        <i class="fas fa-eye"></i> View Details
                     </a>
                 </div>
             </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-layer-group"></i>
+                <p>No voucher batches created yet</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Single Vouchers Tab -->
+    <div id="singles-tab" class="tab-content">
+        <div class="search-bar">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by code or plan...">
         </div>
-        {% endfor %}
+        
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-ticket-alt"></i> Single Vouchers</h3>
+            </div>
+            <div class="table-container">
+                <table class="data-table" id="vouchersTable">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Plan</th>
+                            <th>Status</th>
+                            <th>Validity</th>
+                            <th>Expires At</th>
+                            <th>Used By</th>
+                            <th>Used At</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if single_vouchers %}
+                            {% for voucher in single_vouchers %}
+                            <tr class="voucher-row" data-code="{{ voucher.code.lower() }}" data-plan="{{ voucher.plan.name.lower() if voucher.plan else '' }}">
+                                <td>
+                                    <code class="voucher-code">{{ voucher.code }}</code>
+                                    <button class="copy-btn" onclick="copyToClipboard('{{ voucher.code }}')" title="Copy code">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </td>
+                                <td>{{ voucher.plan.name if voucher.plan else 'N/A' }}</td>
+                                <td>
+                                    <span class="badge badge-{{ voucher.status }}">
+                                        <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
+                                        {{ voucher.status|capitalize }}
+                                    </span>
+                                </td>
+                                <td>{{ voucher.validity_display }}</td>
+                                <td>{{ voucher.expires_at.strftime('%Y-%m-%d') if voucher.expires_at else 'N/A' }}</td>
+                                <td>{{ voucher.used_by_subscriber.phone if voucher.used_by_subscriber else '-' }}</td>
+                                <td>{{ voucher.used_at.strftime('%Y-%m-%d %H:%M') if voucher.used_at else '-' }}</td>
+                                <td>
+                                    {% if voucher.status == 'active' %}
+                                    <button class="copy-btn" onclick="copyToClipboard('{{ voucher.code }}')" title="Copy code">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="empty-state">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    <p>No single vouchers created yet</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    {% else %}
-    <div class="empty-state text-center py-5">
-        <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
-        <h5>No Voucher Batches</h5>
-        <p>Create a batch of prepaid vouchers for your customers.</p>
-        <a href="{{ url_for('billing_web.voucher_batch_create', org_id=organization.id) }}" class="btn btn-primary">Create First Batch</a>
-    </div>
-    {% endif %}
 </div>
+
+<script>
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
+            
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            btn.classList.add('active');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+    });
+    
+    // Search functionality for single vouchers
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#vouchersTable .voucher-row');
+            
+            rows.forEach(row => {
+                const code = row.getAttribute('data-code') || '';
+                const plan = row.getAttribute('data-plan') || '';
+                
+                if (code.includes(searchTerm) || plan.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Copy to clipboard
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Voucher code copied!', 'success');
+        }).catch(() => {
+            showToast('Failed to copy', 'error');
+        });
+    }
+    
+    // Toast notification
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#059669' : '#dc2626'};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        `;
+        toast.innerHTML = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+    
+    // Add animation style
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .badge-count {
+            display: inline-block;
+            margin-left: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: normal;
+        }
+    `;
+    document.head.appendChild(style);
+</script>
 {% endblock %}

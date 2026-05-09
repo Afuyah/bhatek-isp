@@ -2,105 +2,185 @@
 
 {% block title %}{{ organization.name }} - Create Plan{% endblock %}
 
+{% block extra_css %}
+<style>
+    .validity-unit-group {
+        display: flex;
+        gap: 1rem;
+    }
+    .validity-unit-group .form-group {
+        flex: 1;
+    }
+    .help-text {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .plan-type-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    .type-hotspot { background: #dbeafe; color: #1e40af; }
+    .type-pppoe { background: #d1fae5; color: #065f46; }
+    .type-both { background: #fef3c7; color: #92400e; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div><h4 class="mb-1">Create Service Plan</h4><p class="text-muted mb-0">Add a new internet service plan</p></div>
-        <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+        <div>
+            <h4 class="mb-1">Create Service Plan</h4>
+            <p class="text-muted mb-0">Add a new internet service plan with flexible validity</p>
+        </div>
+        <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </a>
     </div>
 
     <div class="card">
         <div class="card-body">
-            <form method="POST">
+            <form method="POST" id="planForm">
+                <!-- Basic Information -->
+                <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>Basic Information</h6>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Plan Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" required value="{{ form_data.name if form_data else '' }}" placeholder="e.g., Basic 10Mbps">
+                        <input type="text" name="name" class="form-control" required 
+                               value="{{ form_data.name if form_data else '' }}" 
+                               placeholder="e.g., Basic 10Mbps, 1GB Daily">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label">Plan Type <span class="text-danger">*</span></label>
                         <select name="plan_type" class="form-select" required>
-                            <option value="hotspot" {% if form_data.plan_type == 'hotspot' %}selected{% endif %}>Hotspot</option>
-                            <option value="pppoe" {% if form_data.plan_type == 'pppoe' %}selected{% endif %}>PPPoE</option>
-                            <option value="both" {% if form_data.plan_type == 'both' %}selected{% endif %}>Both</option>
+                            <option value="hotspot" {% if form_data and form_data.plan_type == 'hotspot' %}selected{% endif %}>Hotspot</option>
+                            <option value="pppoe" {% if form_data and form_data.plan_type == 'pppoe' %}selected{% endif %}>PPPoE</option>
+                            <option value="both" {% if form_data and form_data.plan_type == 'both' %}selected{% endif %}>Both</option>
                         </select>
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label">Billing Cycle</label>
                         <select name="billing_cycle" class="form-select">
-                            <option value="monthly" selected>Monthly</option>
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="quarterly">Quarterly</option>
-                            <option value="yearly">Yearly</option>
+                            <option value="one_time" {% if form_data and form_data.billing_cycle == 'one_time' %}selected{% endif %}>One Time</option>
+                            <option value="daily" {% if form_data and form_data.billing_cycle == 'daily' %}selected{% endif %}>Daily</option>
+                            <option value="weekly" {% if form_data and form_data.billing_cycle == 'weekly' %}selected{% endif %}>Weekly</option>
+                            <option value="monthly" {% if not form_data or form_data.billing_cycle == 'monthly' %}selected{% endif %}>Monthly</option>
+                            <option value="quarterly" {% if form_data and form_data.billing_cycle == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                            <option value="yearly" {% if form_data and form_data.billing_cycle == 'yearly' %}selected{% endif %}>Yearly</option>
                         </select>
                     </div>
                 </div>
 
+                <!-- Validity Configuration -->
+                <h6 class="mb-3 mt-3"><i class="fas fa-clock me-2"></i>Validity Configuration</h6>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Validity Type <span class="text-danger">*</span></label>
-                        <select name="validity_type" class="form-select" required>
-                            <option value="time_based">Time Based (Days)</option>
-                            <option value="data_based">Data Based (MB/GB)</option>
-                            <option value="unlimited">Unlimited</option>
+                        <select name="validity_type" id="validityType" class="form-select" required>
+                            <option value="time_based" {% if not form_data or form_data.validity_type == 'time_based' %}selected{% endif %}>Time Based</option>
+                            <option value="data_based" {% if form_data and form_data.validity_type == 'data_based' %}selected{% endif %}>Data Based</option>
+                            <option value="unlimited" {% if form_data and form_data.validity_type == 'unlimited' %}selected{% endif %}>Unlimited</option>
                         </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Validity Days</label>
-                        <input type="number" name="validity_days" class="form-control" value="{{ form_data.validity_days or '30' }}" placeholder="30">
-                        <small class="text-muted">For time-based plans</small>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Data Limit (MB)</label>
-                        <input type="number" name="data_limit_mb" class="form-control" value="{{ form_data.data_limit_mb or '' }}" placeholder="10240">
-                        <small class="text-muted">For data-based plans</small>
                     </div>
                 </div>
 
+                <!-- Time Based Validity Fields -->
+                <div id="timeBasedFields" class="row" style="{% if form_data and form_data.validity_type == 'data_based' %}display: none;{% elif form_data and form_data.validity_type == 'unlimited' %}display: none;{% endif %}">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Validity Value <span class="text-danger" id="timeRequired">*</span></label>
+                        <input type="number" name="validity_value" id="validityValue" class="form-control" 
+                               value="{{ form_data.validity_value if form_data else '30' }}" 
+                               placeholder="e.g., 30, 2, 1">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Validity Unit <span class="text-danger" id="unitRequired">*</span></label>
+                        <select name="validity_unit" id="validityUnit" class="form-select">
+                            <option value="minutes" {% if form_data and form_data.validity_unit == 'minutes' %}selected{% endif %}>Minutes</option>
+                            <option value="hours" {% if form_data and form_data.validity_unit == 'hours' %}selected{% endif %}>Hours</option>
+                            <option value="days" {% if not form_data or form_data.validity_unit == 'days' %}selected{% endif %}>Days</option>
+                            <option value="months" {% if form_data and form_data.validity_unit == 'months' %}selected{% endif %}>Months</option>
+                            <option value="years" {% if form_data and form_data.validity_unit == 'years' %}selected{% endif %}>Years</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Data Based Validity Fields -->
+                <div id="dataBasedFields" class="row" style="{% if not form_data or form_data.validity_type != 'data_based' %}display: none;{% endif %}">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Data Limit (MB) <span class="text-danger" id="dataRequired">*</span></label>
+                        <input type="number" name="data_limit_mb" id="dataLimitMb" class="form-control" 
+                               value="{{ form_data.data_limit_mb if form_data else '' }}" 
+                               placeholder="e.g., 1024 (1GB), 10240 (10GB)">
+                        <div class="help-text">1 GB = 1024 MB</div>
+                    </div>
+                </div>
+
+                <!-- Bandwidth Configuration -->
+                <h6 class="mb-3 mt-3"><i class="fas fa-tachometer-alt me-2"></i>Bandwidth Configuration</h6>
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Download Speed (Mbps)</label>
-                        <input type="number" name="bandwidth_down_mbps" class="form-control" value="{{ form_data.bandwidth_down_mbps or '10' }}" placeholder="10">
-                        <small class="text-muted">0 = Unlimited</small>
+                        <input type="number" name="bandwidth_down_mbps" class="form-control" 
+                               value="{{ form_data.bandwidth_down_mbps if form_data else '10' }}" 
+                               placeholder="10">
+                        <div class="help-text">0 = Unlimited</div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Upload Speed (Mbps)</label>
-                        <input type="number" name="bandwidth_up_mbps" class="form-control" value="{{ form_data.bandwidth_up_mbps or '10' }}" placeholder="10">
-                        <small class="text-muted">0 = Unlimited</small>
+                        <input type="number" name="bandwidth_up_mbps" class="form-control" 
+                               value="{{ form_data.bandwidth_up_mbps if form_data else '10' }}" 
+                               placeholder="10">
+                        <div class="help-text">0 = Unlimited</div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Device Limit</label>
-                        <input type="number" name="device_limit" class="form-control" value="{{ form_data.device_limit or '1' }}" placeholder="1">
+                        <input type="number" name="device_limit" class="form-control" 
+                               value="{{ form_data.device_limit if form_data else '1' }}" 
+                               placeholder="1">
+                        <div class="help-text">Maximum concurrent devices</div>
                     </div>
                 </div>
 
+                <!-- Pricing -->
+                <h6 class="mb-3 mt-3"><i class="fas fa-tag me-2"></i>Pricing</h6>
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Price (KES) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.01" name="price" class="form-control" required value="{{ form_data.price or '' }}" placeholder="1000.00">
+                        <input type="number" step="0.01" name="price" class="form-control" required 
+                               value="{{ form_data.price if form_data else '' }}" 
+                               placeholder="1000.00">
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Setup Fee (KES)</label>
-                        <input type="number" step="0.01" name="setup_fee" class="form-control" value="{{ form_data.setup_fee or '0' }}" placeholder="0.00">
+                        <input type="number" step="0.01" name="setup_fee" class="form-control" 
+                               value="{{ form_data.setup_fee if form_data else '0' }}" 
+                               placeholder="0.00">
                     </div>
                 </div>
 
+                <!-- Description -->
                 <div class="mb-3">
                     <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" rows="2" placeholder="Plan description...">{{ form_data.description if form_data else '' }}</textarea>
+                    <textarea name="description" class="form-control" rows="2" 
+                              placeholder="Plan description...">{{ form_data.description if form_data else '' }}</textarea>
                 </div>
 
+                <!-- Status Switches -->
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <div class="form-check form-switch">
-                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" checked>
+                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" 
+                                   {% if not form_data or form_data.is_active != false %}checked{% endif %}>
                             <label class="form-check-label" for="isActive">Active</label>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-check form-switch">
-                            <input type="checkbox" name="is_public" class="form-check-input" id="isPublic" checked>
+                            <input type="checkbox" name="is_public" class="form-check-input" id="isPublic" 
+                                   {% if not form_data or form_data.is_public != false %}checked{% endif %}>
                             <label class="form-check-label" for="isPublic">Public (Visible on portal)</label>
                         </div>
                     </div>
@@ -115,4 +195,83 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Toggle validity fields based on validity type
+    const validityType = document.getElementById('validityType');
+    const timeBasedFields = document.getElementById('timeBasedFields');
+    const dataBasedFields = document.getElementById('dataBasedFields');
+    const validityValue = document.getElementById('validityValue');
+    const validityUnit = document.getElementById('validityUnit');
+    const dataLimitMb = document.getElementById('dataLimitMb');
+    
+    function toggleValidityFields() {
+        const type = validityType.value;
+        
+        if (type === 'time_based') {
+            timeBasedFields.style.display = 'flex';
+            dataBasedFields.style.display = 'none';
+            validityValue.required = true;
+            validityUnit.required = true;
+            if (dataLimitMb) dataLimitMb.required = false;
+        } else if (type === 'data_based') {
+            timeBasedFields.style.display = 'none';
+            dataBasedFields.style.display = 'flex';
+            validityValue.required = false;
+            validityUnit.required = false;
+            if (dataLimitMb) dataLimitMb.required = true;
+        } else { // unlimited
+            timeBasedFields.style.display = 'none';
+            dataBasedFields.style.display = 'none';
+            validityValue.required = false;
+            validityUnit.required = false;
+            if (dataLimitMb) dataLimitMb.required = false;
+        }
+    }
+    
+    validityType.addEventListener('change', toggleValidityFields);
+    
+    // Validate unit value limits
+    document.getElementById('planForm').addEventListener('submit', function(e) {
+        const type = validityType.value;
+        
+        if (type === 'time_based') {
+            const value = parseInt(validityValue.value);
+            const unit = validityUnit.value;
+            
+            if (isNaN(value) || value < 1) {
+                alert('Validity value must be a positive number');
+                e.preventDefault();
+                return;
+            }
+            
+            let maxValue = 0;
+            switch(unit) {
+                case 'minutes': maxValue = 525600; break;
+                case 'hours': maxValue = 8760; break;
+                case 'days': maxValue = 365; break;
+                case 'months': maxValue = 24; break;
+                case 'years': maxValue = 10; break;
+            }
+            
+            if (value > maxValue) {
+                alert(`${unit.charAt(0).toUpperCase() + unit.slice(1)} cannot exceed ${maxValue}`);
+                e.preventDefault();
+                return;
+            }
+        }
+        
+        if (type === 'data_based') {
+            const dataLimit = parseInt(dataLimitMb.value);
+            if (isNaN(dataLimit) || dataLimit < 1) {
+                alert('Data limit must be a positive number');
+                e.preventDefault();
+                return;
+            }
+        }
+    });
+    
+    // Initialize on page load
+    toggleValidityFields();
+</script>
 {% endblock %}

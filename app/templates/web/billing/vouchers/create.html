@@ -1,0 +1,95 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Create Voucher{% endblock %}
+
+{% block extra_css %}
+<style>
+    .help-text {
+        font-size: 0.7rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">Create Single Voucher</h4>
+            <p class="text-muted mb-0">Generate a single prepaid voucher</p>
+        </div>
+        <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Plan <span class="text-danger">*</span></label>
+                    <select name="plan_id" class="form-select" required>
+                        <option value="">Select Plan...</option>
+                        {% for plan in plans %}
+                        <option value="{{ plan.id }}" {% if form_data and form_data.plan_id == plan.id|string %}selected{% endif %}>
+                            {{ plan.name }} - KES {{ plan.price }} ({{ plan.validity_display }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Validity Value (Optional)</label>
+                        <input type="number" name="validity_value" class="form-control" value="{{ form_data.validity_value if form_data else '' }}" placeholder="e.g., 30, 2, 1">
+                        <div class="help-text">Leave empty to use plan's default validity</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Validity Unit</label>
+                        <select name="validity_unit" class="form-select">
+                            <option value="">Use Plan Default</option>
+                            <option value="minutes" {% if form_data and form_data.validity_unit == 'minutes' %}selected{% endif %}>Minutes</option>
+                            <option value="hours" {% if form_data and form_data.validity_unit == 'hours' %}selected{% endif %}>Hours</option>
+                            <option value="days" {% if form_data and form_data.validity_unit == 'days' %}selected{% endif %}>Days</option>
+                            <option value="months" {% if form_data and form_data.validity_unit == 'months' %}selected{% endif %}>Months</option>
+                            <option value="years" {% if form_data and form_data.validity_unit == 'years' %}selected{% endif %}>Years</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Max Uses</label>
+                        <input type="number" name="max_uses" class="form-control" value="{{ form_data.max_uses if form_data else '1' }}" placeholder="1">
+                        <div class="help-text">Number of times this voucher can be used</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Activation Type</label>
+                        <select name="activation_type" class="form-select">
+                            <option value="immediate" {% if not form_data or form_data.activation_type == 'immediate' %}selected{% endif %}>Immediate</option>
+                            <option value="first_use" {% if form_data and form_data.activation_type == 'first_use' %}selected{% endif %}>First Use</option>
+                        </select>
+                        <div class="help-text">When the voucher validity starts</div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Notes</label>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="Optional notes...">{{ form_data.notes if form_data else '' }}</textarea>
+                </div>
+
+                <hr>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Voucher</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

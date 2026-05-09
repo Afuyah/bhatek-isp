@@ -26,7 +26,6 @@
         --gray-800: #1e293b;
     }
 
-    /* Container */
     .plans-container {
         padding: 0.75rem;
     }
@@ -43,7 +42,6 @@
         }
     }
 
-    /* Header */
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -105,7 +103,6 @@
         color: white;
     }
 
-    /* Section Cards */
     .section-card {
         background: white;
         border-radius: 0.875rem;
@@ -153,7 +150,6 @@
         background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     }
 
-    /* Table Styles */
     .table-responsive {
         overflow-x: auto;
     }
@@ -210,9 +206,23 @@
         white-space: nowrap;
     }
 
+    .validity-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.375rem;
+        font-size: 0.6rem;
+        font-weight: 500;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        white-space: nowrap;
+    }
+
     @media (min-width: 768px) {
-        .bandwidth-cell {
-            font-size: 0.7rem;
+        .validity-badge {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.6rem;
         }
     }
 
@@ -263,21 +273,10 @@
         }
     }
 
-    .btn-icon {
-        font-size: 0.7rem;
-    }
-
-    /* Empty State */
     .empty-state {
         text-align: center;
         padding: 2rem 1rem;
         color: var(--gray-400);
-    }
-
-    @media (min-width: 768px) {
-        .empty-state {
-            padding: 3rem 2rem;
-        }
     }
 
     .empty-state i {
@@ -291,12 +290,6 @@
         margin: 0;
     }
 
-    /* Modal */
-    .modal-content-custom {
-        border-radius: 0.875rem;
-    }
-
-    /* Responsive table handling */
     @media (max-width: 768px) {
         .plans-table thead th:nth-child(4),
         .plans-table tbody td:nth-child(4) {
@@ -355,7 +348,26 @@
                         <td class="bandwidth-cell">
                             ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
                         </td>
-                        <td>{{ plan.validity_days or 'Data' }} days</td>
+                        <td>
+                            <span class="validity-badge">
+                                <i class="fas fa-hourglass-half me-1"></i>
+                                {% if plan.validity_type == 'time_based' %}
+                                    {% if plan.validity_value and plan.validity_unit %}
+                                        {{ plan.validity_value }} {{ plan.validity_unit }}
+                                    {% else %}
+                                        {{ plan.validity_days }} days
+                                    {% endif %}
+                                {% elif plan.validity_type == 'data_based' %}
+                                    {% if plan.data_limit_mb >= 1024 %}
+                                        {{ (plan.data_limit_mb / 1024)|round(0)|int }} GB
+                                    {% else %}
+                                        {{ plan.data_limit_mb }} MB
+                                    {% endif %}
+                                {% else %}
+                                    Unlimited
+                                {% endif %}
+                            </span>
+                        </td>
                         <td>
                             <span class="badge-status {% if plan.is_active %}badge-active{% else %}badge-inactive{% endif %}">
                                 <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
@@ -367,10 +379,10 @@
                         </td>
                         <td class="text-center">
                             <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn btn-outline-primary btn-action" title="Edit">
-                                <i class="fas fa-edit btn-icon"></i>
+                                <i class="fas fa-edit"></i>
                             </a>
                             <button class="btn btn-outline-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
-                                <i class="fas fa-trash btn-icon"></i>
+                                <i class="fas fa-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -415,7 +427,26 @@
                         <td class="bandwidth-cell">
                             ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
                         </td>
-                        <td>{{ plan.validity_days }} days</td>
+                        <td>
+                            <span class="validity-badge">
+                                <i class="fas fa-hourglass-half me-1"></i>
+                                {% if plan.validity_type == 'time_based' %}
+                                    {% if plan.validity_value and plan.validity_unit %}
+                                        {{ plan.validity_value }} {{ plan.validity_unit }}
+                                    {% else %}
+                                        {{ plan.validity_days }} days
+                                    {% endif %}
+                                {% elif plan.validity_type == 'data_based' %}
+                                    {% if plan.data_limit_mb >= 1024 %}
+                                        {{ (plan.data_limit_mb / 1024)|round(0)|int }} GB
+                                    {% else %}
+                                        {{ plan.data_limit_mb }} MB
+                                    {% endif %}
+                                {% else %}
+                                    Unlimited
+                                {% endif %}
+                            </span>
+                        </td>
                         <td>
                             <span class="badge-status {% if plan.is_active %}badge-active{% else %}badge-inactive{% endif %}">
                                 <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
@@ -427,10 +458,10 @@
                         </td>
                         <td class="text-center">
                             <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn btn-outline-primary btn-action" title="Edit">
-                                <i class="fas fa-edit btn-icon"></i>
+                                <i class="fas fa-edit"></i>
                             </a>
                             <button class="btn btn-outline-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
-                                <i class="fas fa-trash btn-icon"></i>
+                                <i class="fas fa-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -450,9 +481,9 @@
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content modal-content-custom">
+        <div class="modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title">Confirm Delete</h5>
+                <h5 class="modal-title">Confirm Deactivation</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">

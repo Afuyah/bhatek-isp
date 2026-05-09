@@ -89,28 +89,30 @@ def plans(org_id, current_user=None, current_organization=None):
 @billing_web_bp.route('/plans/create', methods=['GET', 'POST'])
 @web_billing_access_required
 def plan_create(org_id, current_user=None, current_organization=None):
-    """Create a new plan"""
+    """Create a new plan with dynamic validity"""
     
     if request.method == 'GET':
         return render_template(
             'web/billing/plans/create.html',
             organization=current_organization,
             user=current_user,
-            form_data=None  # ✅ FIXED: Pass None for new form
+            form_data=None
         )
     
-    # POST - Create plan
+    # POST - Create plan with dynamic validity
     try:
         data = {
             'name': request.form.get('name'),
             'description': request.form.get('description'),
             'plan_type': request.form.get('plan_type'),
-            'billing_cycle': request.form.get('billing_cycle'),
+            'billing_cycle': request.form.get('billing_cycle', 'one_time'),
             'validity_type': request.form.get('validity_type'),
-            'validity_days': request.form.get('validity_days', type=int),
+            # Dynamic validity fields (replaces validity_days)
+            'validity_value': request.form.get('validity_value', type=int),
+            'validity_unit': request.form.get('validity_unit'),
             'data_limit_mb': request.form.get('data_limit_mb', type=int),
-            'bandwidth_up_mbps': request.form.get('bandwidth_up_mbps', type=int),
-            'bandwidth_down_mbps': request.form.get('bandwidth_down_mbps', type=int),
+            'bandwidth_up_mbps': request.form.get('bandwidth_up_mbps', type=int, default=0),
+            'bandwidth_down_mbps': request.form.get('bandwidth_down_mbps', type=int, default=0),
             'price': request.form.get('price', type=float),
             'setup_fee': request.form.get('setup_fee', type=float, default=0),
             'device_limit': request.form.get('device_limit', type=int, default=1),
@@ -119,7 +121,7 @@ def plan_create(org_id, current_user=None, current_organization=None):
         }
         
         plan = billing_service.create_plan(current_organization.id, data)
-        flash(f'Plan "{plan.name}" created successfully!', 'success')
+        flash(f'Plan "{plan.name}" created successfully! (Validity: {plan.validity_display})', 'success')
         return redirect(url_for('billing_web.plans', org_id=org_id))
         
     except Exception as e:
@@ -129,18 +131,22 @@ def plan_create(org_id, current_user=None, current_organization=None):
             'web/billing/plans/create.html',
             organization=current_organization,
             user=current_user,
-            form_data=request.form  # ✅ Pass form_data to preserve input
+            form_data=request.form
         )
 
 
 @billing_web_bp.route('/plans/<plan_id>/edit', methods=['GET', 'POST'])
 @web_billing_access_required
 def plan_edit(org_id, plan_id, current_user=None, current_organization=None):
-    """Edit a plan"""
+    """Edit a plan with dynamic validity"""
     
     try:
         plan_uuid = UUID(plan_id)
-        plan = billing_service.get_plan(plan_uuid, current_organization.id)
+        # Get plan including inactive ones
+        plan = billing_service.plan_repo.get_by_id(plan_uuid, current_organization.id, include_inactive=True)
+        if not plan:
+            flash('Plan not found', 'danger')
+            return redirect(url_for('billing_web.plans', org_id=org_id))
         
         if request.method == 'GET':
             return render_template(
@@ -150,7 +156,7 @@ def plan_edit(org_id, plan_id, current_user=None, current_organization=None):
                 plan=plan
             )
         
-        # POST - Update plan
+        # POST - Update plan with dynamic validity
         data = {}
         
         name = request.form.get('name')
@@ -169,9 +175,18 @@ def plan_edit(org_id, plan_id, current_user=None, current_organization=None):
         if billing_cycle:
             data['billing_cycle'] = billing_cycle
         
-        validity_days = request.form.get('validity_days', type=int)
-        if validity_days:
-            data['validity_days'] = validity_days
+        validity_type = request.form.get('validity_type')
+        if validity_type:
+            data['validity_type'] = validity_type
+        
+        # Dynamic validity fields
+        validity_value = request.form.get('validity_value', type=int)
+        if validity_value:
+            data['validity_value'] = validity_value
+        
+        validity_unit = request.form.get('validity_unit')
+        if validity_unit:
+            data['validity_unit'] = validity_unit
         
         data_limit_mb = request.form.get('data_limit_mb', type=int)
         if data_limit_mb:
@@ -204,7 +219,6 @@ def plan_edit(org_id, plan_id, current_user=None, current_organization=None):
         flash(f'Error updating plan: {str(e)}', 'danger')
         return redirect(url_for('billing_web.plans', org_id=org_id))
 
-
 @billing_web_bp.route('/plans/<plan_id>/delete', methods=['POST'])
 @web_billing_access_required
 def plan_delete(org_id, plan_id, current_user=None, current_organization=None):
@@ -226,22 +240,38 @@ def plan_delete(org_id, plan_id, current_user=None, current_organization=None):
 @billing_web_bp.route('/vouchers')
 @web_billing_access_required
 def vouchers(org_id, current_user=None, current_organization=None):
-    """List all vouchers"""
+    """List all vouchers (batches and single vouchers)"""
+    
     # Get voucher batches
     batches = billing_service.voucher_batch_repo.get_by_organization(current_organization.id, 0, 50)
+    
+    # Get single vouchers (not part of any batch)
+    # You'll need to add this method to your VoucherRepository
+    single_vouchers = billing_service.voucher_repo.get_single_vouchers(current_organization.id)
+    
+    # Get statistics
+    stats = {
+        'total_batches': len(batches),
+        'total_vouchers': sum(b.quantity for b in batches) + len(single_vouchers),
+        'active_vouchers': billing_service.voucher_repo.count_by_status(current_organization.id, 'active'),
+        'used_vouchers': billing_service.voucher_repo.count_by_status(current_organization.id, 'used'),
+        'expired_vouchers': billing_service.voucher_repo.count_by_status(current_organization.id, 'expired'),
+    }
     
     return render_template(
         'web/billing/vouchers/index.html',
         organization=current_organization,
         user=current_user,
-        batches=batches
+        batches=batches,
+        single_vouchers=single_vouchers,
+        stats=stats
     )
 
 
 @billing_web_bp.route('/vouchers/create', methods=['GET', 'POST'])
 @web_billing_access_required
 def voucher_create(org_id, current_user=None, current_organization=None):
-    """Create a single voucher"""
+    """Create a single voucher with dynamic validity"""
     plans = billing_service.get_plans(current_organization.id, 0, 100, only_active=True)
     
     if request.method == 'GET':
@@ -256,14 +286,23 @@ def voucher_create(org_id, current_user=None, current_organization=None):
     # POST - Create voucher
     try:
         plan_id = UUID(request.form.get('plan_id'))
-        expires_in_days = request.form.get('expires_in_days', type=int, default=30)
+        
+        # ✅ Convert empty strings to None for enum fields
+        validity_value = request.form.get('validity_value', type=int)
+        validity_unit = request.form.get('validity_unit')
+        if validity_unit == '':
+            validity_unit = None
+        
+        activation_type = request.form.get('activation_type', 'immediate')
         max_uses = request.form.get('max_uses', type=int, default=1)
         
         voucher = billing_service.create_voucher(
             organization_id=current_organization.id,
             plan_id=plan_id,
             max_uses=max_uses,
-            expires_in_days=expires_in_days,
+            validity_value=validity_value,
+            validity_unit=validity_unit,
+            activation_type=activation_type,
             created_by=current_user.id
         )
         
@@ -281,11 +320,10 @@ def voucher_create(org_id, current_user=None, current_organization=None):
             form_data=request.form
         )
 
-
 @billing_web_bp.route('/vouchers/batch/create', methods=['GET', 'POST'])
 @web_billing_access_required
 def voucher_batch_create(org_id, current_user=None, current_organization=None):
-    """Create a batch of vouchers"""
+    """Create a batch of vouchers with dynamic validity"""
     plans = billing_service.get_plans(current_organization.id, 0, 100, only_active=True)
     
     if request.method == 'GET':
@@ -302,14 +340,20 @@ def voucher_batch_create(org_id, current_user=None, current_organization=None):
         plan_id = UUID(request.form.get('plan_id'))
         batch_name = request.form.get('batch_name')
         quantity = request.form.get('quantity', type=int)
-        expires_in_days = request.form.get('expires_in_days', type=int, default=30)
+        
+        # ✅ Convert empty strings to None for enum fields
+        validity_value = request.form.get('validity_value', type=int)
+        validity_unit = request.form.get('validity_unit')
+        if validity_unit == '' or validity_unit is None:
+            validity_unit = None
         
         batch = billing_service.create_voucher_batch(
             organization_id=current_organization.id,
             plan_id=plan_id,
             batch_name=batch_name,
             quantity=quantity,
-            expires_in_days=expires_in_days,
+            validity_value=validity_value,
+            validity_unit=validity_unit,
             created_by=current_user.id
         )
         
