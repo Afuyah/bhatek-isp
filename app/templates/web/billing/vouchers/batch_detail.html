@@ -473,10 +473,23 @@
                                     </button>
                                 </td>
                                 <td>
-                                    {% if voucher.validity_value and voucher.validity_unit %}
-                                        {{ voucher.validity_value }} {{ voucher.validity_unit }}
+                                    {% set val_value = voucher.validity_value or batch.validity_value %}
+                                    {% set val_unit = voucher.validity_unit or batch.validity_unit %}
+                                    {% set val_unit_str = val_unit|string|lower if val_unit else '' %}
+                                    
+                                    {% if val_value and val_unit_str %}
+                                        {{ val_value }}
+                                        {% if val_unit_str == 'minutes' %}minutes
+                                        {% elif val_unit_str == 'hours' %}hours
+                                        {% elif val_unit_str == 'days' %}days
+                                        {% elif val_unit_str == 'months' %}months
+                                        {% elif val_unit_str == 'years' %}years
+                                        {% else %}days
+                                        {% endif %}
+                                    {% elif batch.expires_in_days %}
+                                        {{ batch.expires_in_days }} days
                                     {% else %}
-                                        {{ batch.validity_value }} {{ batch.validity_unit if batch.validity_unit else batch.expires_in_days ~ ' days' }}
+                                        30 days
                                     {% endif %}
                                 </td>
                                 <td>{{ voucher.expires_at.strftime('%Y-%m-%d') if voucher.expires_at else '-' }}</td>

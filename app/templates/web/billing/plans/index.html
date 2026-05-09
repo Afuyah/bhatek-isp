@@ -5,301 +5,369 @@
 {% block extra_css %}
 <style>
     /* ========================================
-       PLANS LIST - MODERN TABLE DESIGN
+       PROFESSIONAL PLANS PAGE v2.0
+       Clean, Modern, Searchable, Tabs
        ========================================= */
     
     :root {
-        --primary: #2d6a4f;
-        --primary-light: #40916c;
-        --primary-dark: #1b4332;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --gray-50: #f8fafc;
-        --gray-100: #f1f5f9;
-        --gray-200: #e2e8f0;
-        --gray-300: #cbd5e1;
-        --gray-400: #94a3b8;
-        --gray-500: #64748b;
-        --gray-600: #475569;
-        --gray-700: #334155;
-        --gray-800: #1e293b;
+        --primary: #1a56db;
+        --primary-dark: #1e40af;
+        --primary-light: #3b82f6;
+        --success: #059669;
+        --danger: #dc2626;
+        --warning: #d97706;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
     }
 
+    /* Container */
     .plans-container {
-        padding: 0.75rem;
+        padding: 1rem;
     }
-
+    
     @media (min-width: 768px) {
-        .plans-container {
-            padding: 1rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
         .plans-container {
             padding: 1.5rem;
         }
     }
+    
+    @media (min-width: 1200px) {
+        .plans-container {
+            padding: 2rem;
+        }
+    }
 
+    /* Header */
     .page-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
     }
-
-    @media (min-width: 768px) {
-        .page-header {
-            margin-bottom: 1.5rem;
-            gap: 1rem;
-        }
+    
+    .page-title h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.025em;
     }
-
-    .page-title h4 {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.2rem;
-        color: var(--gray-800);
-    }
-
+    
     .page-title p {
-        font-size: 0.7rem;
+        font-size: 0.875rem;
         color: var(--gray-500);
-        margin-bottom: 0;
+        margin: 0;
     }
-
-    @media (min-width: 768px) {
-        .page-title h4 {
+    
+    @media (max-width: 640px) {
+        .page-title h1 {
             font-size: 1.25rem;
         }
-        .page-title p {
-            font-size: 0.8rem;
-        }
     }
 
-    .btn-add {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    /* Buttons */
+    .btn-primary {
+        background: var(--primary);
         border: none;
         color: white;
-        padding: 0.4rem 0.875rem;
-        font-size: 0.7rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
         border-radius: 0.5rem;
-        transition: all 0.2s;
-    }
-
-    @media (min-width: 768px) {
-        .btn-add {
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-        }
-    }
-
-    .btn-add:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
-        color: white;
-    }
-
-    .section-card {
-        background: white;
-        border-radius: 0.875rem;
-        border: 1px solid var(--gray-200);
-        overflow: hidden;
-        margin-bottom: 1rem;
-    }
-
-    @media (min-width: 768px) {
-        .section-card {
-            border-radius: 1rem;
-            margin-bottom: 1.25rem;
-        }
-    }
-
-    .section-header {
-        padding: 0.75rem 1rem;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-        color: white;
-    }
-
-    .section-header h5 {
-        font-size: 0.85rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 0.5rem;
+        transition: all 0.2s;
+    }
+    
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
     }
 
-    @media (min-width: 768px) {
-        .section-header {
-            padding: 0.875rem 1.25rem;
+    /* Tabs */
+    .tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+        background: none;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--gray-500);
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+    
+    .tab-btn:hover {
+        color: var(--primary);
+    }
+    
+    .tab-btn.active {
+        color: var(--primary);
+    }
+    
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--primary);
+    }
+    
+    .tab-count {
+        display: inline-block;
+        margin-left: 0.5rem;
+        font-size: 0.7rem;
+        font-weight: normal;
+        color: var(--gray-400);
+    }
+    
+    .tab-btn.active .tab-count {
+        color: var(--primary);
+    }
+    
+    @media (max-width: 640px) {
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
         }
-        .section-header h5 {
-            font-size: 0.9rem;
-        }
     }
 
-    .section-header.hotspot {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
+    /* Tab Content */
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
     }
 
-    .section-header.pppoe {
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    /* Search Bar */
+    .search-bar {
+        margin-bottom: 1rem;
+    }
+    
+    .search-input {
+        width: 100%;
+        max-width: 320px;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
     }
 
-    .table-responsive {
+    /* Table Card */
+    .table-card {
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+    
+    .table-container {
         overflow-x: auto;
     }
-
+    
     .plans-table {
         width: 100%;
-        margin-bottom: 0;
         border-collapse: collapse;
+        font-size: 0.875rem;
     }
-
+    
     .plans-table thead th {
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: var(--gray-500);
-        padding: 0.75rem 0.75rem;
-        border-bottom: 1px solid var(--gray-200);
+        text-align: left;
+        padding: 0.75rem 1rem;
         background: var(--gray-50);
-        white-space: nowrap;
+        font-weight: 600;
+        color: var(--gray-600);
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
-
+    
     .plans-table tbody td {
-        font-size: 0.7rem;
-        padding: 0.75rem 0.75rem;
-        vertical-align: middle;
+        padding: 0.875rem 1rem;
         border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-700);
+        vertical-align: middle;
     }
-
-    @media (min-width: 768px) {
-        .plans-table thead th {
-            font-size: 0.75rem;
-            padding: 0.875rem 1rem;
-        }
+    
+    .plans-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+    
+    @media (max-width: 768px) {
+        .plans-table thead th,
         .plans-table tbody td {
-            font-size: 0.75rem;
-            padding: 0.875rem 1rem;
+            padding: 0.5rem 0.75rem;
         }
     }
 
+    /* Plan Name */
     .plan-name {
         font-weight: 600;
-        color: var(--gray-800);
+        color: var(--gray-900);
+        margin-bottom: 0.25rem;
+    }
+    
+    .plan-desc {
+        font-size: 0.7rem;
+        color: var(--gray-500);
     }
 
+    /* Price */
     .plan-price {
         font-weight: 700;
-        color: var(--primary);
+        color: var(--gray-900);
         white-space: nowrap;
     }
+    
+    .plan-price small {
+        font-size: 0.7rem;
+        font-weight: normal;
+        color: var(--gray-500);
+    }
 
-    .bandwidth-cell {
+    /* Bandwidth */
+    .bandwidth {
         font-family: monospace;
-        font-size: 0.65rem;
-        color: var(--gray-600);
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--gray-700);
         white-space: nowrap;
     }
 
+    /* Validity Badge */
     .validity-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.25rem;
-        padding: 0.2rem 0.5rem;
+        padding: 0.25rem 0.5rem;
         border-radius: 0.375rem;
-        font-size: 0.6rem;
+        font-size: 0.7rem;
         font-weight: 500;
         background: var(--gray-100);
         color: var(--gray-600);
         white-space: nowrap;
     }
 
-    @media (min-width: 768px) {
-        .validity-badge {
-            font-size: 0.65rem;
-            padding: 0.25rem 0.6rem;
-        }
-    }
-
-    .badge-status {
+    /* Status Badges */
+    .status-badge {
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
-        padding: 0.2rem 0.5rem;
+        gap: 0.375rem;
+        padding: 0.25rem 0.5rem;
         border-radius: 1rem;
-        font-size: 0.6rem;
-        font-weight: 600;
+        font-size: 0.65rem;
+        font-weight: 500;
         white-space: nowrap;
     }
-
-    @media (min-width: 768px) {
-        .badge-status {
-            font-size: 0.65rem;
-            padding: 0.25rem 0.6rem;
-        }
-    }
-
-    .badge-active {
-        background: rgba(16, 185, 129, 0.1);
+    
+    .status-active {
+        background: rgba(5, 150, 105, 0.1);
         color: var(--success);
     }
-
-    .badge-inactive {
-        background: rgba(239, 68, 68, 0.1);
+    
+    .status-inactive {
+        background: rgba(220, 38, 38, 0.1);
         color: var(--danger);
     }
-
-    .badge-public {
-        background: rgba(59, 130, 246, 0.1);
-        color: #3b82f6;
+    
+    .status-public {
+        background: rgba(26, 86, 219, 0.1);
+        color: var(--primary);
     }
 
-    .btn-action {
-        padding: 0.3rem 0.5rem;
-        font-size: 0.65rem;
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-icon {
+        background: none;
+        border: none;
+        padding: 0.375rem;
         border-radius: 0.375rem;
-        margin: 0 0.125rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.875rem;
+    }
+    
+    .btn-edit {
+        color: var(--primary);
+    }
+    
+    .btn-edit:hover {
+        background: rgba(26, 86, 219, 0.1);
+    }
+    
+    .btn-delete {
+        color: var(--danger);
+    }
+    
+    .btn-delete:hover {
+        background: rgba(220, 38, 38, 0.1);
     }
 
-    @media (min-width: 768px) {
-        .btn-action {
-            padding: 0.35rem 0.6rem;
-            font-size: 0.7rem;
-        }
-    }
-
+    /* Empty State */
     .empty-state {
         text-align: center;
-        padding: 2rem 1rem;
+        padding: 3rem 2rem;
         color: var(--gray-400);
     }
-
+    
     .empty-state i {
-        font-size: 2rem;
-        margin-bottom: 0.75rem;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
         opacity: 0.5;
     }
-
+    
     .empty-state p {
-        font-size: 0.7rem;
+        font-size: 0.875rem;
         margin: 0;
     }
 
+    /* Responsive Table Columns */
     @media (max-width: 768px) {
-        .plans-table thead th:nth-child(4),
-        .plans-table tbody td:nth-child(4) {
+        .plans-table thead th:nth-child(3),
+        .plans-table tbody td:nth-child(3) {
             display: none;
         }
     }
-
+    
     @media (max-width: 640px) {
-        .plans-table thead th:nth-child(5),
-        .plans-table tbody td:nth-child(5) {
+        .plans-table thead th:nth-child(4),
+        .plans-table tbody td:nth-child(4) {
             display: none;
         }
     }
@@ -311,169 +379,308 @@
     <!-- Header -->
     <div class="page-header">
         <div class="page-title">
-            <h4>Service Plans</h4>
+            <h1>Service Plans</h1>
             <p>Manage internet service plans and packages</p>
         </div>
-        <a href="{{ url_for('billing_web.plan_create', org_id=organization.id) }}" class="btn-add">
-            <i class="fas fa-plus me-1"></i>Add Plan
+        <a href="{{ url_for('billing_web.plan_create', org_id=organization.id) }}" class="btn-primary">
+            <i class="fas fa-plus"></i> Add Plan
         </a>
     </div>
 
-    <!-- Hotspot Plans Section -->
-    <div class="section-card">
-        <div class="section-header hotspot">
-            <h5><i class="fas fa-wifi"></i> Hotspot Plans</h5>
-        </div>
-        <div class="table-responsive">
-            {% if hotspot_plans %}
-            <table class="plans-table">
-                <thead>
-                    <tr>
-                        <th>Plan Name</th>
-                        <th>Price</th>
-                        <th>Bandwidth</th>
-                        <th>Validity</th>
-                        <th>Status</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for plan in hotspot_plans %}
-                    <tr>
-                        <td>
-                            <div class="plan-name">{{ plan.name }}</div>
-                            <div class="small text-muted">{{ plan.description|truncate(40) if plan.description else 'No description' }}</div>
-                        </td>
-                        <td class="plan-price">KES {{ "%.0f"|format(plan.price) }}</td>
-                        <td class="bandwidth-cell">
-                            ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
-                        </td>
-                        <td>
-                            <span class="validity-badge">
-                                <i class="fas fa-hourglass-half me-1"></i>
-                                {% if plan.validity_type == 'time_based' %}
-                                    {% if plan.validity_value and plan.validity_unit %}
-                                        {{ plan.validity_value }} {{ plan.validity_unit }}
-                                    {% else %}
-                                        {{ plan.validity_days }} days
-                                    {% endif %}
-                                {% elif plan.validity_type == 'data_based' %}
-                                    {% if plan.data_limit_mb >= 1024 %}
-                                        {{ (plan.data_limit_mb / 1024)|round(0)|int }} GB
-                                    {% else %}
-                                        {{ plan.data_limit_mb }} MB
-                                    {% endif %}
-                                {% else %}
-                                    Unlimited
-                                {% endif %}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge-status {% if plan.is_active %}badge-active{% else %}badge-inactive{% endif %}">
-                                <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
-                                {{ 'Active' if plan.is_active else 'Inactive' }}
-                            </span>
-                            {% if plan.is_public %}
-                            <span class="badge-status badge-public ms-1">Public</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn btn-outline-primary btn-action" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button class="btn btn-outline-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-wifi"></i>
-                <p>No hotspot plans created yet</p>
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="all">
+            All Plans <span class="tab-count">{{ all_plans|length }}</span>
+        </button>
+        <button class="tab-btn" data-tab="hotspot">
+            <i class="fas fa-wifi me-1"></i> Hotspot <span class="tab-count">{{ hotspot_plans|length }}</span>
+        </button>
+        <button class="tab-btn" data-tab="pppoe">
+            <i class="fas fa-network-wired me-1"></i> PPPoE <span class="tab-count">{{ pppoe_plans|length }}</span>
+        </button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by plan name, description...">
+    </div>
+
+    <!-- All Plans Tab -->
+    <div id="all-tab" class="tab-content active">
+        <div class="table-card">
+            <div class="table-container">
+                <table class="plans-table" id="allPlansTable">
+                    <thead>
+                        <tr>
+                            <th>Plan Name</th>
+                            <th>Price</th>
+                            <th>Bandwidth</th>
+                            <th>Validity</th>
+                            <th>Status</th>
+                            <th style="width: 80px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if all_plans %}
+                            {% for plan in all_plans %}
+                            <tr class="plan-row" data-name="{{ plan.name.lower() }}" data-desc="{{ (plan.description or '').lower() }}">
+                                <td>
+                                    <div class="plan-name">{{ plan.name }}</div>
+                                    <div class="plan-desc">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
+                                </td>
+                                <td class="plan-price">KES {{ "%.0f"|format(plan.price) }}<small>/mo</small></td>
+                                <td class="bandwidth">
+                                    ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
+                                </td>
+                                <td>
+                                    <span class="validity-badge">
+                                        <i class="fas fa-hourglass-half"></i>
+                                        {% if plan.validity_type == 'time_based' %}
+                                            {% if plan.validity_value and plan.validity_unit %}
+                                                {{ plan.validity_value }}
+                                                {% if plan.validity_unit|lower == 'minutes' %}minutes
+                                                {% elif plan.validity_unit|lower == 'hours' %}hours
+                                                {% elif plan.validity_unit|lower == 'days' %}days
+                                                {% elif plan.validity_unit|lower == 'months' %}months
+                                                {% elif plan.validity_unit|lower == 'years' %}years
+                                                {% else %}days
+                                                {% endif %}
+                                            {% else %}
+                                                {{ plan.validity_days }} days
+                                            {% endif %}
+                                        {% elif plan.validity_type == 'data_based' %}
+                                            {% if plan.data_limit_mb >= 1024 %}
+                                                {{ (plan.data_limit_mb / 1024)|round(0)|int }} GB
+                                            {% else %}
+                                                {{ plan.data_limit_mb }} MB
+                                            {% endif %}
+                                        {% else %}
+                                            Unlimited
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <span class="status-badge {% if plan.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                            <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
+                                            {{ 'Active' if plan.is_active else 'Inactive' }}
+                                        </span>
+                                        {% if plan.is_public %}
+                                        <span class="status-badge status-public">
+                                            <i class="fas fa-globe"></i> Public
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn-icon btn-edit" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn-icon btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <i class="fas fa-tags"></i>
+                                    <p>No plans created yet</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
-            {% endif %}
         </div>
     </div>
 
-    <!-- PPPoE Plans Section -->
-    <div class="section-card">
-        <div class="section-header pppoe">
-            <h5><i class="fas fa-network-wired"></i> PPPoE Plans</h5>
-        </div>
-        <div class="table-responsive">
-            {% if pppoe_plans %}
-            <table class="plans-table">
-                <thead>
-                    <tr>
-                        <th>Plan Name</th>
-                        <th>Price</th>
-                        <th>Bandwidth</th>
-                        <th>Validity</th>
-                        <th>Status</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for plan in pppoe_plans %}
-                    <tr>
-                        <td>
-                            <div class="plan-name">{{ plan.name }}</div>
-                            <div class="small text-muted">{{ plan.description|truncate(40) if plan.description else 'No description' }}</div>
-                        </td>
-                        <td class="plan-price">KES {{ "%.0f"|format(plan.price) }}</td>
-                        <td class="bandwidth-cell">
-                            ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
-                        </td>
-                        <td>
-                            <span class="validity-badge">
-                                <i class="fas fa-hourglass-half me-1"></i>
-                                {% if plan.validity_type == 'time_based' %}
-                                    {% if plan.validity_value and plan.validity_unit %}
-                                        {{ plan.validity_value }} {{ plan.validity_unit }}
-                                    {% else %}
-                                        {{ plan.validity_days }} days
-                                    {% endif %}
-                                {% elif plan.validity_type == 'data_based' %}
-                                    {% if plan.data_limit_mb >= 1024 %}
-                                        {{ (plan.data_limit_mb / 1024)|round(0)|int }} GB
-                                    {% else %}
-                                        {{ plan.data_limit_mb }} MB
-                                    {% endif %}
-                                {% else %}
-                                    Unlimited
-                                {% endif %}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge-status {% if plan.is_active %}badge-active{% else %}badge-inactive{% endif %}">
-                                <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
-                                {{ 'Active' if plan.is_active else 'Inactive' }}
-                            </span>
-                            {% if plan.is_public %}
-                            <span class="badge-status badge-public ms-1">Public</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn btn-outline-primary btn-action" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button class="btn btn-outline-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-network-wired"></i>
-                <p>No PPPoE plans created yet</p>
+    <!-- Hotspot Plans Tab -->
+    <div id="hotspot-tab" class="tab-content">
+        <div class="table-card">
+            <div class="table-container">
+                <table class="plans-table" id="hotspotPlansTable">
+                    <thead>
+                        <tr>
+                            <th>Plan Name</th>
+                            <th>Price</th>
+                            <th>Bandwidth</th>
+                            <th>Validity</th>
+                            <th>Status</th>
+                            <th style="width: 80px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if hotspot_plans %}
+                            {% for plan in hotspot_plans %}
+                            <tr class="plan-row" data-name="{{ plan.name.lower() }}" data-desc="{{ (plan.description or '').lower() }}">
+                                <td>
+                                    <div class="plan-name">{{ plan.name }}</div>
+                                    <div class="plan-desc">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
+                                </td>
+                                <td class="plan-price">KES {{ "%.0f"|format(plan.price) }}<small>/mo</small></td>
+                                <td class="bandwidth">
+                                    ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
+                                </td>
+                                <td>
+                                    <span class="validity-badge">
+                                        <i class="fas fa-hourglass-half"></i>
+                                        {% if plan.validity_type == 'time_based' %}
+                                            {% if plan.validity_value and plan.validity_unit %}
+                                                {{ plan.validity_value }}
+                                                {% if plan.validity_unit|lower == 'minutes' %}minutes
+                                                {% elif plan.validity_unit|lower == 'hours' %}hours
+                                                {% elif plan.validity_unit|lower == 'days' %}days
+                                                {% elif plan.validity_unit|lower == 'months' %}months
+                                                {% elif plan.validity_unit|lower == 'years' %}years
+                                                {% else %}days
+                                                {% endif %}
+                                            {% else %}
+                                                {{ plan.validity_days }} days
+                                            {% endif %}
+                                        {% elif plan.validity_type == 'data_based' %}
+                                            {% if plan.data_limit_mb >= 1024 %}
+                                                {{ (plan.data_limit_mb / 1024)|round(0)|int }} GB
+                                            {% else %}
+                                                {{ plan.data_limit_mb }} MB
+                                            {% endif %}
+                                        {% else %}
+                                            Unlimited
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <span class="status-badge {% if plan.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                            <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
+                                            {{ 'Active' if plan.is_active else 'Inactive' }}
+                                        </span>
+                                        {% if plan.is_public %}
+                                        <span class="status-badge status-public">
+                                            <i class="fas fa-globe"></i> Public
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn-icon btn-edit" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn-icon btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <i class="fas fa-wifi"></i>
+                                    <p>No hotspot plans created yet</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
-            {% endif %}
+        </div>
+    </div>
+
+    <!-- PPPoE Plans Tab -->
+    <div id="pppoe-tab" class="tab-content">
+        <div class="table-card">
+            <div class="table-container">
+                <table class="plans-table" id="pppoePlansTable">
+                    <thead>
+                        <tr>
+                            <th>Plan Name</th>
+                            <th>Price</th>
+                            <th>Bandwidth</th>
+                            <th>Validity</th>
+                            <th>Status</th>
+                            <th style="width: 80px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if pppoe_plans %}
+                            {% for plan in pppoe_plans %}
+                            <tr class="plan-row" data-name="{{ plan.name.lower() }}" data-desc="{{ (plan.description or '').lower() }}">
+                                <td>
+                                    <div class="plan-name">{{ plan.name }}</div>
+                                    <div class="plan-desc">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
+                                </td>
+                                <td class="plan-price">KES {{ "%.0f"|format(plan.price) }}<small>/mo</small></td>
+                                <td class="bandwidth">
+                                    ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
+                                </td>
+                                <td>
+                                    <span class="validity-badge">
+                                        <i class="fas fa-hourglass-half"></i>
+                                        {% if plan.validity_type == 'time_based' %}
+                                            {% if plan.validity_value and plan.validity_unit %}
+                                                {{ plan.validity_value }}
+                                                {% if plan.validity_unit|lower == 'minutes' %}minutes
+                                                {% elif plan.validity_unit|lower == 'hours' %}hours
+                                                {% elif plan.validity_unit|lower == 'days' %}days
+                                                {% elif plan.validity_unit|lower == 'months' %}months
+                                                {% elif plan.validity_unit|lower == 'years' %}years
+                                                {% else %}days
+                                                {% endif %}
+                                            {% else %}
+                                                {{ plan.validity_days }} days
+                                            {% endif %}
+                                        {% elif plan.validity_type == 'data_based' %}
+                                            {% if plan.data_limit_mb >= 1024 %}
+                                                {{ (plan.data_limit_mb / 1024)|round(0)|int }} GB
+                                            {% else %}
+                                                {{ plan.data_limit_mb }} MB
+                                            {% endif %}
+                                        {% else %}
+                                            Unlimited
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <span class="status-badge {% if plan.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                            <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
+                                            {{ 'Active' if plan.is_active else 'Inactive' }}
+                                        </span>
+                                        {% if plan.is_public %}
+                                        <span class="status-badge status-public">
+                                            <i class="fas fa-globe"></i> Public
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn-icon btn-edit" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn-icon btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <i class="fas fa-network-wired"></i>
+                                    <p>No PPPoE plans created yet</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -501,6 +708,51 @@
 </div>
 
 <script>
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
+            
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            btn.classList.add('active');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+            
+            // Clear search when switching tabs
+            document.getElementById('searchInput').value = '';
+            filterPlans('');
+        });
+    });
+    
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    
+    function filterPlans(searchTerm) {
+        const activeTab = document.querySelector('.tab-content.active').id;
+        const tableId = activeTab.replace('-tab', 'PlansTable');
+        const rows = document.querySelectorAll(`#${tableId} .plan-row`);
+        
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name') || '';
+            const desc = row.getAttribute('data-desc') || '';
+            
+            if (name.includes(searchTerm) || desc.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterPlans(searchTerm);
+        });
+    }
+    
+    // Delete modal handler
     const deleteModal = document.getElementById('deleteModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', function(event) {
