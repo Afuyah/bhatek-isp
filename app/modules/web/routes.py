@@ -3,6 +3,7 @@ from flask import render_template, request, redirect, url_for, session, jsonify,
 from datetime import datetime
 import uuid
 import re
+from uuid import UUID  
 from app.modules.web import web_bp
 from app.modules.auth.service import AuthService
 from app.modules.subscriber.service import SubscriberService
@@ -10,7 +11,6 @@ from app.modules.billing.service import BillingService
 from app.modules.session.service import SessionService
 from app.core.logging.logger import logger
 from app.core.decorators.web_auth import web_login_required, web_super_admin_required, web_organization_member_required
-
 
 # REGISTRATION API ENDPOINTS 
 @web_bp.route('/api/check-email', methods=['POST'])
@@ -259,21 +259,56 @@ def dashboard():
 
 
 @web_bp.route('/organization/<org_id>/dashboard')
-@web_login_required
 @web_organization_member_required
 def organization_dashboard(org_id):
-    """Organization-specific dashboard"""
+    """Organization dashboard"""
     user = g.current_user
-    organization = g.current_organization if hasattr(g, 'current_organization') else None
     
-    if not organization:
-        from app.models.organization import Organization
-        organization = Organization.query.get(org_id)
+    # Get organization from URL parameter
+    from app.modules.organization.service import OrganizationService
+    org_service = OrganizationService()
+    organization = org_service.get_organization(UUID(org_id))
+    
+    # Get statistics
+    stats = {
+        'total_subscribers': 0,
+        'subscriber_growth': 12,
+        'active_sessions': 0,
+        'session_growth': 8,
+        'monthly_revenue': 0,
+        'revenue_growth': 15,
+        'active_routers': 0,
+        'online_routers': 0,
+    }
+    
+    # Get expiring subscriptions
+    from app.modules.billing.service import BillingService
+    billing_service = BillingService()
+    expiring_subscriptions = billing_service.subscription_repo.get_expiring_soon(organization.id, 7)
+    
+    # Get recent voucher batches
+    voucher_batches = billing_service.voucher_batch_repo.get_by_organization(organization.id, 0, 5)
+    
+    # Get recent routers
+    from app.modules.router.service import RouterService
+    router_service = RouterService()
+    recent_routers = router_service.get_routers_by_organization(organization.id, 0, 5)
+    
+    # Get recent access points
+    from app.modules.access_point.service import AccessPointService
+    ap_service = AccessPointService()
+    recent_aps = ap_service.get_access_points_by_organization(organization.id, 0, 5)
     
     return render_template(
         'web/organization/dashboard.html',
+        organization=organization,
         user=user,
-        organization=organization
+        now=datetime.now(),
+        stats=stats,
+        expiring_subscriptions=expiring_subscriptions,
+        voucher_batches=voucher_batches,
+        recent_routers=recent_routers,
+        recent_aps=recent_aps
     )
 
 

@@ -1,0 +1,99 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Edit {{ plan.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div><h4 class="mb-1">Edit Plan: {{ plan.name }}</h4><p class="text-muted mb-0">Update plan details</p></div>
+        <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Plan Name</label>
+                        <input type="text" name="name" class="form-control" value="{{ plan.name }}">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Plan Type</label>
+                        <select name="plan_type" class="form-select">
+                            <option value="hotspot" {% if plan.plan_type == 'hotspot' %}selected{% endif %}>Hotspot</option>
+                            <option value="pppoe" {% if plan.plan_type == 'pppoe' %}selected{% endif %}>PPPoE</option>
+                            <option value="both" {% if plan.plan_type == 'both' %}selected{% endif %}>Both</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Billing Cycle</label>
+                        <select name="billing_cycle" class="form-select">
+                            <option value="monthly" {% if plan.billing_cycle == 'monthly' %}selected{% endif %}>Monthly</option>
+                            <option value="daily" {% if plan.billing_cycle == 'daily' %}selected{% endif %}>Daily</option>
+                            <option value="weekly" {% if plan.billing_cycle == 'weekly' %}selected{% endif %}>Weekly</option>
+                            <option value="quarterly" {% if plan.billing_cycle == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                            <option value="yearly" {% if plan.billing_cycle == 'yearly' %}selected{% endif %}>Yearly</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Validity Days</label>
+                        <input type="number" name="validity_days" class="form-control" value="{{ plan.validity_days or '' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Data Limit (MB)</label>
+                        <input type="number" name="data_limit_mb" class="form-control" value="{{ plan.data_limit_mb or '' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Device Limit</label>
+                        <input type="number" name="device_limit" class="form-control" value="{{ plan.device_limit or '1' }}">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Download Speed (Mbps)</label>
+                        <input type="number" name="bandwidth_down_mbps" class="form-control" value="{{ plan.bandwidth_down_mbps or '' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Upload Speed (Mbps)</label>
+                        <input type="number" name="bandwidth_up_mbps" class="form-control" value="{{ plan.bandwidth_up_mbps or '' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Price (KES)</label>
+                        <input type="number" step="0.01" name="price" class="form-control" value="{{ plan.price }}">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="2">{{ plan.description or '' }}</textarea>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if plan.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="isActive">Active</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="is_public" class="form-check-input" id="isPublic" {% if plan.is_public %}checked{% endif %}>
+                            <label class="form-check-label" for="isPublic">Public</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,8 @@
 from marshmallow import Schema, fields, validate, validates, ValidationError, validates_schema
 from datetime import datetime
 import re
+from uuid import UUID
+
 
 class PlanCreateSchema(Schema):
     """Schema for creating a plan"""
@@ -117,21 +119,20 @@ class VoucherBatchCreateSchema(Schema):
 
 
 class RedeemVoucherSchema(Schema):
-    """Schema for redeeming a voucher"""
+    """Schema for redeeming a voucher - aligns with service"""
     voucher_code = fields.String(required=True)
-    device_mac = fields.String(required=True)
+    subscriber_id = fields.UUID(required=True)
+    router_id = fields.UUID(allow_none=True)
     
     @validates('voucher_code')
     def validate_voucher_code(self, value):
         if not value or len(value) < 4:
             raise ValidationError('Invalid voucher code')
     
-    @validates('device_mac')
-    def validate_mac_address(self, value):
-        # Basic MAC address validation
-        pattern = r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$'
-        if not re.match(pattern, value):
-            raise ValidationError('Invalid MAC address format')
+    @validates('subscriber_id')
+    def validate_subscriber_id(self, value):
+        if not value:
+            raise ValidationError('Subscriber ID is required')
 
 
 class DiscountCouponCreateSchema(Schema):

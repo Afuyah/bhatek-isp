@@ -221,8 +221,10 @@ def create_app(config_name=None):
     from app.modules.router.web_routes import router_web_bp
     # In the imports section, add:
     from app.modules.access_point.web_routes import ap_web_bp
+    from app.modules.billing.web_routes import billing_web_bp
 
-    
+
+    app.register_blueprint(billing_web_bp)
     app.register_blueprint(ap_web_bp)
     app.register_blueprint(router_web_bp)
     app.register_blueprint(web_bp)

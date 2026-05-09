@@ -1,0 +1,61 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Billing Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h4 class="mb-4">Billing Dashboard</h4>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <h2 class="text-primary">{{ active_plans }}</h2>
+                    <p class="text-muted mb-0">Active Plans</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <h2 class="text-warning">{{ expiring_subscriptions|length }}</h2>
+                    <p class="text-muted mb-0">Expiring Soon</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <h2 class="text-success">{{ voucher_batches|length }}</h2>
+                    <p class="text-muted mb-0">Voucher Batches</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if expiring_subscriptions %}
+    <div class="card mt-3">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Expiring Subscriptions (Next 7 days)</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Subscriber</th><th>Plan</th><th>Expiry Date</th><th>Days Left</th></tr></thead>
+                    <tbody>
+                        {% for sub in expiring_subscriptions %}
+                        <tr>
+                            <td>{{ sub.subscriber.phone if sub.subscriber else 'N/A' }}</td>
+                            <td>{{ sub.plan.name if sub.plan else 'N/A' }}</td>
+                            <td>{{ sub.expiry_time.strftime('%Y-%m-%d') if sub.expiry_time else 'N/A' }}</td>
+                            <td>{{ sub.days_remaining() }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
