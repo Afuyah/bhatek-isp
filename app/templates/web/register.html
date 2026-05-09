@@ -3,112 +3,639 @@
 
 {% block content %}
 
-<div class="register-page" style="background: linear-gradient(135deg, #e8f0ee 0%, #d4e4df 100%); min-height: 100vh; padding: 100px 0;">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 col-xl-7">
-
-                <!-- Registration Card -->
-                <div class="card-modern" style="background: white; border-radius: 28px; padding: 2.5rem 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.1);">
-
-                    <div class="text-center mb-5">
-                        <div style="width: 72px; height: 72px; background: #2d6a4f10; border-radius: 50%; 
-                                    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                            <i class="fas fa-user-plus fa-2x" style="color: #2d6a4f;"></i>
+<div class="register-wrapper">
+    <div class="register-container">
+        <!-- Left Side - Brand & Progress -->
+        <div class="register-brand">
+            <div class="brand-content">
+                <div class="brand-logo">
+                    <i class="fas fa-broadcast-tower"></i>
+                    <span>Bhatek</span>
+                </div>
+                
+                <div class="progress-steps">
+                    <div class="step completed">
+                        <div class="step-number"><i class="fas fa-check"></i></div>
+                        <div class="step-info">
+                            <span class="step-label">Step 1</span>
+                            <span class="step-name">Email Verification</span>
                         </div>
-                        <h2 style="font-weight: 700; color: #1a2e2a; letter-spacing: -0.3px;">Complete Registration</h2>
-                        <p class="text-muted mt-2">Set up your organization account to get started</p>
+                    </div>
+                    <div class="step active">
+                        <div class="step-number">2</div>
+                        <div class="step-info">
+                            <span class="step-label">Step 2</span>
+                            <span class="step-name">Organization Details</span>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-info">
+                            <span class="step-label">Step 3</span>
+                            <span class="step-name">Account Setup</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="brand-testimonial">
+                    <i class="fas fa-quote-left"></i>
+                    <p>“The most comprehensive ISP management platform we've ever used. Setup was seamless and support is exceptional.”</p>
+                    <div class="testimonial-author">
+                        <strong>John M.</strong>
+                        <span>ISP Owner, Nairobi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Registration Form -->
+        <div class="register-form-wrapper">
+            <div class="register-card">
+                <!-- Header -->
+                <div class="register-header">
+                    <div class="register-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3>Complete Registration</h3>
+                    <p>Set up your organization account</p>
+                </div>
+
+                <form id="registerForm">
+                    <!-- Two Column Row -->
+                    <div class="form-row">
+                        <div class="input-group-custom">
+                            <label>First Name <span class="required">*</span></label>
+                            <div class="input-field">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="firstName" placeholder="John" required>
+                            </div>
+                        </div>
+
+                        <div class="input-group-custom">
+                            <label>Last Name <span class="required">*</span></label>
+                            <div class="input-field">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="lastName" placeholder="Doe" required>
+                            </div>
+                        </div>
                     </div>
 
-                    <form id="registerForm">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-medium">First Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-lg" id="firstName" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-medium">Last Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-lg" id="lastName" required>
+                    <!-- Email (Readonly) -->
+                    <div class="input-group-custom">
+                        <label>Email Address</label>
+                        <div class="input-field">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" readonly>
+                        </div>
+                        <small>This email cannot be changed</small>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="input-group-custom">
+                        <label>Phone Number <span class="required">*</span></label>
+                        <div class="input-field">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" id="phone" placeholder="254712345678" required>
+                        </div>
+                        <small>Include country code (e.g., 2547XXXXXXXX)</small>
+                    </div>
+
+                    <!-- Two Column Row - Organization -->
+                    <div class="form-row">
+                        <div class="input-group-custom">
+                            <label>Organization Name <span class="required">*</span></label>
+                            <div class="input-field">
+                                <i class="fas fa-building"></i>
+                                <input type="text" id="orgName" placeholder="My ISP Company" required>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-medium">Email Address</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                <input type="email" class="form-control form-control-lg" id="email" readonly>
-                            </div>
-                            <small class="text-muted">This email cannot be changed</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-medium">Phone Number <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                <input type="tel" class="form-control form-control-lg" id="phone" 
-                                       placeholder="254712345678" required>
-                            </div>
-                            <small class="text-muted">Include country code (e.g., 2547XXXXXXXX)</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-medium">Organization Name <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-building"></i></span>
-                                <input type="text" class="form-control form-control-lg" id="orgName" 
-                                       placeholder="My ISP Company" required>
+                        <div class="input-group-custom">
+                            <label>Organization Slug <span class="required">*</span></label>
+                            <div class="input-field">
+                                <i class="fas fa-link"></i>
+                                <input type="text" id="orgSlug" placeholder="my-isp-company" required>
                             </div>
                         </div>
+                    </div>
+                    <small class="slug-hint">URL-friendly name (lowercase, numbers and hyphens only)</small>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-medium">Organization Slug <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-link"></i></span>
-                                <input type="text" class="form-control form-control-lg" id="orgSlug" 
-                                       placeholder="my-isp-company" required>
-                            </div>
-                            <small class="text-muted">URL-friendly name (lowercase, numbers and hyphens only)</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-medium">Password <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input type="password" class="form-control form-control-lg" id="password" required>
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                    <!-- Two Column Row - Password -->
+                    <div class="form-row">
+                        <div class="input-group-custom">
+                            <label>Password <span class="required">*</span></label>
+                            <div class="input-field">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="password" placeholder="Create a strong password" required>
+                                <button type="button" class="toggle-password" onclick="togglePassword('password')">
                                     <i class="fas fa-eye" id="passwordIcon"></i>
                                 </button>
                             </div>
-                            <small class="text-muted">Minimum 8 characters with uppercase, number & special character</small>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-medium">Confirm Password <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input type="password" class="form-control form-control-lg" id="confirmPassword" required>
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword')">
+                        <div class="input-group-custom">
+                            <label>Confirm Password <span class="required">*</span></label>
+                            <div class="input-field">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                                <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">
                                     <i class="fas fa-eye" id="confirmPasswordIcon"></i>
                                 </button>
                             </div>
                         </div>
-
-                        <button type="submit" class="btn btn-register btn-lg" id="registerBtn">
-                            <i class="fas fa-check-circle me-2"></i> Create My Account
-                        </button>
-                    </form>
-
-                    <div class="text-center mt-4">
-                        <small class="text-muted">
-                            Already have an account? 
-                            <a href="/login" style="color: #2d6a4f; font-weight: 600;">Sign in</a>
-                        </small>
                     </div>
+
+                    <!-- Password Strength Indicator -->
+                    <div class="password-strength" id="passwordStrength">
+                        <div class="strength-bar"></div>
+                        <div class="strength-text">Use 8+ characters with uppercase, number & symbol</div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-register" id="registerBtn">
+                        <span>Create My Account</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- Footer -->
+                <div class="register-footer">
+                    <p>Already have an account? <a href="/login">Sign in</a></p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* ========================================
+       PROFESSIONAL REGISTRATION PAGE
+       ========================================= */
+    
+    :root {
+        --primary: #2d6a4f;
+        --primary-dark: #1b4332;
+        --primary-light: #40916c;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+    }
+
+    .register-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #eef5f2 0%, #d4e4df 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .register-container {
+        max-width: 1200px;
+        width: 100%;
+        display: flex;
+        background: white;
+        border-radius: 2rem;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    /* ========================================
+       LEFT SIDE - BRAND SECTION
+       ========================================= */
+    
+    .register-brand {
+        flex: 1;
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .register-brand::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -30%;
+        width: 80%;
+        height: 80%;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .brand-content {
+        position: relative;
+        z-index: 1;
+        color: white;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .brand-logo i {
+        font-size: 1.5rem;
+    }
+
+    .brand-logo span {
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    /* Progress Steps */
+    .progress-steps {
+        margin: 2rem 0;
+        flex: 1;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+        transition: opacity 0.3s;
+    }
+
+    .step.active {
+        opacity: 1;
+    }
+
+    .step.completed {
+        opacity: 0.8;
+    }
+
+    .step-number {
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .step.completed .step-number {
+        background: var(--primary-light);
+    }
+
+    .step.active .step-number {
+        background: white;
+        color: var(--primary);
+    }
+
+    .step-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .step-label {
+        font-size: 0.65rem;
+        opacity: 0.7;
+    }
+
+    .step-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    /* Testimonial */
+    .brand-testimonial {
+        margin-top: auto;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .brand-testimonial i {
+        font-size: 1.5rem;
+        opacity: 0.5;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .brand-testimonial p {
+        font-size: 0.8rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        font-style: italic;
+    }
+
+    .testimonial-author {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .testimonial-author strong {
+        font-size: 0.8rem;
+    }
+
+    .testimonial-author span {
+        font-size: 0.65rem;
+        opacity: 0.7;
+    }
+
+    /* ========================================
+       RIGHT SIDE - FORM SECTION
+       ========================================= */
+    
+    .register-form-wrapper {
+        flex: 1.2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background: white;
+    }
+
+    .register-card {
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .register-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .register-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(45, 106, 79, 0.1);
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .register-icon i {
+        font-size: 1.8rem;
+        color: var(--primary);
+    }
+
+    .register-header h3 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 0.25rem;
+    }
+
+    .register-header p {
+        font-size: 0.8rem;
+        color: var(--gray-500);
+    }
+
+    /* Form Elements */
+    .form-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0;
+    }
+
+    .form-row .input-group-custom {
+        flex: 1;
+    }
+
+    .input-group-custom {
+        margin-bottom: 1rem;
+    }
+
+    .input-group-custom label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 0.35rem;
+    }
+
+    .input-group-custom .required {
+        color: #dc2626;
+    }
+
+    .input-field {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-field i:first-child {
+        position: absolute;
+        left: 1rem;
+        color: var(--gray-400);
+        font-size: 0.85rem;
+        pointer-events: none;
+    }
+
+    .input-field input {
+        width: 100%;
+        padding: 0.7rem 2.5rem;
+        font-size: 0.85rem;
+        border: 1.5px solid var(--gray-200);
+        border-radius: 0.75rem;
+        transition: all 0.2s;
+        outline: none;
+        background: white;
+    }
+
+    .input-field input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+    }
+
+    .input-field input:read-only {
+        background: var(--gray-50);
+        cursor: not-allowed;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 1rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--gray-400);
+        font-size: 0.85rem;
+        padding: 0;
+    }
+
+    .input-group-custom small {
+        display: block;
+        font-size: 0.6rem;
+        color: var(--gray-500);
+        margin-top: 0.25rem;
+    }
+
+    .slug-hint {
+        display: block;
+        font-size: 0.6rem;
+        color: var(--gray-500);
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Password Strength */
+    .password-strength {
+        margin: 0.5rem 0 1rem;
+    }
+
+    .strength-bar {
+        height: 4px;
+        background: var(--gray-200);
+        border-radius: 2px;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s;
+    }
+
+    .strength-text {
+        font-size: 0.6rem;
+        color: var(--gray-500);
+    }
+
+    /* Register Button */
+    .btn-register {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border: none;
+        color: white;
+        padding: 0.85rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 0.5rem;
+    }
+
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(45, 106, 79, 0.3);
+    }
+
+    .btn-register:disabled {
+        opacity: 0.7;
+        transform: none;
+    }
+
+    /* Register Footer */
+    .register-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gray-100);
+    }
+
+    .register-footer p {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+    }
+
+    .register-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    /* Toast Notifications */
+    .toast-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .toast-success {
+        background: #10b981;
+    }
+
+    .toast-error {
+        background: #ef4444;
+    }
+
+    .toast-warning {
+        background: #f59e0b;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .register-container {
+            flex-direction: column;
+            max-width: 550px;
+        }
+
+        .register-brand {
+            display: none;
+        }
+
+        .register-form-wrapper {
+            padding: 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .register-form-wrapper {
+            padding: 1.25rem;
+        }
+
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .register-header h3 {
+            font-size: 1.2rem;
+        }
+
+        .register-icon {
+            width: 48px;
+            height: 48px;
+        }
+
+        .register-icon i {
+            font-size: 1.5rem;
+        }
+
+        .input-field input {
+            padding: 0.65rem 2.2rem;
+            font-size: 0.8rem;
+        }
+    }
+</style>
 
 <script>
 // Auto-fill email from session or URL
@@ -118,11 +645,10 @@ const verifiedEmail = sessionStorage.getItem('verificationEmail') ||
 if (verifiedEmail) {
     document.getElementById('email').value = verifiedEmail;
 } else {
-    // Redirect to home if no verified email
     window.location.href = '/';
 }
 
-// Password toggle
+// Toggle password visibility
 function togglePassword(fieldId) {
     const field = document.getElementById(fieldId);
     const icon = document.getElementById(fieldId + 'Icon');
@@ -150,6 +676,27 @@ document.getElementById('orgName').addEventListener('input', function() {
     document.getElementById('orgSlug').value = slug;
 });
 
+// Password strength indicator
+const passwordInput = document.getElementById('password');
+const strengthBar = document.querySelector('.strength-bar');
+const strengthText = document.querySelector('.strength-text');
+
+passwordInput.addEventListener('input', function() {
+    const password = this.value;
+    let strength = 0;
+    
+    if (password.length >= 8) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[!@#$%^&*]/.test(password)) strength++;
+    
+    const colors = ['#e2e8f0', '#ef4444', '#f59e0b', '#10b981', '#10b981'];
+    const texts = ['Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
+    
+    strengthBar.style.background = colors[strength];
+    strengthText.textContent = texts[strength] + ' - Use 8+ characters with uppercase, number & symbol';
+});
+
 // Form Submission
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -163,7 +710,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const orgName = document.getElementById('orgName').value.trim();
     const orgSlug = document.getElementById('orgSlug').value.trim();
 
-    // Basic validation
+    // Validation
     if (!firstName || !lastName || !phone || !orgName || !orgSlug || !password) {
         showToast('Please fill in all required fields', 'error');
         return;
@@ -179,13 +726,11 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         return;
     }
 
-    // Password strength
     if (!/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*]/.test(password)) {
         showToast('Password must contain uppercase letter, number and special character', 'error');
         return;
     }
 
-    // Phone validation (Kenya format)
     const phoneRegex = /^(254|0)[17]\d{8}$/;
     if (!phoneRegex.test(phone)) {
         showToast('Please enter a valid Kenyan phone number (e.g., 254712345678)', 'error');
@@ -196,7 +741,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const originalText = btn.innerHTML;
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Creating Account...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
 
     try {
         const response = await fetch('/api/v1/auth/register-organization', {
@@ -205,7 +750,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
             body: JSON.stringify({
                 email: email,
                 password: password,
-                confirm_password: confirmPassword,  // ✅ CRITICAL FIX: Added missing field
+                confirm_password: confirmPassword,
                 first_name: firstName,
                 last_name: lastName,
                 phone: phone,
@@ -219,14 +764,11 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         if (response.ok && data.success) {
             showToast('Account created successfully!', 'success');
             sessionStorage.removeItem('verificationEmail');
-            
             setTimeout(() => {
                 window.location.href = '/login';
             }, 1800);
         } else {
-            // Display detailed error message
-            const errorMsg = data.error || data.message || 'Registration failed. Please try again.';
-            showToast(errorMsg, 'error');
+            showToast(data.error || 'Registration failed. Please try again.', 'error');
             btn.disabled = false;
             btn.innerHTML = originalText;
         }
@@ -238,20 +780,10 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     }
 });
 
-// Toast notification function (make sure this exists or add it)
 function showToast(message, type = 'success') {
-    // You can implement this based on your existing toast system
-    // If you don't have one, here's a simple implementation
     const toast = document.createElement('div');
     toast.className = `toast-notification toast-${type}`;
-    toast.innerHTML = `
-        <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; 
-                    background: ${type === 'success' ? '#2d6a4f' : '#dc3545'}; 
-                    color: white; padding: 12px 24px; border-radius: 8px; 
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            ${message}
-        </div>
-    `;
+    toast.innerHTML = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
