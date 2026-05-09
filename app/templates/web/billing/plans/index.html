@@ -1,105 +1,447 @@
 {% extends "web/organization/base.html" %}
 
-{% block title %}{{ organization.name }} - Plans{% endblock %}
+{% block title %}{{ organization.name }} - Service Plans{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========================================
+       PLANS LIST - MODERN TABLE DESIGN
+       ========================================= */
+    
+    :root {
+        --primary: #2d6a4f;
+        --primary-light: #40916c;
+        --primary-dark: #1b4332;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+    }
+
+    /* Container */
+    .plans-container {
+        padding: 0.75rem;
+    }
+
+    @media (min-width: 768px) {
+        .plans-container {
+            padding: 1rem;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .plans-container {
+            padding: 1.5rem;
+        }
+    }
+
+    /* Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        .page-header {
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+    }
+
+    .page-title h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+        color: var(--gray-800);
+    }
+
+    .page-title p {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        margin-bottom: 0;
+    }
+
+    @media (min-width: 768px) {
+        .page-title h4 {
+            font-size: 1.25rem;
+        }
+        .page-title p {
+            font-size: 0.8rem;
+        }
+    }
+
+    .btn-add {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border: none;
+        color: white;
+        padding: 0.4rem 0.875rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    @media (min-width: 768px) {
+        .btn-add {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    .btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+        color: white;
+    }
+
+    /* Section Cards */
+    .section-card {
+        background: white;
+        border-radius: 0.875rem;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        .section-card {
+            border-radius: 1rem;
+            margin-bottom: 1.25rem;
+        }
+    }
+
+    .section-header {
+        padding: 0.75rem 1rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+    }
+
+    .section-header h5 {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    @media (min-width: 768px) {
+        .section-header {
+            padding: 0.875rem 1.25rem;
+        }
+        .section-header h5 {
+            font-size: 0.9rem;
+        }
+    }
+
+    .section-header.hotspot {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+
+    .section-header.pppoe {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    }
+
+    /* Table Styles */
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .plans-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: collapse;
+    }
+
+    .plans-table thead th {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--gray-500);
+        padding: 0.75rem 0.75rem;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
+        white-space: nowrap;
+    }
+
+    .plans-table tbody td {
+        font-size: 0.7rem;
+        padding: 0.75rem 0.75rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    @media (min-width: 768px) {
+        .plans-table thead th {
+            font-size: 0.75rem;
+            padding: 0.875rem 1rem;
+        }
+        .plans-table tbody td {
+            font-size: 0.75rem;
+            padding: 0.875rem 1rem;
+        }
+    }
+
+    .plan-name {
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+
+    .plan-price {
+        font-weight: 700;
+        color: var(--primary);
+        white-space: nowrap;
+    }
+
+    .bandwidth-cell {
+        font-family: monospace;
+        font-size: 0.65rem;
+        color: var(--gray-600);
+        white-space: nowrap;
+    }
+
+    @media (min-width: 768px) {
+        .bandwidth-cell {
+            font-size: 0.7rem;
+        }
+    }
+
+    .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 1rem;
+        font-size: 0.6rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    @media (min-width: 768px) {
+        .badge-status {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.6rem;
+        }
+    }
+
+    .badge-active {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+
+    .badge-inactive {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+    .badge-public {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .btn-action {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.65rem;
+        border-radius: 0.375rem;
+        margin: 0 0.125rem;
+    }
+
+    @media (min-width: 768px) {
+        .btn-action {
+            padding: 0.35rem 0.6rem;
+            font-size: 0.7rem;
+        }
+    }
+
+    .btn-icon {
+        font-size: 0.7rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--gray-400);
+    }
+
+    @media (min-width: 768px) {
+        .empty-state {
+            padding: 3rem 2rem;
+        }
+    }
+
+    .empty-state i {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        font-size: 0.7rem;
+        margin: 0;
+    }
+
+    /* Modal */
+    .modal-content-custom {
+        border-radius: 0.875rem;
+    }
+
+    /* Responsive table handling */
+    @media (max-width: 768px) {
+        .plans-table thead th:nth-child(4),
+        .plans-table tbody td:nth-child(4) {
+            display: none;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .plans-table thead th:nth-child(5),
+        .plans-table tbody td:nth-child(5) {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1">Service Plans</h4>
-            <p class="text-muted mb-0">Manage internet service plans and packages</p>
+<div class="plans-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h4>Service Plans</h4>
+            <p>Manage internet service plans and packages</p>
         </div>
-        <a href="{{ url_for('billing_web.plan_create', org_id=organization.id) }}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Add Plan
+        <a href="{{ url_for('billing_web.plan_create', org_id=organization.id) }}" class="btn-add">
+            <i class="fas fa-plus me-1"></i>Add Plan
         </a>
     </div>
 
-    <!-- Hotspot Plans -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="fas fa-wifi me-2"></i>Hotspot Plans</h5>
+    <!-- Hotspot Plans Section -->
+    <div class="section-card">
+        <div class="section-header hotspot">
+            <h5><i class="fas fa-wifi"></i> Hotspot Plans</h5>
         </div>
-        <div class="card-body">
+        <div class="table-responsive">
             {% if hotspot_plans %}
-            <div class="row">
-                {% for plan in hotspot_plans %}
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100 {% if not plan.is_active %}border-secondary opacity-75{% endif %}">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <h5 class="card-title">{{ plan.name }}</h5>
-                                <span class="badge {% if plan.is_active %}bg-success{% else %}bg-secondary{% endif %}">
-                                    {{ 'Active' if plan.is_active else 'Inactive' }}
-                                </span>
-                            </div>
-                            <h6 class="text-primary">KES {{ plan.price }}</h6>
-                            <p class="card-text small">{{ plan.description or 'No description' }}</p>
-                            <hr>
-                            <div class="small">
-                                <div><strong>Bandwidth:</strong> {{ plan.bandwidth_down_mbps or 'Unlimited' }}/{{ plan.bandwidth_up_mbps or 'Unlimited' }} Mbps</div>
-                                <div><strong>Validity:</strong> {{ plan.validity_days or 'Data-based' }} days</div>
-                                <div><strong>Devices:</strong> {{ plan.device_limit or 1 }}</div>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-transparent">
-                            <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-edit"></i> Edit
+            <table class="plans-table">
+                <thead>
+                    <tr>
+                        <th>Plan Name</th>
+                        <th>Price</th>
+                        <th>Bandwidth</th>
+                        <th>Validity</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plan in hotspot_plans %}
+                    <tr>
+                        <td>
+                            <div class="plan-name">{{ plan.name }}</div>
+                            <div class="small text-muted">{{ plan.description|truncate(40) if plan.description else 'No description' }}</div>
+                        </td>
+                        <td class="plan-price">KES {{ "%.0f"|format(plan.price) }}</td>
+                        <td class="bandwidth-cell">
+                            ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
+                        </td>
+                        <td>{{ plan.validity_days or 'Data' }} days</td>
+                        <td>
+                            <span class="badge-status {% if plan.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                                <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
+                                {{ 'Active' if plan.is_active else 'Inactive' }}
+                            </span>
+                            {% if plan.is_public %}
+                            <span class="badge-status badge-public ms-1">Public</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn btn-outline-primary btn-action" title="Edit">
+                                <i class="fas fa-edit btn-icon"></i>
                             </a>
-                            <button class="btn btn-sm btn-outline-danger float-end" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}">
-                                <i class="fas fa-trash"></i>
+                            <button class="btn btn-outline-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
+                                <i class="fas fa-trash btn-icon"></i>
                             </button>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             {% else %}
-            <p class="text-muted text-center">No hotspot plans created yet.</p>
+            <div class="empty-state">
+                <i class="fas fa-wifi"></i>
+                <p>No hotspot plans created yet</p>
+            </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- PPPoE Plans -->
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0"><i class="fas fa-network-wired me-2"></i>PPPoE Plans</h5>
+    <!-- PPPoE Plans Section -->
+    <div class="section-card">
+        <div class="section-header pppoe">
+            <h5><i class="fas fa-network-wired"></i> PPPoE Plans</h5>
         </div>
-        <div class="card-body">
+        <div class="table-responsive">
             {% if pppoe_plans %}
-            <div class="row">
-                {% for plan in pppoe_plans %}
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100 {% if not plan.is_active %}border-secondary opacity-75{% endif %}">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <h5 class="card-title">{{ plan.name }}</h5>
-                                <span class="badge {% if plan.is_active %}bg-success{% else %}bg-secondary{% endif %}">
-                                    {{ 'Active' if plan.is_active else 'Inactive' }}
-                                </span>
-                            </div>
-                            <h6 class="text-primary">KES {{ plan.price }}</h6>
-                            <p class="card-text small">{{ plan.description or 'No description' }}</p>
-                            <hr>
-                            <div class="small">
-                                <div><strong>Bandwidth:</strong> {{ plan.bandwidth_down_mbps or 'Unlimited' }}/{{ plan.bandwidth_up_mbps or 'Unlimited' }} Mbps</div>
-                                <div><strong>Validity:</strong> {{ plan.validity_days }} days</div>
-                                <div><strong>Devices:</strong> {{ plan.device_limit or 1 }}</div>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-transparent">
-                            <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-edit"></i> Edit
+            <table class="plans-table">
+                <thead>
+                    <tr>
+                        <th>Plan Name</th>
+                        <th>Price</th>
+                        <th>Bandwidth</th>
+                        <th>Validity</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plan in pppoe_plans %}
+                    <tr>
+                        <td>
+                            <div class="plan-name">{{ plan.name }}</div>
+                            <div class="small text-muted">{{ plan.description|truncate(40) if plan.description else 'No description' }}</div>
+                        </td>
+                        <td class="plan-price">KES {{ "%.0f"|format(plan.price) }}</td>
+                        <td class="bandwidth-cell">
+                            ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
+                        </td>
+                        <td>{{ plan.validity_days }} days</td>
+                        <td>
+                            <span class="badge-status {% if plan.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                                <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
+                                {{ 'Active' if plan.is_active else 'Inactive' }}
+                            </span>
+                            {% if plan.is_public %}
+                            <span class="badge-status badge-public ms-1">Public</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn btn-outline-primary btn-action" title="Edit">
+                                <i class="fas fa-edit btn-icon"></i>
                             </a>
-                            <button class="btn btn-sm btn-outline-danger float-end" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}">
-                                <i class="fas fa-trash"></i>
+                            <button class="btn btn-outline-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
+                                <i class="fas fa-trash btn-icon"></i>
                             </button>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             {% else %}
-            <p class="text-muted text-center">No PPPoE plans created yet.</p>
+            <div class="empty-state">
+                <i class="fas fa-network-wired"></i>
+                <p>No PPPoE plans created yet</p>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -107,27 +449,36 @@
 
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Confirm Delete</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body"><p>Delete plan <strong id="deletePlanName"></strong>? This will deactivate the plan.</p></div>
-            <div class="modal-footer">
-                <form id="deleteForm" method="POST"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-danger">Delete</button></form>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Deactivate plan <strong id="deletePlanName"></strong>?</p>
+                <small class="text-muted">This plan will be hidden from customers but existing subscriptions remain active.</small>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Deactivate</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-const deleteModal = document.getElementById('deleteModal');
-if (deleteModal) {
-    deleteModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const planId = button.getAttribute('data-plan-id');
-        const planName = button.getAttribute('data-plan-name');
-        document.getElementById('deletePlanName').textContent = planName;
-        document.getElementById('deleteForm').action = `/organization/{{ organization.id }}/billing/plans/${planId}/delete`;
-    });
-}
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const planId = button.getAttribute('data-plan-id');
+            const planName = button.getAttribute('data-plan-name');
+            document.getElementById('deletePlanName').textContent = planName;
+            document.getElementById('deleteForm').action = `/organization/{{ organization.id }}/billing/plans/${planId}/delete`;
+        });
+    }
 </script>
 {% endblock %}
