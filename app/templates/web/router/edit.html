@@ -4,54 +4,502 @@
 
 {% block extra_css %}
 <style>
-    .form-container { background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto; }
-    .form-label { font-weight: 600; margin-bottom: 0.5rem; color: #1a2e2a; }
-    .form-control, .form-select { border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.625rem 1rem; }
-    .form-control:focus { border-color: #2d6a4f; box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
-    .form-text { font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem; }
-    .btn-save { background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%); border: none; color: white; padding: 0.625rem 1.5rem; border-radius: 10px; font-weight: 600; }
-    .btn-cancel { background: #f1f3f5; border: none; color: #495057; padding: 0.625rem 1.5rem; border-radius: 10px; }
-    .section-title { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e2e8f0; }
-    .help-text { font-size: 0.7rem; color: #6c757d; margin-top: 0.25rem; }
+    /* ========================================
+       EDIT ROUTER FORM - MODERN DESIGN
+       ========================================= */
+    
+    :root {
+        --primary: #2d6a4f;
+        --primary-light: #40916c;
+        --primary-dark: #1b4332;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+    }
+
+    /* Container */
+    .edit-router-container {
+        padding: 0.75rem;
+    }
+
+    @media (min-width: 768px) {
+        .edit-router-container {
+            padding: 1rem;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .edit-router-container {
+            padding: 1.5rem;
+        }
+    }
+
+    /* Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        .page-header {
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+    }
+
+    .page-title h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+        color: var(--gray-800);
+    }
+
+    .page-title p {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        margin-bottom: 0;
+    }
+
+    @media (min-width: 768px) {
+        .page-title h4 {
+            font-size: 1.25rem;
+        }
+        .page-title p {
+            font-size: 0.8rem;
+        }
+    }
+
+    .btn-back {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        color: var(--gray-600);
+        padding: 0.4rem 0.875rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-back:hover {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    @media (min-width: 768px) {
+        .btn-back {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Form Container */
+    .form-container {
+        background: white;
+        border-radius: 1rem;
+        padding: 1rem;
+        border: 1px solid var(--gray-200);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    @media (min-width: 768px) {
+        .form-container {
+            padding: 1.25rem;
+            border-radius: 1.125rem;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .form-container {
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+        }
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+        color: var(--gray-700);
+        font-size: 0.75rem;
+        display: block;
+    }
+
+    @media (min-width: 768px) {
+        .form-label {
+            font-size: 0.8rem;
+            margin-bottom: 0.4rem;
+        }
+    }
+
+    .required {
+        color: var(--danger);
+        margin-left: 0.2rem;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    @media (min-width: 768px) {
+        .form-control,
+        .form-select {
+            padding: 0.6rem 0.875rem;
+            font-size: 0.8rem;
+            border-radius: 0.5rem;
+        }
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 60px;
+    }
+
+    .form-text {
+        font-size: 0.6rem;
+        color: var(--gray-500);
+        margin-top: 0.25rem;
+    }
+
+    @media (min-width: 768px) {
+        .form-text {
+            font-size: 0.65rem;
+        }
+    }
+
+    /* Form Check */
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .form-check-input {
+        width: 1rem;
+        height: 1rem;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        font-size: 0.75rem;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+
+    @media (min-width: 768px) {
+        .form-check-label {
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Row Layout */
+    .form-row {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .form-row {
+            flex-direction: row;
+            gap: 1rem;
+        }
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+    }
+
+    /* Section Title */
+    .section-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 1.25rem 0 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--gray-200);
+        color: var(--gray-700);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    @media (min-width: 768px) {
+        .section-title {
+            font-size: 1rem;
+            margin: 1.5rem 0 1rem;
+        }
+    }
+
+    .section-title i {
+        color: var(--primary);
+    }
+
+    .help-text {
+        font-size: 0.65rem;
+        color: var(--gray-500);
+        margin-bottom: 0.75rem;
+    }
+
+    @media (min-width: 768px) {
+        .help-text {
+            font-size: 0.7rem;
+            margin-bottom: 1rem;
+        }
+    }
+
+    /* RADIUS Section */
+    .radius-section {
+        background: var(--gray-50);
+        border-radius: 0.75rem;
+        padding: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    @media (min-width: 768px) {
+        .radius-section {
+            padding: 1rem;
+            border-radius: 1rem;
+        }
+    }
+
+    .btn-radius {
+        background: var(--warning);
+        border: none;
+        color: white;
+        padding: 0.4rem 0.875rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        margin-top: 0.5rem;
+    }
+
+    .btn-radius:hover {
+        background: #e67e22;
+        transform: translateY(-1px);
+    }
+
+    @media (min-width: 768px) {
+        .btn-radius {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    @media (min-width: 768px) {
+        .form-actions {
+            gap: 1rem;
+            padding-top: 1.25rem;
+            margin-top: 1.25rem;
+        }
+    }
+
+    .btn-cancel {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        color: var(--gray-600);
+        padding: 0.5rem 1rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-cancel:hover {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+        color: white;
+    }
+
+    @media (min-width: 768px) {
+        .btn-cancel,
+        .btn-save {
+            padding: 0.6rem 1.25rem;
+            font-size: 0.75rem;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div><h4 class="mb-1">Edit Router</h4><p class="text-muted mb-0">Update router configuration</p></div>
-        <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+<div class="edit-router-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h4>Edit Router</h4>
+            <p>Update configuration for {{ router.name }}</p>
+        </div>
+        <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
     </div>
 
+    <!-- Form Container -->
     <div class="form-container">
         <form method="POST">
-            <div class="mb-3">
+            <!-- Network Selection -->
+            <div class="form-group">
                 <label class="form-label">Network</label>
                 <select name="network_id" class="form-select">
-                    <option value="">Select Network...</option>{% for net in networks %}
-                    <option value="{{ net.id }}" {% if router.network_id == net.id %}selected{% endif %}>{{ net.name }}</option>{% endfor %}
+                    <option value="">Select Network...</option>
+                    {% for net in networks %}
+                    <option value="{{ net.id }}" {% if router.network_id == net.id %}selected{% endif %}>{{ net.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
-            <div class="mb-3"><label class="form-label">Router Name</label><input type="text" name="name" class="form-control" value="{{ router.name }}" required></div>
-            <div class="row"><div class="col-md-6 mb-3"><label class="form-label">IP Address</label><input type="text" name="ip_address" class="form-control" value="{{ router.ip_address }}" required></div>
-            <div class="col-md-6 mb-3"><label class="form-label">API Port</label><input type="number" name="api_port" class="form-control" value="{{ router.api_port }}"></div></div>
-            <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Username</label><input type="text" name="username" class="form-control" value="{{ router.username }}"></div>
-            <div class="col-md-6 mb-3"><label class="form-label">Password</label><input type="password" name="password" class="form-control" placeholder="Leave blank to keep current"></div></div>
-            <div class="mb-3"><label class="form-label">Location</label><input type="text" name="location" class="form-control" value="{{ router.location or '' }}"></div>
-            <div class="mb-3"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2">{{ router.description or '' }}</textarea></div>
-            <div class="mb-3 form-check form-switch"><input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if router.is_active %}checked{% endif %}><label class="form-check-label" for="isActive">Active</label></div>
 
-            <div class="section-title"><i class="fas fa-shield-alt me-2"></i>RADIUS Configuration</div>
-            <div class="help-text mb-3">Configure RADIUS for hotspot/PPPoE authentication</div>
-            <div id="radiusSection">
-                <div class="row"><div class="col-md-6 mb-3"><label class="form-label">RADIUS Server</label><input type="text" id="radius_server" class="form-control" placeholder="10.0.0.10"></div>
-                <div class="col-md-6 mb-3"><label class="form-label">RADIUS Secret</label><input type="password" id="radius_secret" class="form-control" placeholder="Shared secret"></div></div>
-                <button type="button" class="btn btn-sm btn-warning" onclick="configureRadius()"><i class="fas fa-save me-1"></i>Save RADIUS Settings</button>
+            <!-- Basic Info -->
+            <div class="form-group">
+                <label class="form-label">Router Name <span class="required">*</span></label>
+                <input type="text" name="name" class="form-control" value="{{ router.name }}" required>
             </div>
 
-            <div class="d-flex gap-2 justify-content-end pt-3 border-top mt-4">
-                <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn btn-cancel">Cancel</a>
-                <button type="submit" class="btn btn-save"><i class="fas fa-save me-2"></i>Save Changes</button>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">IP Address <span class="required">*</span></label>
+                    <input type="text" name="ip_address" class="form-control" value="{{ router.ip_address }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">API Port</label>
+                    <input type="number" name="api_port" class="form-control" value="{{ router.api_port }}">
+                    <div class="form-text">Default: 8728</div>
+                </div>
+            </div>
+
+            <!-- Credentials -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control" value="{{ router.username }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current">
+                    <div class="form-text">Only enter if you want to change</div>
+                </div>
+            </div>
+
+            <!-- Location & Description -->
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" name="location" class="form-control" value="{{ router.location or '' }}" placeholder="e.g., Server Room A, Floor 2">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control" rows="2" placeholder="Optional description...">{{ router.description or '' }}</textarea>
+            </div>
+
+            <!-- Active Status -->
+            <div class="form-check">
+                <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if router.is_active %}checked{% endif %}>
+                <label class="form-check-label" for="isActive">Active</label>
+            </div>
+
+            <!-- RADIUS Configuration Section -->
+            <div class="section-title">
+                <i class="fas fa-shield-alt"></i> RADIUS Configuration
+            </div>
+            <div class="help-text">Configure RADIUS for hotspot and PPPoE authentication</div>
+            
+            <div class="radius-section">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">RADIUS Server</label>
+                        <input type="text" id="radius_server" class="form-control" placeholder="e.g., 10.0.0.10 or radius.example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">RADIUS Secret</label>
+                        <input type="password" id="radius_secret" class="form-control" placeholder="Shared secret key">
+                    </div>
+                </div>
+                <button type="button" class="btn-radius" onclick="configureRadius()">
+                    <i class="fas fa-save"></i> Save RADIUS Settings
+                </button>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn-cancel">
+                    Cancel
+                </a>
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
             </div>
         </form>
     </div>
@@ -61,17 +509,46 @@
 async function configureRadius() {
     const server = document.getElementById('radius_server').value.trim();
     const secret = document.getElementById('radius_secret').value.trim();
-    if (!server || !secret) { alert('Please enter both RADIUS server and secret'); return; }
+    
+    if (!server || !secret) {
+        alert('Please enter both RADIUS server address and secret key');
+        return;
+    }
+    
+    const btn = event.currentTarget;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
     try {
+        const token = localStorage.getItem('access_token');
         const response = await fetch('/api/v1/routers/{{ router.id }}/radius', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('access_token') },
-            body: JSON.stringify({ radius_server: server, radius_secret: secret })
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
+            },
+            body: JSON.stringify({ 
+                radius_server: server, 
+                radius_secret: secret 
+            })
         });
+        
         const data = await response.json();
-        if (response.ok) alert('RADIUS configured successfully!');
-        else alert('Error: ' + (data.error || 'Unknown error'));
-    } catch(e) { alert('Error configuring RADIUS'); }
+        
+        if (response.ok) {
+            alert('RADIUS configured successfully!');
+            document.getElementById('radius_server').value = '';
+            document.getElementById('radius_secret').value = '';
+        } else {
+            alert('Error: ' + (data.error || 'Unknown error occurred'));
+        }
+    } catch(e) {
+        alert('Error configuring RADIUS: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
 }
 </script>
 {% endblock %}
