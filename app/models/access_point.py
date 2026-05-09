@@ -17,10 +17,10 @@ class AccessPoint(BaseModel, OrganizationMixin, TimestampMixin):
     mac_address = Column(MACADDR, nullable=False, unique=True, index=True)
     ssid = Column(String(32), nullable=False)
     
-    # LOCATION (User provides - critical for field techs)
+    # LOCATION 
     location = Column(String(255), nullable=False, index=True)
     
-    # OPTIONAL (User can provide)
+    # OPTIONAL
     ip_address = Column(INET, nullable=True)
     hotspot_server_id = Column(UUID(as_uuid=True), ForeignKey('hotspot_servers.id'), nullable=True)
     description = Column(String(500), nullable=True)  # Technician notes

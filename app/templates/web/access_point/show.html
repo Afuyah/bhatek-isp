@@ -1,0 +1,61 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - {{ access_point.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('ap_web.index', org_id=organization.id) }}">Access Points</a></li><li class="breadcrumb-item active">{{ access_point.name }}</li></ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">{{ access_point.name }}</h4>
+            <span class="status-badge status-{{ access_point.status if access_point.status in ['online','offline'] else 'unknown' }}">
+                <i class="fas fa-circle fa-xs"></i> {{ access_point.status|capitalize if access_point.status else 'Unknown' }}
+            </span>
+            {% if not access_point.is_active %}<span class="badge bg-danger ms-2">Inactive</span>{% endif %}
+        </div>
+        <div>
+            <a href="{{ url_for('ap_web.edit', org_id=organization.id, ap_id=access_point.id) }}" class="btn btn-primary"><i class="fas fa-edit me-2"></i>Edit</a>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"><i class="fas fa-trash me-2"></i>Delete</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4"><div class="card-header"><h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Basic Information</h5></div>
+            <div class="card-body">
+                <table class="table table-borderless"><tr><th width="150">Name:</th><td>{{ access_point.name }}</td></tr>
+                <tr><th>MAC Address:</th><td><code>{{ access_point.mac_address }}</code></td></tr>
+                <tr><th>SSID:</th><td><strong>{{ access_point.ssid }}</strong></td></tr>
+                <tr><th>IP Address:</th><td>{{ access_point.ip_address or 'Not assigned' }}</td></tr>
+                <tr><th>Location:</th><td><i class="fas fa-map-marker-alt me-1"></i>{{ access_point.location }}</td></tr>
+                <tr><th>Router:</th><td>{{ router_name or access_point.router_id }}</td></tr>
+                <tr><th>Description:</th><td>{{ access_point.description or 'No description' }}</td></tr></table>
+            </div></div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4"><div class="card-header"><h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Status & Health</h5></div>
+            <div class="card-body">
+                <table class="table table-borderless"><tr><th width="150">Status:</th><td><span class="status-badge status-{{ access_point.status if access_point.status in ['online','offline'] else 'unknown' }}">{{ access_point.status|capitalize if access_point.status else 'Unknown' }}</span></td></tr>
+                <tr><th>Last Seen:</th><td>{{ access_point.last_seen_at|datetimeformat if access_point.last_seen_at else 'Never' }}</td></tr>
+                <tr><th>Created:</th><td>{{ access_point.created_at|datetimeformat if access_point.created_at else 'N/A' }}</td></tr>
+                <tr><th>Updated:</th><td>{{ access_point.updated_at|datetimeformat if access_point.updated_at else 'N/A' }}</td></tr></table>
+            </div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Confirm Delete</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p>Delete access point <strong>{{ access_point.name }}</strong>? This action cannot be undone.</p></div>
+    <div class="modal-footer">
+        <form method="POST" action="{{ url_for('ap_web.delete', org_id=organization.id, ap_id=access_point.id) }}">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+</div></div></div>
+{% endblock %}

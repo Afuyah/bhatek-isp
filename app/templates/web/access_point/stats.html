@@ -1,0 +1,26 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - AP Statistics{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div><h4 class="mb-1">Access Point Statistics</h4><p class="text-muted mb-0">{{ organization.name }}</p></div>
+        <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-3"><div class="card text-center"><div class="card-body"><h2>{{ stats.total|default(0) }}</h2><p class="text-muted mb-0">Total APs</p></div></div></div>
+        <div class="col-md-3 mb-3"><div class="card text-center"><div class="card-body"><h2 class="text-success">{{ stats.online|default(0) }}</h2><p class="text-muted mb-0">Online</p></div></div></div>
+        <div class="col-md-3 mb-3"><div class="card text-center"><div class="card-body"><h2 class="text-danger">{{ stats.offline|default(0) }}</h2><p class="text-muted mb-0">Offline</p></div></div></div>
+        <div class="col-md-3 mb-3"><div class="card text-center"><div class="card-body"><h2 class="text-warning">{{ stats.unknown|default(0) }}</h2><p class="text-muted mb-0">Unknown</p></div></div></div>
+    </div>
+
+    {% if aps_with_issues %}
+    <div class="card"><div class="card-header bg-warning"><h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>APs Needing Attention</h5></div>
+    <div class="card-body"><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Name</th><th>Location</th><th>Status</th><th>Last Seen</th><th>Actions</th></tr></thead>
+    <tbody>{% for ap in aps_with_issues %}<tr><td>{{ ap.name }}</td><td>{{ ap.location }}</td><td><span class="status-badge status-{{ ap.status }}">{{ ap.status|capitalize }}</span></td>
+    <td>{{ ap.last_seen_at|datetimeformat if ap.last_seen_at else 'Never' }}</td><td><a href="{{ url_for('ap_web.show', org_id=organization.id, ap_id=ap.id) }}" class="btn btn-sm btn-primary">View</a></td></tr>{% endfor %}</tbody></table></div></div></div>
+    {% else %}<div class="alert alert-success">All access points are online and healthy.</div>{% endif %}
+</div>
+{% endblock %}

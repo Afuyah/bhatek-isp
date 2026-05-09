@@ -1,0 +1,68 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Add Access Point{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div><h4 class="mb-1">Add Access Point</h4><p class="text-muted mb-0">Add a new WiFi access point</p></div>
+        <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Router <span class="text-danger">*</span></label>
+                        <select name="router_id" class="form-select" required>
+                            <option value="">Select Router...</option>
+                            {% for router in routers %}
+                            <option value="{{ router.id }}" {% if pre_selected_router == router.id|string %}selected{% endif %}>{{ router.name }} ({{ router.ip_address }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" required value="{{ form_data.name if form_data else '' }}" placeholder="e.g., Lobby AP">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">MAC Address <span class="text-danger">*</span></label>
+                        <input type="text" name="mac_address" class="form-control" required value="{{ form_data.mac_address if form_data else '' }}" placeholder="00:11:22:33:44:55">
+                        <small class="text-muted">Format: XX:XX:XX:XX:XX:XX</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">SSID <span class="text-danger">*</span></label>
+                        <input type="text" name="ssid" class="form-control" required value="{{ form_data.ssid if form_data else '' }}" placeholder="WiFi Network Name">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Location <span class="text-danger">*</span></label>
+                        <input type="text" name="location" class="form-control" required value="{{ form_data.location if form_data else '' }}" placeholder="e.g., Reception, Building A Floor 2">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">IP Address</label>
+                        <input type="text" name="ip_address" class="form-control" value="{{ form_data.ip_address if form_data else '' }}" placeholder="192.168.1.100">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="2" placeholder="Optional notes for technicians...">{{ form_data.description if form_data else '' }}</textarea>
+                </div>
+                <div class="mb-3 form-check form-switch">
+                    <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if not form_data or form_data.is_active != false %}checked{% endif %}>
+                    <label class="form-check-label" for="isActive">Active</label>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Access Point</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Edit {{ access_point.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div><h4 class="mb-1">Edit Access Point</h4><p class="text-muted mb-0">{{ access_point.name }}</p></div>
+        <a href="{{ url_for('ap_web.show', org_id=organization.id, ap_id=access_point.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="form-label">Router</label><select name="router_id" class="form-select">
+                        <option value="">Select Router...</option>{% for router in routers %}<option value="{{ router.id }}" {% if access_point.router_id|string == router.id|string %}selected{% endif %}>{{ router.name }}</option>{% endfor %}</select>
+                    </div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Name</label><input type="text" name="name" class="form-control" value="{{ access_point.name }}"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="form-label">MAC Address</label><input type="text" name="mac_address" class="form-control" value="{{ access_point.mac_address }}"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">SSID</label><input type="text" name="ssid" class="form-control" value="{{ access_point.ssid }}"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="form-label">Location</label><input type="text" name="location" class="form-control" value="{{ access_point.location }}"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">IP Address</label><input type="text" name="ip_address" class="form-control" value="{{ access_point.ip_address or '' }}"></div>
+                </div>
+                <div class="mb-3"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2">{{ access_point.description or '' }}</textarea></div>
+                <div class="mb-3 form-check form-switch">
+                    <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if access_point.is_active %}checked{% endif %}>
+                    <label class="form-check-label" for="isActive">Active</label>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('ap_web.show', org_id=organization.id, ap_id=access_point.id) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
