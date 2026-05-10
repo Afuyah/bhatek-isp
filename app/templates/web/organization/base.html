@@ -531,7 +531,7 @@
                 <span>Dashboard</span>
             </a>
             <a class="nav-link-custom {% if 'subscribers' in request.path %}active{% endif %}" 
-               href="#">
+               href="{{ url_for('subscriber_web.index', org_id=organization.id) }}">
                 <i class="fas fa-users"></i>
                 <span>Subscribers</span>
             </a>

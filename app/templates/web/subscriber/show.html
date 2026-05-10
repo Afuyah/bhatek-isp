@@ -1,0 +1,341 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - {{ subscriber.display_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid #e5e7eb;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+    .profile-avatar {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #1a56db, #1e40af);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+    .stat-box {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        text-align: center;
+    }
+    .stat-number {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    .stat-label {
+        font-size: 0.65rem;
+        color: #6b7280;
+    }
+    .info-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+    }
+    .info-header {
+        padding: 0.875rem 1rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .info-header h5 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    .info-body {
+        padding: 1rem;
+    }
+    .info-row {
+        display: flex;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .info-label {
+        width: 120px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #6b7280;
+    }
+    .info-value {
+        flex: 1;
+        font-size: 0.75rem;
+        color: #1f2937;
+    }
+    .subscription-item {
+        background: #f9fafb;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    .device-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    @media (max-width: 768px) {
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .info-row {
+            flex-direction: column;
+        }
+        .info-label {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}">Subscribers</a></li>
+                    <li class="breadcrumb-item active">{{ subscriber.display_name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('subscriber_web.edit', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-edit me-1"></i>Edit
+            </a>
+            <button class="btn btn-outline-danger btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="fas fa-trash me-1"></i>Delete
+            </button>
+        </div>
+    </div>
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="d-flex align-items-center gap-3">
+            <div class="profile-avatar">
+                {{ subscriber.display_name[0]|upper if subscriber.display_name else 'U' }}
+            </div>
+            <div>
+                <h3 class="mb-1">{{ subscriber.get_full_name() or subscriber.display_name }}</h3>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-primary">{{ subscriber.subscriber_type|upper }}</span>
+                    <span class="badge {% if subscriber.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ subscriber.status|capitalize }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-box">
+            <div class="stat-number">{{ stats.active_sessions_count|default(0) }}</div>
+            <div class="stat-label">Active Sessions</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">{{ devices|length }}</div>
+            <div class="stat-label">Devices</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">{{ "%.0f"|format(stats.total_usage_gb|default(0)) }}</div>
+            <div class="stat-label">Data Used (GB)</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">KES {{ "%.0f"|format(subscriber.total_spent|default(0)) }}</div>
+            <div class="stat-label">Total Spent</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-4">
+            <!-- Basic Info -->
+            <div class="info-card">
+                <div class="info-header">
+                    <h5><i class="fas fa-user-circle me-2"></i>Basic Information</h5>
+                </div>
+                <div class="info-body">
+                    <div class="info-row">
+                        <div class="info-label">Full Name</div>
+                        <div class="info-value">{{ subscriber.get_full_name() or 'Not set' }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Phone</div>
+                        <div class="info-value">{{ subscriber.phone or 'Not set' }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">{{ subscriber.email or 'Not set' }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">National ID</div>
+                        <div class="info-value">{{ subscriber.national_id or 'Not set' }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Joined</div>
+                        <div class="info-value">{{ subscriber.created_at.strftime('%Y-%m-%d') if subscriber.created_at else 'N/A' }}</div>
+                    </div>
+                    {% if subscriber.subscriber_type == 'pppoe' %}
+                    <div class="info-row">
+                        <div class="info-label">PPPoE Username</div>
+                        <div class="info-value">{{ subscriber.username }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Active Subscription -->
+            <div class="info-card">
+                <div class="info-header">
+                    <h5><i class="fas fa-tag me-2"></i>Active Subscription</h5>
+                    <a href="{{ url_for('subscriber_web.create_subscription', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-sm btn-primary">Assign Plan</a>
+                </div>
+                <div class="info-body">
+                    {% if active_subscription %}
+                        <div class="subscription-item">
+                            <div class="fw-bold">{{ active_subscription.plan.name }}</div>
+                            <div class="small text-muted">Started: {{ active_subscription.start_time.strftime('%Y-%m-%d') }}</div>
+                            <div class="small text-muted">Expires: {{ active_subscription.expiry_time.strftime('%Y-%m-%d') }}</div>
+                            <div class="mt-2">
+                                <span class="badge bg-success">Active</span>
+                                {% if active_subscription.auto_renew %}
+                                <span class="badge bg-info">Auto-renew</span>
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <div class="small">Bandwidth: ↓{{ active_subscription.get_bandwidth_down() }}/↑{{ active_subscription.get_bandwidth_up() }} Mbps</div>
+                                <div class="small">Device Limit: {{ active_subscription.get_device_limit() }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#renewModal">Renew Subscription</button>
+                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelSubModal">Cancel</button>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No active subscription</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-8">
+            <!-- Devices -->
+            <div class="info-card">
+                <div class="info-header">
+                    <h5><i class="fas fa-microchip me-2"></i>Devices</h5>
+                    <a href="{{ url_for('subscriber_web.add_device', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-sm btn-primary">Add Device</a>
+                </div>
+                <div class="info-body">
+                    {% if devices %}
+                        {% for device in devices %}
+                        <div class="device-item">
+                            <div>
+                                <div class="fw-bold">{{ device.device_name or 'Unnamed Device' }}</div>
+                                <div class="small text-muted">{{ device.mac_address }}</div>
+                                <div class="small text-muted">{{ device.device_type|capitalize }}</div>
+                            </div>
+                            <div class="text-end">
+                                {% if device.is_primary %}
+                                <span class="badge bg-primary">Primary</span>
+                                {% endif %}
+                                {% if device.last_seen %}
+                                <div class="small text-muted">Last seen: {{ device.last_seen[:16] }}</div>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('subscriber_web.remove_device', org_id=organization.id, device_id=device.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger mt-1" onclick="return confirm('Remove this device?')">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No registered devices</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Subscription History -->
+            <div class="info-card">
+                <div class="info-header">
+                    <h5><i class="fas fa-history me-2"></i>Subscription History</h5>
+                </div>
+                <div class="info-body">
+                    {% if subscription_history %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Plan</th>
+                                        <th>Period</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sub in subscription_history %}
+                                    <tr>
+                                        <td>{{ sub.plan.name }}</td>
+                                        <td>{{ sub.start_time.strftime('%Y-%m-%d') }} - {{ sub.expiry_time.strftime('%Y-%m-%d') }}</td>
+                                        <td><span class="badge {% if sub.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">{{ sub.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No subscription history</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Delete subscriber <strong>{{ subscriber.display_name }}</strong>?</p>
+                <small class="text-muted">This will deactivate the account and terminate all active sessions.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('subscriber_web.delete', org_id=organization.id, subscriber_id=subscriber.id) }}">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

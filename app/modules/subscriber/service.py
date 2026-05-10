@@ -2,36 +2,77 @@ from typing import Dict, Any, Optional, List, Tuple
 from uuid import UUID
 from datetime import datetime, timedelta
 import re
+import secrets
 
 from flask import current_app
 from sqlalchemy import func
-
+ 
 from app.modules.subscriber.repository import SubscriberRepository, PlanRepository
 from app.models.subscriber import Subscriber
-from app.modules.session.service import SessionService
-from app.modules.payment.service import PaymentService
+from app.models.billing import Subscription
 from app.core.security.encryption import EncryptionService
 from app.core.logging.logger import logger
 from app.core.exceptions.handlers import BusinessError, NotFoundError, ValidationError
 from app.core.database.session import db
-from app.integrations.sms.provider import SMSService
-from app.integrations.radius.redius_cache import RadiusCache, RedisCache
-
-# Alias for compatibility
-RedisCache = RadiusCache
 
 
 class SubscriberService:
-    """Business logic for subscriber management - Production Ready"""
+    """Business logic for subscriber management """
     
     def __init__(self):
         self.repository = SubscriberRepository()
         self.plan_repository = PlanRepository()
-        self.session_service = SessionService()
-        self.payment_service = PaymentService()
-        self.sms_service = SMSService()
-        self.radius_cache = RadiusCache()
+        self.encryption = EncryptionService()
+        
+        # Lazy imports for optional dependencies
+        self._session_service = None
+        self._payment_service = None
+        self._sms_service = None
+        self._radius_cache = None
+        self._radius_sync_service = None
     
+    @property
+    def session_service(self):
+        """Lazy load session service"""
+        if self._session_service is None:
+            from app.modules.session.service import SessionService
+            self._session_service = SessionService()
+        return self._session_service
+    
+    @property
+    def payment_service(self):
+        """Lazy load payment service"""
+        if self._payment_service is None:
+            from app.modules.payment.service import PaymentService
+            self._payment_service = PaymentService()
+        return self._payment_service
+    
+    @property
+    def sms_service(self):
+        """Lazy load SMS service"""
+        if self._sms_service is None:
+            from app.integrations.sms.provider import SMSService
+            self._sms_service = SMSService()
+        return self._sms_service
+    
+    @property
+    def radius_cache(self):
+        """Lazy load RADIUS cache"""
+        if self._radius_cache is None:
+            from app.integrations.radius.radius_cache import RadiusCache
+            self._radius_cache = RadiusCache()
+        return self._radius_cache
+    
+    @property
+    def radius_sync_service(self):
+        """Lazy load RADIUS sync service"""
+        if self._radius_sync_service is None:
+            from app.modules.radius.service import RadiusSyncService
+            self._radius_sync_service = RadiusSyncService()
+        return self._radius_sync_service
+    
+# PHONE NUMBER UTILITIES
+
     def normalize_phone(self, phone: str) -> str:
         """Normalize phone number to 254 format"""
         if not phone:
@@ -54,8 +95,26 @@ class SubscriberService:
             raise ValidationError('Invalid phone number format. Use 254XXXXXXXXX or 07XXXXXXXX')
         return True
     
-    def get_or_create_subscriber(self, organization_id: UUID, phone: str, name: str = None) -> Tuple[Subscriber, bool]:
-        """Get existing subscriber or create new one"""
+# SUBSCRIBER CRUD OPERATIONS
+
+    def get_subscriber(self, subscriber_id: UUID, organization_id: UUID) -> Subscriber:
+        """Get subscriber by ID"""
+        subscriber = self.repository.get_by_id(subscriber_id, organization_id)
+        if not subscriber:
+            raise NotFoundError('Subscriber not found')
+        return subscriber
+    
+    def get_subscriber_by_phone(self, phone: str, organization_id: UUID) -> Optional[Subscriber]:
+        """Get subscriber by phone number"""
+        return self.repository.get_by_phone(self.normalize_phone(phone), organization_id)
+    
+    def get_subscriber_by_username(self, username: str, organization_id: UUID) -> Optional[Subscriber]:
+        """Get subscriber by username (for PPPoE)"""
+        return self.repository.get_by_username(username, organization_id)
+    
+    def get_or_create_hotspot_subscriber(self, organization_id: UUID, phone: str, 
+                                          name: str = None) -> Tuple[Subscriber, bool]:
+        """Get existing hotspot subscriber or create new one (for M-Pesa flow)"""
         try:
             self.validate_phone(phone)
             normalized_phone = self.normalize_phone(phone)
@@ -75,6 +134,7 @@ class SubscriberService:
                 data = {
                     'organization_id': organization_id,
                     'phone': normalized_phone,
+                    'subscriber_type': 'hotspot',
                     'first_name': first_name,
                     'last_name': last_name,
                     'status': 'active',
@@ -82,24 +142,329 @@ class SubscriberService:
                 }
                 subscriber = self.repository.create(data)
                 created = True
-                logger.info(f"Created new subscriber: {normalized_phone} for org {organization_id}")
-                
-                # Cache subscriber data
-                self.radius_cache.cache_subscriber(str(subscriber.id), {
-                    'phone': normalized_phone,
-                    'name': name,
-                    'organization_id': str(organization_id)
-                }, ttl=86400)
+                logger.info(f"Created new hotspot subscriber: {normalized_phone} for org {organization_id}")
             
             return subscriber, created
             
         except ValidationError:
             raise
         except Exception as e:
-            logger.error(f"Error in get_or_create_subscriber: {e}", exc_info=True)
+            logger.error(f"Error in get_or_create_hotspot_subscriber: {e}", exc_info=True)
             raise BusinessError(f"Failed to get or create subscriber: {str(e)}")
     
-    def check_subscriber_access(self, subscriber_id: UUID, organization_id: UUID, device_mac: str) -> Dict[str, Any]:
+    def create_pppoe_subscriber(self, organization_id: UUID, username: str, password: str,
+                                 plan_id: UUID, phone: str = None, 
+                                 first_name: str = None, last_name: str = None) -> Subscriber:
+        """Create a new PPPoE subscriber (admin created)"""
+        try:
+            # Validate username uniqueness
+            existing = self.repository.get_by_username(username, organization_id)
+            if existing:
+                raise ValidationError(f'Username "{username}" already exists')
+            
+            # Normalize phone if provided
+            if phone:
+                phone = self.normalize_phone(phone)
+            
+            # Encrypt password
+            encrypted_password = self.encryption.encrypt(password)
+            
+            data = {
+                'organization_id': organization_id,
+                'subscriber_type': 'pppoe',
+                'username': username,
+                'password_encrypted': encrypted_password,
+                'phone': phone,
+                'first_name': first_name,
+                'last_name': last_name,
+                'status': 'active',
+                'total_spent': 0
+            }
+            
+            subscriber = self.repository.create(data)
+            logger.info(f"Created new PPPoE subscriber: {username} for org {organization_id}")
+            
+            # Create subscription for the PPPoE user
+            if plan_id:
+                self.create_subscription(subscriber.id, organization_id, plan_id, auto_renew=False)
+            
+            # Sync to RADIUS
+            self.radius_sync_service.sync_pppoe_user_to_radius(subscriber, password)
+            
+            return subscriber
+            
+        except ValidationError:
+            raise
+        except Exception as e:
+            logger.error(f"Error creating PPPoE subscriber: {e}", exc_info=True)
+            raise BusinessError(f"Failed to create PPPoE subscriber: {str(e)}")
+    
+    def update_subscriber(self, subscriber_id: UUID, organization_id: UUID, 
+                           data: Dict[str, Any]) -> Subscriber:
+        """Update subscriber information"""
+        try:
+            subscriber = self.get_subscriber(subscriber_id, organization_id)
+            
+            # If phone is being updated, validate uniqueness
+            if 'phone' in data and data['phone']:
+                phone = self.normalize_phone(data['phone'])
+                existing = self.repository.get_by_phone(phone, organization_id)
+                if existing and existing.id != subscriber_id:
+                    raise ValidationError('Phone number already in use')
+                data['phone'] = phone
+            
+            # If username is being updated (PPPoE), validate uniqueness
+            if 'username' in data and data['username']:
+                existing = self.repository.get_by_username(data['username'], organization_id)
+                if existing and existing.id != subscriber_id:
+                    raise ValidationError('Username already in use')
+            
+            # If password is being updated (PPPoE), encrypt it
+            if 'password' in data and data['password']:
+                data['password_encrypted'] = self.encryption.encrypt(data.pop('password'))
+            
+            updated_subscriber = self.repository.update(subscriber_id, organization_id, data)
+            
+            # If password changed, sync to RADIUS
+            if 'password_encrypted' in data and subscriber.subscriber_type == 'pppoe':
+                self.radius_sync_service.sync_pppoe_user_to_radius(
+                    updated_subscriber, 
+                    self.encryption.decrypt(data['password_encrypted'])
+                )
+            
+            logger.info(f"Updated subscriber: {subscriber_id}")
+            return updated_subscriber
+            
+        except (NotFoundError, ValidationError):
+            raise
+        except Exception as e:
+            logger.error(f"Error updating subscriber: {e}", exc_info=True)
+            raise BusinessError(f"Failed to update subscriber: {str(e)}")
+    
+    def delete_subscriber(self, subscriber_id: UUID, organization_id: UUID, 
+                          soft_delete: bool = True) -> bool:
+        """Delete or deactivate subscriber"""
+        try:
+            subscriber = self.get_subscriber(subscriber_id, organization_id)
+            
+            # Terminate all active sessions
+            active_sessions = self.session_service.get_active_sessions_by_subscriber(
+                subscriber_id, organization_id
+            )
+            for session in active_sessions:
+                self.session_service.terminate_session(
+                    session.id, organization_id, 'subscriber_deleted'
+                )
+            
+            # Remove from RADIUS
+            self.radius_sync_service.remove_subscriber_from_radius(subscriber)
+            
+            result = self.repository.delete(subscriber_id, organization_id, soft_delete)
+            logger.info(f"Deleted subscriber: {subscriber_id}")
+            return result
+            
+        except NotFoundError:
+            raise
+        except Exception as e:
+            logger.error(f"Error deleting subscriber: {e}", exc_info=True)
+            raise BusinessError(f"Failed to delete subscriber: {str(e)}")
+    
+# SUBSCRIPTION MANAGEMENT
+
+    def create_subscription(self, subscriber_id: UUID, organization_id: UUID,
+                            plan_id: UUID, auto_renew: bool = False) -> Subscription:
+        """Create a new subscription for a subscriber"""
+        try:
+            plan = self.plan_repository.get_by_id(plan_id, organization_id)
+            if not plan:
+                raise NotFoundError('Plan not found')
+            
+            subscriber = self.get_subscriber(subscriber_id, organization_id)
+            
+            # Deactivate old subscriptions
+            old_sub = self.repository.get_active_subscription(subscriber_id, organization_id)
+            if old_sub:
+                old_sub.status = 'expired'
+                old_sub.cancellation_reason = 'replaced_by_new'
+            
+            # Calculate expiry using plan's dynamic validity
+            expiry_time = plan.calculate_expiry()
+            
+            # Create new subscription
+            subscription_data = {
+                'organization_id': organization_id,
+                'subscriber_id': subscriber_id,
+                'plan_id': plan_id,
+                'status': 'active',
+                'start_time': datetime.utcnow(),
+                'expiry_time': expiry_time,
+                'auto_renew': auto_renew,
+                'device_limit': plan.device_limit,
+                'bandwidth_up_mbps': plan.bandwidth_up_mbps,
+                'bandwidth_down_mbps': plan.bandwidth_down_mbps,
+                'billing_cycle': plan.billing_cycle
+            }
+            
+            subscription = Subscription(**subscription_data)
+            db.session.add(subscription)
+            
+            # Update total spent
+            subscriber.total_spent = (subscriber.total_spent or 0) + float(plan.price)
+            
+            db.session.commit()
+            
+            logger.info(f"Created subscription {subscription.id} for subscriber {subscriber_id}")
+            
+            # Sync to RADIUS based on subscriber type
+            if subscriber.subscriber_type == 'hotspot':
+                self.radius_sync_service.sync_hotspot_user_to_radius(
+                    subscriber, subscription, plan
+                )
+            else:
+                # For PPPoE, password should already be set
+                password = self.encryption.decrypt(subscriber.password_encrypted) if subscriber.password_encrypted else None
+                self.radius_sync_service.sync_pppoe_user_to_radius(subscriber, password, subscription, plan)
+            
+            return subscription
+            
+        except (NotFoundError, ValidationError):
+            raise
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error creating subscription: {e}", exc_info=True)
+            raise BusinessError(f"Failed to create subscription: {str(e)}")
+    
+    def get_active_subscription(self, subscriber_id: UUID, organization_id: UUID) -> Optional[Subscription]:
+        """Get active subscription for a subscriber"""
+        return self.repository.get_active_subscription(subscriber_id, organization_id)
+    
+    def renew_subscription(self, subscription_id: UUID, organization_id: UUID) -> Dict[str, Any]:
+        """Renew an existing subscription"""
+        try:
+            subscription = self.repository.get_subscription_by_id(subscription_id, organization_id)
+            if not subscription:
+                raise NotFoundError('Subscription not found')
+            
+            plan = subscription.plan
+            subscriber = self.get_subscriber(subscription.subscriber_id, organization_id)
+            
+            # Calculate new expiry
+            current_time = datetime.utcnow()
+            base_time = max(subscription.expiry_time, current_time)
+            new_expiry = base_time + plan.validity_timedelta
+            
+            # Update subscription
+            subscription.expiry_time = new_expiry
+            subscription.status = 'active'
+            
+            db.session.commit()
+            
+            logger.info(f"Renewed subscription {subscription_id} until {new_expiry}")
+            
+            # Update RADIUS sync
+            self.radius_sync_service.update_subscription_in_radius(subscriber, subscription, plan)
+            
+            return {
+                'success': True,
+                'subscription_id': str(subscription_id),
+                'plan_name': plan.name,
+                'old_expiry': base_time.isoformat(),
+                'new_expiry': new_expiry.isoformat(),
+                'message': 'Subscription renewed successfully'
+            }
+            
+        except NotFoundError:
+            raise
+        except Exception as e:
+            logger.error(f"Error renewing subscription: {e}", exc_info=True)
+            raise BusinessError(f"Failed to renew subscription: {str(e)}")
+    
+    def cancel_subscription(self, subscription_id: UUID, organization_id: UUID, 
+                            reason: str = None) -> bool:
+        """Cancel a subscription"""
+        try:
+            subscription = self.repository.get_subscription_by_id(subscription_id, organization_id)
+            if not subscription:
+                raise NotFoundError('Subscription not found')
+            
+            subscription.status = 'cancelled'
+            subscription.cancelled_at = datetime.utcnow()
+            subscription.cancellation_reason = reason
+            db.session.commit()
+            
+            # Remove from RADIUS
+            subscriber = self.get_subscriber(subscription.subscriber_id, organization_id)
+            self.radius_sync_service.remove_subscriber_from_radius(subscriber)
+            
+            logger.info(f"Cancelled subscription {subscription_id}")
+            return True
+            
+        except NotFoundError:
+            raise
+        except Exception as e:
+            logger.error(f"Error cancelling subscription: {e}", exc_info=True)
+            raise BusinessError(f"Failed to cancel subscription: {str(e)}")
+    
+# ACCESS CONTROL & AUTHENTICATION
+
+    def authenticate_subscriber(self, credential: str, password: str, 
+                                 organization_id: UUID) -> Optional[Subscriber]:
+        """Authenticate subscriber for RADIUS (handles both phone and username)"""
+        try:
+            # Find subscriber by phone or username
+            subscriber = self.repository.get_by_login_credential(credential, organization_id)
+            if not subscriber:
+                logger.warning(f"Authentication failed: subscriber not found for {credential}")
+                return None
+            
+            # Check status
+            if subscriber.status != 'active':
+                logger.warning(f"Authentication failed: subscriber {credential} is {subscriber.status}")
+                return None
+            
+            # Check based on subscriber type
+            if subscriber.subscriber_type == 'hotspot':
+                # Hotspot users authenticate with phone number, password is subscription ID
+                active_sub = self.repository.get_active_subscription(subscriber.id, organization_id)
+                if not active_sub:
+                    logger.warning(f"Authentication failed: no active subscription for {credential}")
+                    return None
+                
+                # Password should match subscription ID (or a generated token)
+                if password != str(active_sub.id):
+                    logger.warning(f"Authentication failed: invalid password for {credential}")
+                    return None
+                
+                # Check expiry
+                if active_sub.expiry_time <= datetime.utcnow():
+                    logger.warning(f"Authentication failed: subscription expired for {credential}")
+                    return None
+                
+            else:  # PPPoE user
+                # Decrypt and verify password
+                if subscriber.password_encrypted:
+                    decrypted = self.encryption.decrypt(subscriber.password_encrypted)
+                    if password != decrypted:
+                        logger.warning(f"Authentication failed: invalid password for {credential}")
+                        return None
+                else:
+                    logger.warning(f"Authentication failed: no password set for {credential}")
+                    return None
+                
+                # Check active subscription for PPPoE
+                active_sub = self.repository.get_active_subscription(subscriber.id, organization_id)
+                if not active_sub or active_sub.expiry_time <= datetime.utcnow():
+                    logger.warning(f"Authentication failed: no active subscription for {credential}")
+                    return None
+            
+            return subscriber
+            
+        except Exception as e:
+            logger.error(f"Error authenticating subscriber: {e}", exc_info=True)
+            return None
+    
+    def check_subscriber_access(self, subscriber_id: UUID, organization_id: UUID, 
+                                 device_mac: str) -> Dict[str, Any]:
         """Check if subscriber can access internet"""
         try:
             # Check cache first for performance
@@ -108,9 +473,7 @@ class SubscriberService:
             if cached_result:
                 return cached_result
             
-            subscriber = self.repository.get_by_id(subscriber_id, organization_id)
-            if not subscriber:
-                raise NotFoundError('Subscriber not found')
+            subscriber = self.get_subscriber(subscriber_id, organization_id)
             
             if subscriber.status != 'active':
                 return {
@@ -142,7 +505,7 @@ class SubscriberService:
             
             # Find device
             device = next((d for d in devices if d.mac_address == device_mac), None)
-            device_limit = subscription.device_limit or subscription.plan.device_limit
+            device_limit = subscription.get_device_limit()
             
             # Count unique active devices
             active_device_macs = {s.device_mac for s in active_sessions if s.device_mac}
@@ -158,64 +521,26 @@ class SubscriberService:
                     'session_id': str(device_session.id),
                     'message': 'Device already connected'
                 }
-            elif device:
-                # Existing device but no active session
-                if active_device_count >= device_limit:
-                    # Check if we should disconnect oldest session
-                    disconnect_oldest = current_app.config.get('DEVICE_LIMIT_BEHAVIOR', 'reject') == 'disconnect_oldest'
-                    
-                    if disconnect_oldest and active_sessions:
-                        oldest_session = min(active_sessions, key=lambda s: s.start_time)
-                        self.session_service.terminate_session(
-                            oldest_session.id, 
-                            organization_id, 
-                            'device_limit_reached - oldest disconnected'
-                        )
-                        result = {
-                            'allowed': True,
-                            'replaced_session': True,
-                            'message': 'Oldest session disconnected to allow new connection'
-                        }
-                    else:
-                        result = {
-                            'allowed': False,
-                            'reason': 'device_limit_reached',
-                            'message': f'Device limit reached ({device_limit} devices). Please disconnect another device first.'
-                        }
-                else:
-                    result = {
-                        'allowed': True,
-                        'subscription': {
-                            'id': str(subscription.id),
-                            'plan_name': subscription.plan.name,
-                            'expiry': subscription.expiry_time.isoformat(),
-                            'bandwidth_up': subscription.bandwidth_up_mbps or subscription.plan.bandwidth_up_mbps,
-                            'bandwidth_down': subscription.bandwidth_down_mbps or subscription.plan.bandwidth_down_mbps,
-                            'device_limit': device_limit
-                        }
-                    }
+            elif active_device_count >= device_limit:
+                result = {
+                    'allowed': False,
+                    'reason': 'device_limit_reached',
+                    'message': f'Device limit reached ({device_limit} devices). Please disconnect another device first.'
+                }
             else:
-                # New device
-                if active_device_count >= device_limit:
-                    result = {
-                        'allowed': False,
-                        'reason': 'device_limit_reached',
-                        'message': f'Device limit reached ({device_limit} devices). Please remove a device first.'
+                result = {
+                    'allowed': True,
+                    'subscription': {
+                        'id': str(subscription.id),
+                        'plan_name': subscription.plan.name,
+                        'expiry': subscription.expiry_time.isoformat(),
+                        'bandwidth_up': subscription.get_bandwidth_up(),
+                        'bandwidth_down': subscription.get_bandwidth_down(),
+                        'device_limit': device_limit
                     }
-                else:
-                    result = {
-                        'allowed': True,
-                        'subscription': {
-                            'id': str(subscription.id),
-                            'plan_name': subscription.plan.name,
-                            'expiry': subscription.expiry_time.isoformat(),
-                            'bandwidth_up': subscription.bandwidth_up_mbps or subscription.plan.bandwidth_up_mbps,
-                            'bandwidth_down': subscription.bandwidth_down_mbps or subscription.plan.bandwidth_down_mbps,
-                            'device_limit': device_limit
-                        }
-                    }
+                }
             
-            # Cache result for 5 seconds to prevent repeated checks
+            # Cache result for 5 seconds
             if result.get('allowed'):
                 self.radius_cache.set_auth_data(cache_key, result, ttl=5)
             
@@ -227,314 +552,30 @@ class SubscriberService:
             logger.error(f"Error checking subscriber access: {e}", exc_info=True)
             raise BusinessError(f"Failed to check access: {str(e)}")
     
-    def purchase_plan(self, organization_id: UUID, subscriber_id: UUID, plan_id: UUID, 
-                      payment_method: str, payment_details: Dict[str, Any]) -> Dict[str, Any]:
-        """Purchase a plan for subscriber"""
-        try:
-            # Get plan
-            plan = self.plan_repository.get_by_id(plan_id, organization_id)
-            if not plan:
-                raise NotFoundError('Plan not found')
-            
-            if not plan.is_active:
-                raise BusinessError('Plan is not active')
-            
-            # Get subscriber
-            subscriber = self.repository.get_by_id(subscriber_id, organization_id)
-            if not subscriber:
-                raise NotFoundError('Subscriber not found')
-            
-            # Process payment
-            payment_result = self.payment_service.process_payment(
-                organization_id=organization_id,
-                subscriber_id=subscriber_id,
-                amount=float(plan.price),
-                payment_method=payment_method,
-                payment_details=payment_details,
-                metadata={'plan_id': str(plan_id), 'plan_name': plan.name}
-            )
-            
-            if payment_result.get('status') != 'success':
-                logger.warning(f"Payment failed for subscriber {subscriber_id}: {payment_result}")
-                return {
-                    'success': False,
-                    'message': payment_result.get('message', 'Payment failed'),
-                    'payment_result': payment_result
-                }
-            
-            # Deactivate old subscriptions
-            old_subscriptions = self.repository.get_active_subscriptions(subscriber_id, organization_id)
-            for old_sub in old_subscriptions:
-                old_sub.status = 'expired'
-            
-            # Create new subscription
-            subscription_data = {
-                'organization_id': organization_id,
-                'subscriber_id': subscriber_id,
-                'plan_id': plan_id,
-                'status': 'active',
-                'start_time': datetime.utcnow(),
-                'expiry_time': datetime.utcnow() + timedelta(days=plan.validity_days),
-                'auto_renew': plan.auto_renew,
-                'device_limit': plan.device_limit,
-                'bandwidth_up_mbps': plan.bandwidth_up_mbps,
-                'bandwidth_down_mbps': plan.bandwidth_down_mbps
-            }
-            
-            subscription = Subscription(**subscription_data)
-            db.session.add(subscription)
-            
-            # Update subscriber total spent
-            subscriber.total_spent = (subscriber.total_spent or 0) + float(plan.price)
-            db.session.commit()
-            
-            logger.info(f"Created subscription {subscription.id} for subscriber {subscriber_id}")
-            
-            # Send confirmation SMS
-            try:
-                from app.modules.organization.service import OrganizationService
-                org_service = OrganizationService()
-                sms_config = org_service.get_sms_config(organization_id)
-                
-                if sms_config:
-                    expiry_date = subscription.expiry_time.strftime('%Y-%m-%d')
-                    message = f"Payment of {plan.price} KES confirmed. Your {plan.name} plan is active until {expiry_date}. Enjoy!"
-                    self.sms_service.send_sms(organization_id, subscriber.phone, message, sms_config)
-            except Exception as e:
-                logger.warning(f"Failed to send SMS confirmation: {e}")
-            
-            # Update RADIUS cache
-            self.radius_cache.set_auth_data(
-                username=subscriber.phone,
-                data={
-                    'password': str(subscription.id),
-                    'organization_id': str(organization_id),
-                    'subscriber_id': str(subscriber_id),
-                    'plan_name': plan.name,
-                    'bandwidth_up': subscription.bandwidth_up_mbps or plan.bandwidth_up_mbps,
-                    'bandwidth_down': subscription.bandwidth_down_mbps or plan.bandwidth_down_mbps,
-                    'expiry': subscription.expiry_time.timestamp(),
-                    'status': 'active',
-                    'device_limit': subscription.device_limit or plan.device_limit,
-                    'session_timeout': plan.session_timeout_seconds or 86400,
-                    'idle_timeout': plan.idle_timeout_seconds or 300
-                },
-                ttl=3600
-            )
-            
-            return {
-                'success': True,
-                'subscription': {
-                    'id': str(subscription.id),
-                    'plan_name': plan.name,
-                    'plan_id': str(plan_id),
-                    'start_time': subscription.start_time.isoformat(),
-                    'expiry_time': subscription.expiry_time.isoformat(),
-                    'status': subscription.status,
-                    'device_limit': subscription.device_limit or plan.device_limit,
-                    'bandwidth_up': subscription.bandwidth_up_mbps or plan.bandwidth_up_mbps,
-                    'bandwidth_down': subscription.bandwidth_down_mbps or plan.bandwidth_down_mbps
-                },
-                'payment': payment_result,
-                'message': 'Plan purchased successfully'
-            }
-            
-        except (NotFoundError, BusinessError, ValidationError):
-            raise
-        except Exception as e:
-            logger.error(f"Error purchasing plan: {e}", exc_info=True)
-            raise BusinessError(f"Failed to purchase plan: {str(e)}")
-    
-    def get_subscriber_stats(self, subscriber_id: UUID, organization_id: UUID) -> Dict[str, Any]:
-        """Get statistics for a subscriber"""
-        try:
-            subscriber = self.repository.get_by_id(subscriber_id, organization_id)
-            if not subscriber:
-                raise NotFoundError('Subscriber not found')
-            
-            # Get active sessions
-            active_sessions = self.session_service.get_active_sessions_by_subscriber(subscriber_id, organization_id)
-            
-            # Get devices
-            devices = self.repository.get_devices(subscriber_id, organization_id)
-            
-            # Get active subscription
-            active_subscription = self.repository.get_active_subscription(subscriber_id, organization_id)
-            
-            # Get recent sessions from RADIUS accounting
-            from app.modules.session.repository import RadiusAccountingRepository
-            accounting_repo = RadiusAccountingRepository()
-            recent_accounting = accounting_repo.get_user_accounting(
-                subscriber.phone, 
-                organization_id, 
-                start_date=datetime.utcnow() - timedelta(days=30),
-                limit=10
-            )
-            
-            # Calculate total usage
-            total_bytes = sum(
-                (r.acct_input_octets or 0) + (r.acct_output_octets or 0) 
-                for r in recent_accounting
-            )
-            
-            # Get subscription history
-            subscription_history = self.repository.get_subscription_history(subscriber_id, organization_id, limit=5)
-            
-            return {
-                'subscriber': {
-                    'id': str(subscriber.id),
-                    'phone': subscriber.phone,
-                    'first_name': subscriber.first_name,
-                    'last_name': subscriber.last_name,
-                    'email': subscriber.email,
-                    'status': subscriber.status,
-                    'total_spent': float(subscriber.total_spent or 0),
-                    'created_at': subscriber.created_at.isoformat() if subscriber.created_at else None
-                },
-                'active_subscription': {
-                    'id': str(active_subscription.id),
-                    'plan_name': active_subscription.plan.name,
-                    'plan_id': str(active_subscription.plan_id),
-                    'start_time': active_subscription.start_time.isoformat(),
-                    'expiry_time': active_subscription.expiry_time.isoformat(),
-                    'bandwidth_up': active_subscription.bandwidth_up_mbps or active_subscription.plan.bandwidth_up_mbps,
-                    'bandwidth_down': active_subscription.bandwidth_down_mbps or active_subscription.plan.bandwidth_down_mbps,
-                    'device_limit': active_subscription.device_limit or active_subscription.plan.device_limit
-                } if active_subscription else None,
-                'active_sessions_count': len(active_sessions),
-                'active_sessions': [
-                    {
-                        'id': str(s.id),
-                        'session_type': s.session_type,
-                        'device_mac': s.device_mac,
-                        'ip_address': str(s.ip_address) if s.ip_address else None,
-                        'start_time': s.start_time.isoformat(),
-                        'expiry_time': s.expiry_time.isoformat(),
-                        'bytes_in': s.bytes_in,
-                        'bytes_out': s.bytes_out
-                    } for s in active_sessions[:10]
-                ],
-                'devices': [
-                    {
-                        'id': str(d.id),
-                        'mac_address': d.mac_address,
-                        'device_name': d.device_name,
-                        'device_type': d.device_type,
-                        'is_primary': d.is_primary,
-                        'is_active': d.is_active,
-                        'last_seen': d.last_seen_at.isoformat() if d.last_seen_at else None
-                    } for d in devices
-                ],
-                'recent_usage': [
-                    {
-                        'start_time': r.acct_start_time.isoformat() if r.acct_start_time else None,
-                        'stop_time': r.acct_stop_time.isoformat() if r.acct_stop_time else None,
-                        'bytes_in': r.acct_input_octets or 0,
-                        'bytes_out': r.acct_output_octets or 0,
-                        'session_time': r.acct_session_time or 0
-                    } for r in recent_accounting
-                ],
-                'subscription_history': [
-                    {
-                        'id': str(sub.id),
-                        'plan_name': sub.plan.name,
-                        'start_time': sub.start_time.isoformat(),
-                        'expiry_time': sub.expiry_time.isoformat(),
-                        'status': sub.status
-                    } for sub in subscription_history
-                ],
-                'total_usage_gb': round(total_bytes / (1024**3), 2),
-                'total_usage_mb': round(total_bytes / (1024**2), 2)
-            }
-            
-        except NotFoundError:
-            raise
-        except Exception as e:
-            logger.error(f"Error getting subscriber stats: {e}", exc_info=True)
-            raise BusinessError(f"Failed to get subscriber statistics: {str(e)}")
-    
-    def renew_subscription(self, subscription_id: UUID, organization_id: UUID) -> Dict[str, Any]:
-        """Renew an existing subscription"""
-        try:
-            subscription = self.repository.get_subscription_by_id(subscription_id, organization_id)
-            if not subscription:
-                raise NotFoundError('Subscription not found')
-            
-            plan = subscription.plan
-            subscriber = self.repository.get_by_id(subscription.subscriber_id, organization_id)
-            
-            if not subscriber:
-                raise NotFoundError('Subscriber not found')
-            
-            # Calculate new expiry
-            current_time = datetime.utcnow()
-            base_time = max(subscription.expiry_time, current_time)
-            new_expiry = base_time + timedelta(days=plan.validity_days)
-            
-            # Update subscription
-            subscription.expiry_time = new_expiry
-            subscription.status = 'active'
-            subscription.start_time = current_time if subscription.expiry_time <= current_time else subscription.start_time
-            
-            db.session.commit()
-            
-            logger.info(f"Renewed subscription {subscription_id} until {new_expiry}")
-            
-            # Update cache
-            self.radius_cache.set_auth_data(
-                username=subscriber.phone,
-                data={
-                    'expiry': new_expiry.timestamp(),
-                    'status': 'active'
-                },
-                ttl=3600
-            )
-            
-            # Send notification
-            try:
-                from app.modules.organization.service import OrganizationService
-                org_service = OrganizationService()
-                sms_config = org_service.get_sms_config(organization_id)
-                
-                if sms_config:
-                    message = f"Your {plan.name} subscription has been renewed until {new_expiry.strftime('%Y-%m-%d')}. Thank you!"
-                    self.sms_service.send_sms(organization_id, subscriber.phone, message, sms_config)
-            except Exception as e:
-                logger.warning(f"Failed to send renewal SMS: {e}")
-            
-            return {
-                'success': True,
-                'subscription_id': str(subscription_id),
-                'plan_name': plan.name,
-                'old_expiry': base_time.isoformat(),
-                'new_expiry': new_expiry.isoformat(),
-                'message': 'Subscription renewed successfully'
-            }
-            
-        except NotFoundError:
-            raise
-        except Exception as e:
-            logger.error(f"Error renewing subscription: {e}", exc_info=True)
-            raise BusinessError(f"Failed to renew subscription: {str(e)}")
-    
+# DEVICE MANAGEMENT
+
     def add_device(self, subscriber_id: UUID, organization_id: UUID, 
                    mac_address: str, device_name: str = None, 
                    device_type: str = None) -> Dict[str, Any]:
         """Add a device to subscriber"""
         try:
-            subscriber = self.repository.get_by_id(subscriber_id, organization_id)
-            if not subscriber:
-                raise NotFoundError('Subscriber not found')
+            subscriber = self.get_subscriber(subscriber_id, organization_id)
             
             # Check if device already exists
             existing_device = self.repository.get_device_by_mac(mac_address, organization_id)
             if existing_device:
-                raise BusinessError(f'Device with MAC {mac_address} already exists')
+                if existing_device.subscriber_id == subscriber_id:
+                    return {
+                        'success': True,
+                        'device': existing_device.to_dict(),
+                        'message': 'Device already registered'
+                    }
+                raise BusinessError(f'Device with MAC {mac_address} is already registered to another account')
             
             # Check device limit
             devices = self.repository.get_devices(subscriber_id, organization_id)
             active_subscription = self.repository.get_active_subscription(subscriber_id, organization_id)
-            max_devices = active_subscription.device_limit or active_subscription.plan.device_limit if active_subscription else 5
+            max_devices = active_subscription.get_device_limit() if active_subscription else 5
             
             if len(devices) >= max_devices:
                 raise BusinessError(f'Device limit reached ({max_devices} devices)')
@@ -543,10 +584,10 @@ class SubscriberService:
             device_data = {
                 'organization_id': organization_id,
                 'subscriber_id': subscriber_id,
-                'mac_address': mac_address,
+                'mac_address': mac_address.upper(),
                 'device_name': device_name,
                 'device_type': device_type,
-                'is_primary': len(devices) == 0,  # First device is primary
+                'is_primary': len(devices) == 0,
                 'is_active': True,
                 'last_seen_at': datetime.utcnow()
             }
@@ -557,13 +598,7 @@ class SubscriberService:
             
             return {
                 'success': True,
-                'device': {
-                    'id': str(device.id),
-                    'mac_address': device.mac_address,
-                    'device_name': device.device_name,
-                    'device_type': device.device_type,
-                    'is_primary': device.is_primary
-                },
+                'device': device.to_dict(),
                 'message': 'Device added successfully'
             }
             
@@ -586,13 +621,11 @@ class SubscriberService:
             )
             
             if active_sessions:
-                # Terminate active sessions first
                 for session in active_sessions:
                     self.session_service.terminate_session(
                         session.id, organization_id, 'device_removed'
                     )
             
-            # Remove device
             self.repository.remove_device(device_id, organization_id)
             
             logger.info(f"Removed device {device.mac_address} from subscriber {device.subscriber_id}")
@@ -607,3 +640,104 @@ class SubscriberService:
         except Exception as e:
             logger.error(f"Error removing device: {e}", exc_info=True)
             raise BusinessError(f"Failed to remove device: {str(e)}")
+    
+    def get_devices(self, subscriber_id: UUID, organization_id: UUID) -> List[Dict[str, Any]]:
+        """Get all devices for a subscriber"""
+        try:
+            devices = self.repository.get_devices(subscriber_id, organization_id)
+            return [d.to_dict() for d in devices]
+        except Exception as e:
+            logger.error(f"Error getting devices: {e}", exc_info=True)
+            raise BusinessError(f"Failed to get devices: {str(e)}")
+    
+# STATISTICS & LISTING
+
+    def get_subscriber_stats(self, subscriber_id: UUID, organization_id: UUID) -> Dict[str, Any]:
+        """Get detailed statistics for a subscriber"""
+        try:
+            subscriber = self.get_subscriber(subscriber_id, organization_id)
+            
+            # Get active sessions
+            active_sessions = self.session_service.get_active_sessions_by_subscriber(subscriber_id, organization_id)
+            
+            # Get devices
+            devices = self.repository.get_devices(subscriber_id, organization_id)
+            
+            # Get active subscription
+            active_subscription = self.repository.get_active_subscription(subscriber_id, organization_id)
+            
+            # Get subscription history
+            subscription_history = self.repository.get_subscription_history(subscriber_id, organization_id, limit=10)
+            
+            # Calculate total data usage from sessions
+            total_bytes_in = sum(s.bytes_in or 0 for s in active_sessions)
+            total_bytes_out = sum(s.bytes_out or 0 for s in active_sessions)
+            
+            return {
+                'subscriber': subscriber.to_dict(),
+                'active_subscription': active_subscription.to_dict(include_plan=True) if active_subscription else None,
+                'active_sessions_count': len(active_sessions),
+                'active_sessions': [s.to_dict() for s in active_sessions[:10]],
+                'devices': [d.to_dict() for d in devices],
+                'subscription_history': [s.to_dict(include_plan=True) for s in subscription_history],
+                'total_usage_gb': round((total_bytes_in + total_bytes_out) / (1024**3), 2),
+                'total_usage_mb': round((total_bytes_in + total_bytes_out) / (1024**2), 2)
+            }
+            
+        except NotFoundError:
+            raise
+        except Exception as e:
+            logger.error(f"Error getting subscriber stats: {e}", exc_info=True)
+            raise BusinessError(f"Failed to get subscriber statistics: {str(e)}")
+    
+    def get_organization_subscribers(self, organization_id: UUID, skip: int = 0, limit: int = 100,
+                                      filters: Dict = None, subscriber_type: str = None) -> List[Subscriber]:
+        """Get all subscribers for an organization"""
+        try:
+            return self.repository.get_by_organization(organization_id, skip, limit, filters, subscriber_type)
+        except Exception as e:
+            logger.error(f"Error getting organization subscribers: {e}", exc_info=True)
+            raise BusinessError(f"Failed to get subscribers: {str(e)}")
+    
+    def get_hotspot_users(self, organization_id: UUID, skip: int = 0, limit: int = 100) -> List[Subscriber]:
+        """Get all hotspot users"""
+        try:
+            return self.repository.get_hotspot_users(organization_id, skip, limit)
+        except Exception as e:
+            logger.error(f"Error getting hotspot users: {e}", exc_info=True)
+            raise BusinessError(f"Failed to get hotspot users: {str(e)}")
+    
+    def get_pppoe_users(self, organization_id: UUID, skip: int = 0, limit: int = 100) -> List[Subscriber]:
+        """Get all PPPoE users"""
+        try:
+            return self.repository.get_pppoe_users(organization_id, skip, limit)
+        except Exception as e:
+            logger.error(f"Error getting PPPoE users: {e}", exc_info=True)
+            raise BusinessError(f"Failed to get PPPoE users: {str(e)}")
+    
+    def get_subscriber_dashboard_stats(self, organization_id: UUID) -> Dict[str, Any]:
+        """Get dashboard statistics for subscribers"""
+        try:
+            stats = self.repository.get_subscriber_stats(organization_id)
+            
+            # Get recent subscribers
+            recent = self.repository.get_recent_subscribers(organization_id, 5)
+            
+            # Get expiring soon
+            expiring = self.repository.get_subscribers_expiring_soon(organization_id, 7)
+            
+            return {
+                **stats,
+                'recent_subscribers': [s.to_dict() for s in recent],
+                'expiring_soon_count': len(expiring),
+                'expiring_soon': [{
+                    'id': str(s.id),
+                    'phone': s.phone,
+                    'name': s.get_full_name(),
+                    'expiry': self.repository.get_active_subscription(s.id, organization_id).expiry_time.isoformat()
+                    if self.repository.get_active_subscription(s.id, organization_id) else None
+                } for s in expiring]
+            }
+        except Exception as e:
+            logger.error(f"Error getting dashboard stats: {e}", exc_info=True)
+            raise BusinessError(f"Failed to get dashboard statistics: {str(e)}")

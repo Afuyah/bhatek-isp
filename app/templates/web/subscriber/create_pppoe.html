@@ -1,0 +1,203 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Add PPPoE Subscriber{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    .form-card {
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+    .form-header {
+        padding: 1rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .form-header h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    .form-body {
+        padding: 1.25rem;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0.375rem;
+        color: #374151;
+    }
+    .form-label .required {
+        color: #dc2626;
+        margin-left: 0.25rem;
+    }
+    .form-input, .form-select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        transition: all 0.2s;
+    }
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: #1a56db;
+        box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.1);
+    }
+    .help-text {
+        font-size: 0.7rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    .section-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin: 1rem 0 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    .btn-cancel {
+        background: white;
+        border: 1px solid #e5e7eb;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
+        color: #6b7280;
+        text-decoration: none;
+    }
+    .btn-cancel:hover {
+        background: #f9fafb;
+    }
+    .btn-submit {
+        background: #1a56db;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-submit:hover {
+        background: #1e40af;
+    }
+    @media (max-width: 640px) {
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">Add PPPoE Subscriber</h4>
+            <p class="text-muted mb-0">Create a new PPPoE user with username/password authentication</p>
+        </div>
+        <a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </a>
+    </div>
+
+    <div class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <h3><i class="fas fa-network-wired me-2"></i>PPPoE Subscriber Details</h3>
+            </div>
+            <div class="form-body">
+                <form method="POST">
+                    <!-- Account Credentials -->
+                    <div class="section-title">Login Credentials</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Username <span class="required">*</span></label>
+                            <input type="text" name="username" class="form-input" required 
+                                   value="{{ form_data.username if form_data else '' }}" 
+                                   placeholder="john_doe">
+                            <div class="help-text">Unique username for PPPoE authentication</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Password <span class="required">*</span></label>
+                            <input type="password" name="password" class="form-input" required 
+                                   value="{{ form_data.password if form_data else '' }}" 
+                                   placeholder="********">
+                            <div class="help-text">Minimum 6 characters</div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <div class="section-title">Personal Information</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="first_name" class="form-input" 
+                                   value="{{ form_data.first_name if form_data else '' }}" 
+                                   placeholder="John">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="last_name" class="form-input" 
+                                   value="{{ form_data.last_name if form_data else '' }}" 
+                                   placeholder="Doe">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" name="phone" class="form-input" 
+                               value="{{ form_data.phone if form_data else '' }}" 
+                               placeholder="254712345678 or 0712345678">
+                        <div class="help-text">Optional: For notifications and support</div>
+                    </div>
+
+                    <!-- Plan Selection -->
+                    <div class="section-title">Subscription Plan</div>
+                    <div class="form-group">
+                        <label class="form-label">Select Plan <span class="required">*</span></label>
+                        <select name="plan_id" class="form-select" required>
+                            <option value="">Select a plan...</option>
+                            {% for plan in plans %}
+                            <option value="{{ plan.id }}" {% if form_data and form_data.plan_id == plan.id|string %}selected{% endif %}>
+                                {{ plan.name }} - KES {{ "%.2f"|format(plan.price) }} ({{ plan.validity_display }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" class="btn-cancel">Cancel</a>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-save me-2"></i>Create PPPoE Subscriber
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

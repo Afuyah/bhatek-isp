@@ -1,0 +1,173 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}{{ organization.name }} - Edit {{ subscriber.display_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    .form-card {
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+    .form-header {
+        padding: 1rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .form-body {
+        padding: 1.25rem;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0.375rem;
+        color: #374151;
+    }
+    .form-input, .form-select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+    }
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: #1a56db;
+        box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.1);
+    }
+    .help-text {
+        font-size: 0.7rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    .section-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin: 1rem 0 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    .btn-cancel {
+        background: white;
+        border: 1px solid #e5e7eb;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
+        color: #6b7280;
+        text-decoration: none;
+    }
+    .btn-save {
+        background: #1a56db;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
+        color: white;
+        cursor: pointer;
+    }
+    @media (max-width: 640px) {
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">Edit Subscriber</h4>
+            <p class="text-muted mb-0">{{ subscriber.display_name }}</p>
+        </div>
+        <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </a>
+    </div>
+
+    <div class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <h3><i class="fas fa-user-edit me-2"></i>Edit Subscriber</h3>
+            </div>
+            <div class="form-body">
+                <form method="POST">
+                    <div class="section-title">Personal Information</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="first_name" class="form-input" value="{{ subscriber.first_name or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="last_name" class="form-input" value="{{ subscriber.last_name or '' }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-input" value="{{ subscriber.email or '' }}">
+                    </div>
+
+                    {% if subscriber.subscriber_type == 'hotspot' %}
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" name="phone" class="form-input" value="{{ subscriber.phone or '' }}">
+                        <div class="help-text">Format: 254XXXXXXXXX</div>
+                    </div>
+                    {% else %}
+                    <div class="section-title">PPPoE Credentials</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-input" value="{{ subscriber.username or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="password" class="form-input" placeholder="Leave blank to keep current">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="section-title">Account Status</div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="active" {% if subscriber.status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="suspended" {% if subscriber.status == 'suspended' %}selected{% endif %}>Suspended</option>
+                            <option value="blocked" {% if subscriber.status == 'blocked' %}selected{% endif %}>Blocked</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn-cancel">Cancel</a>
+                        <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
