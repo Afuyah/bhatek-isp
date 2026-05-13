@@ -45,7 +45,6 @@
         }
     }
 
-    /* Header */
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -106,7 +105,6 @@
         }
     }
 
-    /* Stats Cards */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -156,7 +154,6 @@
         }
     }
 
-    /* Filter Bar */
     .filter-bar {
         background: white;
         border: 1px solid var(--gray-200);
@@ -221,7 +218,6 @@
         background: var(--gray-200);
     }
 
-    /* Table Container */
     .table-container {
         background: white;
         border: 1px solid var(--gray-200);
@@ -270,7 +266,6 @@
         }
     }
 
-    /* Cell Styles */
     .router-name {
         font-weight: 600;
         color: var(--gray-800);
@@ -309,7 +304,6 @@
         font-weight: 500;
     }
     
-    /* RADIUS Status Badge */
     .radius-badge {
         display: inline-flex;
         align-items: center;
@@ -383,14 +377,6 @@
         color: var(--gray-700);
     }
     
-    .btn-radius {
-        color: var(--info);
-    }
-    
-    .btn-radius:hover {
-        background: rgba(59, 130, 246, 0.1);
-    }
-    
     .btn-delete {
         color: var(--danger);
     }
@@ -399,7 +385,6 @@
         background: rgba(220, 38, 38, 0.1);
     }
 
-    /* Empty State */
     .empty-state {
         text-align: center;
         padding: 2rem 1rem;
@@ -420,7 +405,6 @@
         margin: 0 0 1rem 0;
     }
     
-    /* Responsive */
     @media (max-width: 768px) {
         .hide-mobile {
             display: none;
@@ -587,11 +571,6 @@
                             <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" class="btn-icon btn-edit" title="Edit Router">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            {% if router.radius_config_status != 'configured' and router.radius_secret %}
-                            <button type="button" class="btn-icon btn-radius" onclick="retryRadiusConfig('{{ router.id }}')" title="Retry RADIUS Configuration">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                            {% endif %}
                             <button type="button" class="btn-icon btn-delete" 
                                     data-bs-toggle="modal" data-bs-target="#deleteModal"
                                     data-router-id="{{ router.id }}" 
@@ -654,7 +633,7 @@
             </div>
             <div class="modal-body">
                 <p>Delete router <strong id="deleteRouterName"></strong>?</p>
-                <small class="text-muted">This will also deactivate the associated RADIUS NAS entry. All hotspot and PPPoE configurations will be removed.</small>
+                <small class="text-muted">This will also deactivate the associated RADIUS NAS entry.</small>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -668,41 +647,6 @@
 
 <script>
 const orgId = '{{ organization.id }}';
-
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${type} alert-dismissible fade show`;
-    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;min-width:250px;';
-    toast.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
-}
-
-async function retryRadiusConfig(routerId) {
-    if (!confirm('Retry RADIUS configuration for this router?')) return;
-    
-    try {
-        const token = localStorage.getItem('access_token');
-        const response = await fetch(`/api/v1/routers/${routerId}/radius/retry`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': token ? `Bearer ${token}` : ''
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.success !== false) {
-            showToast('RADIUS configuration retried successfully!', 'success');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showToast('Failed: ' + (data.error || data.message || 'Unknown error'), 'danger');
-        }
-    } catch (error) {
-        showToast('Network error: ' + error.message, 'danger');
-    }
-}
 
 function filterRouters() {
     const status = document.getElementById('statusFilter').value;

@@ -44,7 +44,6 @@
         }
     }
 
-    /* Header */
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -52,13 +51,6 @@
         flex-wrap: wrap;
         gap: 0.75rem;
         margin-bottom: 1rem;
-    }
-
-    @media (min-width: 768px) {
-        .page-header {
-            margin-bottom: 1.5rem;
-            gap: 1rem;
-        }
     }
 
     .page-title h4 {
@@ -90,7 +82,6 @@
         padding: 0.4rem 0.875rem;
         font-size: 0.7rem;
         border-radius: 0.5rem;
-        transition: all 0.2s;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -110,7 +101,6 @@
         }
     }
 
-    /* Form Container */
     .form-container {
         background: white;
         border-radius: 1rem;
@@ -123,11 +113,9 @@
     @media (min-width: 768px) {
         .form-container {
             padding: 1.25rem;
-            border-radius: 1.125rem;
         }
     }
 
-    /* Form Elements */
     .form-group {
         margin-bottom: 1rem;
     }
@@ -165,7 +153,6 @@
         font-size: 0.75rem;
         border: 1px solid var(--gray-200);
         border-radius: 0.5rem;
-        transition: all 0.2s;
         background: white;
     }
 
@@ -195,13 +182,6 @@
         margin-top: 0.25rem;
     }
 
-    @media (min-width: 768px) {
-        .form-text {
-            font-size: 0.65rem;
-        }
-    }
-
-    /* Form Check */
     .form-check {
         display: flex;
         align-items: center;
@@ -222,13 +202,6 @@
         cursor: pointer;
     }
 
-    @media (min-width: 768px) {
-        .form-check-label {
-            font-size: 0.8rem;
-        }
-    }
-
-    /* Row Layout */
     .form-row {
         display: flex;
         flex-direction: column;
@@ -246,7 +219,6 @@
         }
     }
 
-    /* Section Title */
     .section-title {
         font-size: 0.9rem;
         font-weight: 600;
@@ -260,36 +232,32 @@
         gap: 0.5rem;
     }
 
-    @media (min-width: 768px) {
-        .section-title {
-            font-size: 1rem;
-            margin: 1.5rem 0 1rem;
-        }
+    .badge-radius {
+        font-size: 0.6rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 1rem;
     }
 
-    .section-title i {
-        color: var(--primary);
+    .badge-configured {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
     }
 
-    .help-text {
-        font-size: 0.65rem;
-        color: var(--gray-500);
-        margin-bottom: 0.75rem;
+    .badge-pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
     }
 
-    /* RADIUS Section */
+    .badge-failed {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
     .radius-section {
         background: var(--gray-50);
         border-radius: 0.75rem;
         padding: 0.875rem;
         margin-top: 0.5rem;
-    }
-
-    @media (min-width: 768px) {
-        .radius-section {
-            padding: 1rem;
-            border-radius: 1rem;
-        }
     }
 
     .radius-info {
@@ -321,27 +289,6 @@
         background: var(--gray-300);
     }
 
-    .badge-radius {
-        font-size: 0.6rem;
-        padding: 0.2rem 0.5rem;
-        border-radius: 1rem;
-    }
-
-    .badge-configured {
-        background: rgba(16, 185, 129, 0.1);
-        color: var(--success);
-    }
-
-    .badge-pending {
-        background: rgba(245, 158, 11, 0.1);
-        color: var(--warning);
-    }
-
-    .badge-failed {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--danger);
-    }
-
     .btn-sm-custom {
         padding: 0.25rem 0.5rem;
         font-size: 0.65rem;
@@ -354,21 +301,12 @@
         border: none;
     }
 
-    .btn-retry:hover {
-        background: #e67e22;
-    }
-
     .btn-refresh {
         background: var(--info);
         color: white;
         border: none;
     }
 
-    .btn-refresh:hover {
-        background: #2563eb;
-    }
-
-    /* Form Actions */
     .form-actions {
         display: flex;
         justify-content: flex-end;
@@ -376,14 +314,6 @@
         padding-top: 1rem;
         margin-top: 1rem;
         border-top: 1px solid var(--gray-200);
-    }
-
-    @media (min-width: 768px) {
-        .form-actions {
-            gap: 1rem;
-            padding-top: 1.25rem;
-            margin-top: 1.25rem;
-        }
     }
 
     .btn-cancel {
@@ -394,17 +324,10 @@
         font-size: 0.7rem;
         border-radius: 0.5rem;
         font-weight: 500;
-        transition: all 0.2s;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-    }
-
-    .btn-cancel:hover {
-        background: var(--gray-200);
-        color: var(--gray-700);
-        text-decoration: none;
     }
 
     .btn-save {
@@ -415,33 +338,11 @@
         font-size: 0.7rem;
         border-radius: 0.5rem;
         font-weight: 600;
-        transition: all 0.2s;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
     }
 
-    .btn-save:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
-        color: white;
-    }
-
-    .btn-save:disabled {
-        opacity: 0.6;
-        transform: none;
-        cursor: not-allowed;
-    }
-
-    @media (min-width: 768px) {
-        .btn-cancel,
-        .btn-save {
-            padding: 0.6rem 1.25rem;
-            font-size: 0.75rem;
-        }
-    }
-
-    /* Alert */
     .alert-small {
         font-size: 0.7rem;
         padding: 0.5rem 0.75rem;
@@ -449,47 +350,16 @@
         margin-bottom: 0.75rem;
     }
 
-    /* Loading */
-    .loading-spinner {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        border: 2px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top-color: white;
-        animation: spin 0.6s linear infinite;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-
-    /* Toast */
-    .toast-notification {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 250px;
-        animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+    form.inline-form {
+        display: inline;
+        margin: 0;
+        padding: 0;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="edit-router-container">
-    <!-- Header -->
     <div class="page-header">
         <div class="page-title">
             <h4>Edit Router</h4>
@@ -500,10 +370,8 @@
         </a>
     </div>
 
-    <!-- Form Container -->
     <div class="form-container">
         <form method="POST" id="editRouterForm">
-            <!-- Network Selection -->
             <div class="form-group">
                 <label class="form-label">Network</label>
                 <select name="network_id" class="form-select">
@@ -514,7 +382,6 @@
                 </select>
             </div>
 
-            <!-- Basic Info -->
             <div class="form-group">
                 <label class="form-label">Router Name <span class="required">*</span></label>
                 <input type="text" name="name" class="form-control" value="{{ router.name }}" required>
@@ -532,7 +399,6 @@
                 </div>
             </div>
 
-            <!-- Credentials -->
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Username</label>
@@ -545,7 +411,6 @@
                 </div>
             </div>
 
-            <!-- Location & Description -->
             <div class="form-group">
                 <label class="form-label">Location</label>
                 <input type="text" name="location" class="form-control" value="{{ router.location or '' }}" placeholder="e.g., Server Room A, Floor 2">
@@ -553,10 +418,9 @@
 
             <div class="form-group">
                 <label class="form-label">Description</label>
-                <textarea name="description" class="form-control" rows="2" placeholder="Optional description...">{{ router.description or '' }}</textarea>
+                <textarea name="description" class="form-control" rows="2">{{ router.description or '' }}</textarea>
             </div>
 
-            <!-- Active Status -->
             <div class="form-check">
                 <input type="checkbox" name="is_active" class="form-check-input" id="isActive" value="true" {% if router.is_active %}checked{% endif %}>
                 <label class="form-check-label" for="isActive">Active</label>
@@ -579,7 +443,6 @@
             
             <div class="radius-section">
                 {% if router.radius_secret %}
-                <!-- Existing RADIUS Configuration -->
                 <div class="radius-info">
                     <div style="margin-bottom: 0.5rem;">
                         <strong><i class="fas fa-server"></i> RADIUS Server:</strong>
@@ -588,57 +451,64 @@
                     </div>
                     <div style="margin-bottom: 0.5rem;">
                         <strong><i class="fas fa-key"></i> Shared Secret:</strong>
-                        <code id="radiusSecretValue" style="background: var(--gray-200); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
-                            {{ router.radius_secret }}
-                        </code>
+                        <code id="radiusSecretValue">{{ router.radius_secret }}</code>
                         <button class="copy-btn" onclick="copyToClipboard('radiusSecretValue')"><i class="fas fa-copy"></i></button>
                     </div>
                     <div style="font-size: 0.65rem; color: var(--gray-500);">
-                        <i class="fas fa-info-circle"></i> 
-                        Authentication Port: 1812 | Accounting Port: 1813
+                        <i class="fas fa-info-circle"></i> Authentication Port: 1812 | Accounting Port: 1813
                     </div>
                 </div>
 
                 {% if router.radius_config_status != 'configured' %}
                 <div class="alert-small" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); margin-bottom: 0.75rem;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    Auto-configuration pending. Run these commands on your MikroTik router:
+                    <i class="fas fa-exclamation-triangle"></i> Auto-configuration pending. Run these commands on your MikroTik router:
                 </div>
                 <div style="background: var(--gray-800); color: white; padding: 0.75rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.65rem; margin-bottom: 0.75rem; overflow-x: auto;">
                     /radius add address={{ radius_server_ip or '163.245.217.16' }} secret={{ router.radius_secret }} service=hotspot,ppp<br>
                     /ip hotspot set radius=yes<br>
                     /ppp set use-radius=yes
                 </div>
-                <button type="button" class="btn-retry btn-sm-custom" onclick="retryRadiusConfig()">
-                    <i class="fas fa-sync-alt"></i> Retry RADIUS Auto-Configuration
-                </button>
+                
+                <!-- RETRY RADIUS - FORM (NO JAVASCRIPT) -->
+                <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}" class="inline-form">
+                    <button type="submit" class="btn-retry btn-sm-custom">
+                        <i class="fas fa-sync-alt"></i> Retry RADIUS Auto-Configuration
+                    </button>
+                </form>
+                
                 {% elif router.radius_configured_at %}
                 <div class="alert-small" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
-                    <i class="fas fa-check-circle"></i>
-                    RADIUS configured successfully on {{ router.radius_configured_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                    <i class="fas fa-check-circle"></i> RADIUS configured successfully on {{ router.radius_configured_at.strftime('%Y-%m-%d %H:%M:%S') }}
                 </div>
                 {% endif %}
 
                 <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--gray-200);">
-                    <button type="button" class="btn-refresh btn-sm-custom" onclick="regenerateRadiusSecret()">
-                        <i class="fas fa-sync-alt"></i> Regenerate Secret
-                    </button>
+                    <!-- REGENERATE SECRET - FORM (NO JAVASCRIPT) -->
+                    <form method="POST" action="{{ url_for('router_web.regenerate_radius_secret', org_id=organization.id, router_id=router.id) }}" 
+                          onsubmit="return confirm('⚠️ WARNING: Regenerating the RADIUS secret will break existing connections until you reconfigure your MikroTik router.\n\nDo you want to proceed?')"
+                          class="inline-form">
+                        <button type="submit" class="btn-refresh btn-sm-custom">
+                            <i class="fas fa-sync-alt"></i> Regenerate Secret
+                        </button>
+                    </form>
                     <span class="form-text" style="margin-left: 0.5rem;">⚠️ Reconfigure router if you change the secret</span>
                 </div>
 
                 {% else %}
-                <!-- No RADIUS configuration exists -->
                 <div class="alert-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); margin-bottom: 0.75rem;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    No RADIUS secret configured. Generate one to enable RADIUS authentication.
+                    <i class="fas fa-exclamation-triangle"></i> No RADIUS secret configured. Generate one to enable RADIUS authentication.
                 </div>
-                <button type="button" class="btn-retry btn-sm-custom" onclick="generateRadiusSecret()">
-                    <i class="fas fa-key"></i> Generate RADIUS Secret
-                </button>
+                <!-- GENERATE SECRET - FORM (NO JAVASCRIPT) -->
+                <form method="POST" action="{{ url_for('router_web.regenerate_radius_secret', org_id=organization.id, router_id=router.id) }}" 
+                      onsubmit="return confirm('Generate a new RADIUS secret? This will enable RADIUS authentication for this router.')"
+                      class="inline-form">
+                    <button type="submit" class="btn-retry btn-sm-custom">
+                        <i class="fas fa-key"></i> Generate RADIUS Secret
+                    </button>
+                </form>
                 {% endif %}
             </div>
 
-            <!-- Form Actions -->
             <div class="form-actions">
                 <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn-cancel">
                     Cancel
@@ -652,96 +522,14 @@
 </div>
 
 <script>
-const orgId = '{{ organization.id }}';
-const routerId = '{{ router.id }}';
-
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast-notification alert alert-${type} alert-dismissible fade show`;
-    toast.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-    document.body.appendChild(toast);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
-
-async function apiRequest(url, method, successMsg, errorMsg) {
-    const saveBtn = document.getElementById('saveBtn');
-    const originalText = saveBtn.innerHTML;
-    
-    try {
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<div class="loading-spinner"></div> Processing...';
-        
-        const token = localStorage.getItem('access_token');
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': token ? `Bearer ${token}` : ''
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.success !== false) {
-            showToast(successMsg, 'success');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showToast(errorMsg + ': ' + (data.error || data.message || 'Unknown error'), 'danger');
-        }
-    } catch (error) {
-        showToast('Network error: ' + error.message, 'danger');
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = originalText;
-    }
-}
-
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
     const text = element.innerText;
     navigator.clipboard.writeText(text).then(() => {
-        showToast('Copied to clipboard!', 'success');
+        alert('Copied to clipboard!');
+    }).catch(() => {
+        alert('Failed to copy');
     });
-}
-
-function retryRadiusConfig() {
-    apiRequest(
-        `/organization/${orgId}/routers/${routerId}/radius/retry`,
-        'POST',
-        'RADIUS configuration retried successfully!',
-        'RADIUS configuration failed'
-    );
-}
-
-function generateRadiusSecret() {
-    if (confirm('Generate a new RADIUS secret? This will invalidate any existing RADIUS configuration on your router.')) {
-        fetch('/api/v1/routers/' + routerId + '/radius/secret/generate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('access_token') ? `Bearer ${localStorage.getItem('access_token')}` : ''
-            }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                showToast('New RADIUS secret generated!', 'success');
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                showToast('Failed to generate secret: ' + (data.error || 'Unknown error'), 'danger');
-            }
-        })
-        .catch(e => showToast('Error: ' + e.message, 'danger'));
-    }
-}
-
-function regenerateRadiusSecret() {
-    if (confirm('⚠️ WARNING: Regenerating the RADIUS secret will break existing connections until you reconfigure your MikroTik router.\n\nDo you want to proceed?')) {
-        generateRadiusSecret();
-    }
 }
 
 // Form validation before submit
@@ -751,13 +539,13 @@ document.getElementById('editRouterForm').addEventListener('submit', function(e)
     
     if (!name) {
         e.preventDefault();
-        showToast('Router name is required', 'danger');
+        alert('Router name is required');
         return false;
     }
     
     if (!ipAddress) {
         e.preventDefault();
-        showToast('IP address is required', 'danger');
+        alert('IP address is required');
         return false;
     }
     

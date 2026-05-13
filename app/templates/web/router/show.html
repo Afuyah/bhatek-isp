@@ -4,6 +4,7 @@
 
 {% block extra_css %}
 <style>
+  
     /* ========================================
        ROUTER DETAILS - MODERN DESIGN
        WITH RADIUS SUPPORT
@@ -448,6 +449,32 @@
             opacity: 1;
         }
     }
+    
+    /* Make sure action-bar styles are correct */
+    .action-bar {
+        background: white;
+        border-radius: 0.875rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--gray-200);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .action-btn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.7rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        border: none;
+    }
+    
+    form.inline-form {
+        display: inline;
+        margin: 0;
+        padding: 0;
+    }
 </style>
 {% endblock %}
 
@@ -495,25 +522,38 @@
         </div>
     </div>
 
-    <!-- Action Buttons -->
+    <!-- ================================================================ -->
+    <!-- ACTION BUTTONS - USING HTML FORMS (NO JAVASCRIPT FETCH) -->
+    <!-- ================================================================ -->
     <div class="action-bar">
-        <button class="btn btn-primary action-btn" onclick="testConnection()">
-            <i class="fas fa-plug me-1"></i>Test Connection
-        </button>
-        <button class="btn btn-secondary action-btn" onclick="syncRouter()">
-            <i class="fas fa-sync me-1"></i>Sync Config
-        </button>
-        <button class="btn btn-info action-btn" onclick="discoverRouter()">
-            <i class="fas fa-microchip me-1"></i>Discover
-        </button>
+        <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}" class="inline-form">
+            <button type="submit" class="btn btn-primary action-btn">
+                <i class="fas fa-plug me-1"></i>Test Connection
+            </button>
+        </form>
+        
+        <form method="POST" action="{{ url_for('router_web.sync', org_id=organization.id, router_id=router.id) }}" class="inline-form">
+            <button type="submit" class="btn btn-secondary action-btn">
+                <i class="fas fa-sync me-1"></i>Sync Config
+            </button>
+        </form>
+        
+        <form method="POST" action="{{ url_for('router_web.discover', org_id=organization.id, router_id=router.id) }}" class="inline-form">
+            <button type="submit" class="btn btn-info action-btn">
+                <i class="fas fa-microchip me-1"></i>Discover
+            </button>
+        </form>
+        
         {% if router.radius_config_status != 'configured' %}
-        <button class="btn btn-warning action-btn" onclick="retryRadiusConfig()">
-            <i class="fas fa-shield-alt me-1"></i>Retry RADIUS
-        </button>
+        <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}" class="inline-form">
+            <button type="submit" class="btn btn-warning action-btn">
+                <i class="fas fa-shield-alt me-1"></i>Retry RADIUS
+            </button>
+        </form>
         {% endif %}
     </div>
 
-    <!-- Basic Information -->
+    <!-- Basic Information Card -->
     <div class="info-card">
         <div class="card-title"><i class="fas fa-info-circle"></i> Basic Information</div>
         <div class="info-row">
@@ -550,7 +590,7 @@
         </div>
     </div>
 
-    <!-- Health Metrics -->
+    <!-- Health Metrics Card -->
     <div class="info-card">
         <div class="card-title"><i class="fas fa-chart-line"></i> Health Metrics</div>
         <div class="health-grid">
@@ -666,17 +706,23 @@
         
         {% else %}
         <div class="empty-text">
-            No RADIUS secret configured. The router was created before RADIUS auto-configuration was available.
-            <button class="btn btn-sm btn-primary mt-2" onclick="generateRadiusSecret()">Generate RADIUS Secret</button>
+            No RADIUS secret configured.
+            <form method="POST" action="{{ url_for('router_web.regenerate_radius_secret', org_id=organization.id, router_id=router.id) }}" class="inline-form" style="display: inline-block; margin-top: 0.5rem;">
+                <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Generate a new RADIUS secret? This will enable RADIUS authentication for this router.')">
+                    <i class="fas fa-key"></i> Generate RADIUS Secret
+                </button>
+            </form>
         </div>
         {% endif %}
     </div>
 
-    <!-- Hotspot Servers -->
+    <!-- Hotspot Servers Card -->
     <div class="info-card">
         <div class="card-title">
             <span><i class="fas fa-wifi"></i> Hotspot Servers</span>
-            <button class="btn btn-primary btn-icon-sm" onclick="addHotspot()">+ Add</button>
+            <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}" class="btn btn-primary btn-icon-sm">
+                <i class="fas fa-plus"></i> Add
+            </a>
         </div>
         {% if hotspot_servers %}
         <div class="table-responsive-sm">
@@ -691,22 +737,24 @@
                         <td><code>{{ hs.hotspot_id }}</code></td>
                         <td>{{ hs.interface or '-' }}</td>
                         <td>{% if hs.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
-                        <td><button class="btn btn-link btn-icon-sm" onclick="editHotspot('{{ hs.id }}')"><i class="fas fa-edit"></i></button></td>
+                        <td><a href="{{ url_for('router_web.edit_hotspot', org_id=organization.id, hotspot_id=hs.id) }}" class="btn btn-link btn-icon-sm"><i class="fas fa-edit"></i></a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% else %}
-        <div class="empty-text">No hotspot servers configured. <a href="#" onclick="addHotspot()">Add one</a></div>
+        <div class="empty-text">No hotspot servers configured. <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}">Add one</a></div>
         {% endif %}
     </div>
 
-    <!-- PPPoE Servers -->
+    <!-- PPPoE Servers Card -->
     <div class="info-card">
         <div class="card-title">
             <span><i class="fas fa-network-wired"></i> PPPoE Servers</span>
-            <button class="btn btn-primary btn-icon-sm" onclick="addPppoe()">+ Add</button>
+            <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}" class="btn btn-primary btn-icon-sm">
+                <i class="fas fa-plus"></i> Add
+            </a>
         </div>
         {% if pppoe_servers %}
         <div class="table-responsive-sm">
@@ -722,14 +770,14 @@
                         <td>{{ ps.interface or '-' }}</td>
                         <td>{{ ps.mtu|default(1492) }}</td>
                         <td>{% if ps.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
-                        <td><button class="btn btn-link btn-icon-sm" onclick="editPppoe('{{ ps.id }}')"><i class="fas fa-edit"></i></button></td>
+                        <td><a href="{{ url_for('router_web.edit_pppoe', org_id=organization.id, pppoe_id=ps.id) }}" class="btn btn-link btn-icon-sm"><i class="fas fa-edit"></i></a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% else %}
-        <div class="empty-text">No PPPoE servers configured. <a href="#" onclick="addPppoe()">Add one</a></div>
+        <div class="empty-text">No PPPoE servers configured. <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}">Add one</a></div>
         {% endif %}
     </div>
 </div>
@@ -756,132 +804,16 @@
     </div>
 </div>
 
-<!-- Loading Toast Template -->
-<div id="loadingToast" style="display: none;" class="toast-notification alert alert-info">
-    <i class="fas fa-spinner fa-spin"></i> <span id="loadingMessage">Processing...</span>
-</div>
-
 <script>
-const orgId = '{{ organization.id }}';
-const routerId = '{{ router.id }}';
-
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast-notification alert alert-${type} alert-dismissible fade show`;
-    toast.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-    document.body.appendChild(toast);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
-
-function showLoading(message) {
-    const toast = document.getElementById('loadingToast');
-    document.getElementById('loadingMessage').textContent = message;
-    toast.style.display = 'block';
-}
-
-function hideLoading() {
-    document.getElementById('loadingToast').style.display = 'none';
-}
-
-async function apiRequest(url, method = 'POST', successMsg = null) {
-    showLoading('Processing...');
-    try {
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json'
-            }
-        });
-        const data = await response.json();
-        hideLoading();
-        
-        if (data.success || response.ok) {
-            if (successMsg) showToast(successMsg, 'success');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showToast(data.error || data.message || 'Operation failed', 'danger');
-        }
-        return data;
-    } catch (error) {
-        hideLoading();
-        showToast('Network error: ' + error.message, 'danger');
-        return null;
-    }
-}
-
-function testConnection() {
-    apiRequest(`/organization/${orgId}/routers/${routerId}/test`, 'POST', 'Connection test completed!');
-}
-
-function syncRouter() {
-    apiRequest(`/organization/${orgId}/routers/${routerId}/sync`, 'POST', 'Sync completed!');
-}
-
-function discoverRouter() {
-    apiRequest(`/organization/${orgId}/routers/${routerId}/discover`, 'POST', 'Discovery completed!');
-}
-
-function retryRadiusConfig() {
-    apiRequest(`/organization/${orgId}/routers/${routerId}/radius/retry`, 'POST', 'RADIUS configuration retried!');
-}
-
-function generateRadiusSecret() {
-    showToast('Please edit the router to regenerate RADIUS secret', 'warning');
-    setTimeout(() => {
-        window.location.href = `/organization/${orgId}/routers/${routerId}/edit`;
-    }, 1000);
-}
-
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
     const text = element.innerText;
     navigator.clipboard.writeText(text).then(() => {
-        showToast('Copied to clipboard!', 'success');
+        // Show a simple alert or toast
+        console.log('Copied to clipboard!');
+    }).catch(() => {
+        alert('Failed to copy');
     });
 }
-
-function addHotspot() { 
-    window.location.href = `/organization/${orgId}/hotspot-servers/create?router_id=${routerId}`; 
-}
-
-function addPppoe() { 
-    window.location.href = `/organization/${orgId}/pppoe-servers/create?router_id=${routerId}`; 
-}
-
-function editHotspot(id) { 
-    window.location.href = `/organization/${orgId}/hotspot-servers/${id}/edit`; 
-}
-
-function editPppoe(id) { 
-    window.location.href = `/organization/${orgId}/pppoe-servers/${id}/edit`; 
-}
-
-// Auto-refresh health every 30 seconds if router is online
-let autoRefreshInterval = null;
-
-if ('{{ router.status }}' === 'online') {
-    autoRefreshInterval = setInterval(() => {
-        fetch(`/organization/${orgId}/routers/${routerId}/health`, {
-            method: 'GET',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.cpu_usage !== undefined) {
-                document.querySelector('.health-value').textContent = data.cpu_usage + '%';
-            }
-        })
-        .catch(e => console.log('Auto-refresh failed:', e));
-    }, 30000);
-}
-
-// Cleanup interval on page unload
-window.addEventListener('beforeunload', () => {
-    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-});
 </script>
 {% endblock %}
