@@ -1,3 +1,4 @@
+# app/modules/router/repository.py
 from typing import Optional, Dict, Any, List
 from uuid import UUID
 from datetime import datetime
@@ -5,6 +6,7 @@ from sqlalchemy import and_, or_, desc, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.router import Router, HotspotServer, PPPoeServer
+from app.models.nas import NAS
 from app.core.database.session import db
 from app.core.logging.logger import logger
 
@@ -14,9 +16,12 @@ class RouterRepository:
     
     def __init__(self):
         self.model = Router
+        self.nas_model = NAS
+    
+    # BASIC CRUD OPERATIONS
     
     def get_by_id(self, router_id: UUID, organization_id: UUID, include_inactive: bool = False) -> Optional[Router]:
-        
+        """Get router by ID with organization isolation"""
         try:
             filters = [
                 self.model.id == router_id,
@@ -45,6 +50,20 @@ class RouterRepository:
             logger.error(f"Database error in get_by_ip: {e}", exc_info=True)
             raise
     
+    def get_by_radius_secret(self, radius_secret: str, organization_id: UUID) -> Optional[Router]:
+        """Get router by RADIUS shared secret"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.radius_secret == radius_secret,
+                    self.model.organization_id == organization_id,
+                    self.model.is_active == True
+                )
+            ).first()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_by_radius_secret: {e}", exc_info=True)
+            raise
+    
     def get_by_network(self, network_id: UUID, organization_id: UUID, skip: int = 0, limit: int = 100) -> List[Router]:
         """Get all routers belonging to a specific network"""
         try:
@@ -60,7 +79,8 @@ class RouterRepository:
             raise
     
     def get_by_organization(self, organization_id: UUID, skip: int = 0, limit: int = 100, 
-                           status: str = None, network_id: UUID = None) -> List[Router]:
+                           status: str = None, network_id: UUID = None,
+                           radius_config_status: str = None) -> List[Router]:
         """Get all routers for an organization with optional filters"""
         try:
             filters = [
@@ -73,6 +93,9 @@ class RouterRepository:
             
             if network_id:
                 filters.append(self.model.network_id == network_id)
+            
+            if radius_config_status:
+                filters.append(self.model.radius_config_status == radius_config_status)
             
             return self.model.query.filter(
                 and_(*filters)
@@ -109,8 +132,24 @@ class RouterRepository:
             logger.error(f"Database error in get_offline_routers: {e}", exc_info=True)
             raise
     
+    def get_routers_pending_radius_config(self, organization_id: UUID) -> List[Router]:
+        """Get routers that need RADIUS configuration"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.organization_id == organization_id,
+                    self.model.is_active == True,
+                    self.model.radius_config_status.in_(['pending', 'failed'])
+                )
+            ).order_by(self.model.auto_config_attempts).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_routers_pending_radius_config: {e}", exc_info=True)
+            raise
+    
+    # CREATE OPERATIONS (with RADIUS fields)
+    
     def create(self, data: Dict[str, Any]) -> Router:
-        """Create a new router"""
+        """Create a new router with RADIUS fields"""
         try:
             router = self.model(**data)
             db.session.add(router)
@@ -122,8 +161,10 @@ class RouterRepository:
             logger.error(f"Database error in create: {e}", exc_info=True)
             raise
     
+    # UPDATE OPERATIONS (with RADIUS fields)
+    
     def update(self, router_id: UUID, organization_id: UUID, data: Dict[str, Any]) -> Optional[Router]:
-        """Update a router"""
+        """Update a router including RADIUS fields"""
         try:
             router = self.get_by_id(router_id, organization_id, include_inactive=True)
             if not router:
@@ -143,6 +184,50 @@ class RouterRepository:
             db.session.rollback()
             logger.error(f"Database error in update: {e}", exc_info=True)
             raise
+    
+    def update_radius_config_status(self, router_id: UUID, organization_id: UUID, 
+                                      status: str, error: str = None) -> bool:
+        """Update RADIUS configuration status"""
+        try:
+            router = self.get_by_id(router_id, organization_id, include_inactive=True)
+            if not router:
+                return False
+            
+            router.radius_config_status = status
+            
+            if status == 'configured':
+                router.radius_configured_at = datetime.utcnow()
+                router.auto_config_attempts = 0
+                router.last_config_error = None
+            elif status == 'failed' and error:
+                router.auto_config_attempts = (router.auto_config_attempts or 0) + 1
+                router.last_config_error = error[:500]  # Truncate
+
+            db.session.commit()
+            logger.info(f"Router {router_id} RADIUS config status: {status}")
+            return True
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"Database error in update_radius_config_status: {e}", exc_info=True)
+            raise
+    
+    def link_nas_entry(self, router_id: UUID, organization_id: UUID, nas_entry_id: UUID) -> bool:
+        """Link a NAS entry to this router"""
+        try:
+            router = self.get_by_id(router_id, organization_id, include_inactive=True)
+            if not router:
+                return False
+            
+            router.nas_entry_id = nas_entry_id
+            db.session.commit()
+            logger.info(f"Linked NAS entry {nas_entry_id} to router {router_id}")
+            return True
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"Database error in link_nas_entry: {e}", exc_info=True)
+            raise
+    
+    # STATUS & HEALTH OPERATIONS
     
     def update_status(self, router_id: UUID, organization_id: UUID, status: str, 
                       error_message: str = None) -> bool:
@@ -221,6 +306,8 @@ class RouterRepository:
             logger.error(f"Database error in update_discovery: {e}", exc_info=True)
             raise
     
+    # DELETE OPERATIONS
+    
     def delete(self, router_id: UUID, organization_id: UUID, soft_delete: bool = True) -> bool:
         """Delete or deactivate a router"""
         try:
@@ -231,7 +318,15 @@ class RouterRepository:
             if soft_delete:
                 router.is_active = False
                 router.status = 'deactivated'
+                # Also deactivate the NAS entry if exists
+                if router.nas_entry_id:
+                    db.session.query(NAS).filter(NAS.id == router.nas_entry_id).update(
+                        {'is_active': False}
+                    )
             else:
+                # Hard delete - also delete associated NAS entry
+                if router.nas_entry_id:
+                    db.session.query(NAS).filter(NAS.id == router.nas_entry_id).delete()
                 db.session.delete(router)
             
             db.session.commit()
@@ -242,8 +337,11 @@ class RouterRepository:
             logger.error(f"Database error in delete: {e}", exc_info=True)
             raise
     
-    def count_by_organization(self, organization_id: UUID, status: str = None) -> int:
-        """Count routers in organization"""
+    # COUNT & STATISTICS
+    
+    def count_by_organization(self, organization_id: UUID, status: str = None,
+                               radius_config_status: str = None) -> int:
+        """Count routers in organization with optional filters"""
         try:
             filters = [
                 self.model.organization_id == organization_id,
@@ -251,11 +349,23 @@ class RouterRepository:
             ]
             if status:
                 filters.append(self.model.status == status)
+            if radius_config_status:
+                filters.append(self.model.radius_config_status == radius_config_status)
             
             return self.model.query.filter(and_(*filters)).count()
         except SQLAlchemyError as e:
             logger.error(f"Database error in count_by_organization: {e}", exc_info=True)
             raise
+    
+    def count_radius_configured(self, organization_id: UUID) -> int:
+        """Count routers with RADIUS successfully configured"""
+        return self.count_by_organization(organization_id, radius_config_status='configured')
+    
+    def count_radius_pending(self, organization_id: UUID) -> int:
+        """Count routers pending RADIUS configuration"""
+        return self.count_by_organization(organization_id, radius_config_status='pending')
+    
+    # ISSUE DETECTION
     
     def get_routers_with_issues(self, organization_id: UUID) -> List[Router]:
         """Get routers that need attention (offline or high error count)"""
@@ -267,7 +377,8 @@ class RouterRepository:
                     or_(
                         self.model.status == 'offline',
                         self.model.status == 'error',
-                        self.model.sync_attempts > 3
+                        self.model.sync_attempts > 3,
+                        self.model.radius_config_status == 'failed'
                     )
                 )
             ).order_by(desc(self.model.last_seen_at)).all()
@@ -323,6 +434,20 @@ class HotspotServerRepository:
             logger.error(f"Database error in get_by_organization: {e}", exc_info=True)
             raise
     
+    def get_by_router_and_hotspot_id(self, router_id: UUID, organization_id: UUID, hotspot_id: str) -> Optional[HotspotServer]:
+        """Get hotspot server by router ID and hotspot ID"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.router_id == router_id,
+                    self.model.organization_id == organization_id,
+                    self.model.hotspot_id == hotspot_id
+                )
+            ).first()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_by_router_and_hotspot_id: {e}", exc_info=True)
+            raise
+    
     def create(self, data: Dict[str, Any]) -> HotspotServer:
         """Create a new hotspot server"""
         try:
@@ -376,20 +501,6 @@ class HotspotServerRepository:
             raise
 
 
-    def get_by_router_and_hotspot_id(self, router_id: UUID, organization_id: UUID, hotspot_id: str) -> Optional[HotspotServer]:
-        try:
-            return self.model.query.filter(
-                and_(
-                    self.model.router_id == router_id,
-                    self.model.organization_id == organization_id,
-                    self.model.hotspot_id == hotspot_id
-                )
-            ).first()
-        except SQLAlchemyError as e:
-            logger.error(f"Database error: {e}", exc_info=True)
-            raise         
-
-
 class PPPoeServerRepository:
     """Data access layer for PPPoeServer operations"""
     
@@ -435,6 +546,20 @@ class PPPoeServerRepository:
             ).order_by(desc(self.model.created_at)).offset(skip).limit(limit).all()
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_by_organization: {e}", exc_info=True)
+            raise
+    
+    def get_by_router_and_name(self, router_id: UUID, organization_id: UUID, name: str) -> Optional[PPPoeServer]:
+        """Get PPPoE server by router ID and name"""
+        try:
+            return self.model.query.filter(
+                and_(
+                    self.model.router_id == router_id,
+                    self.model.organization_id == organization_id,
+                    self.model.name == name
+                )
+            ).first()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_by_router_and_name: {e}", exc_info=True)
             raise
     
     def create(self, data: Dict[str, Any]) -> PPPoeServer:
@@ -488,18 +613,3 @@ class PPPoeServerRepository:
             db.session.rollback()
             logger.error(f"Database error in delete: {e}", exc_info=True)
             raise
-
-
-
-    def get_by_router_and_name(self, router_id: UUID, organization_id: UUID, name: str) -> Optional[PPPoeServer]:
-        try:
-            return self.model.query.filter(
-                and_(
-                    self.model.router_id == router_id,
-                    self.model.organization_id == organization_id,
-                    self.model.name == name
-                )
-            ).first()
-        except SQLAlchemyError as e:
-            logger.error(f"Database error: {e}", exc_info=True)
-            raise        

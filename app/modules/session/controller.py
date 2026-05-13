@@ -5,10 +5,13 @@ from datetime import datetime
 from app.modules.session.service import SessionService
 from app.core.security.jwt import token_required, permission_required
 from app.core.logging.logger import logger
+from app.integrations.radius.radius_accounting_handler import RadiusAccountingHandler
+
 
 class SessionController:
     def __init__(self):
         self.service = SessionService()
+        self.radius_handler = RadiusAccountingHandler()
     
     @token_required
     def get(self, session_id):
@@ -222,35 +225,38 @@ class SessionController:
             logger.error(f"Error getting organization usage: {e}", exc_info=True)
             return jsonify({'error': str(e)}), 500
     
+    # RADIUS ACCOUNTING ENDPOINT (PUBLIC - NO AUTH)
+    
     def radius_accounting(self):
-        """Endpoint for RADIUS accounting packets (no auth required)"""
+        """
+        Endpoint for RADIUS accounting packets from FreeRADIUS.
+        This method is called by the route (no authentication required).
+        Delegates processing to RadiusAccountingHandler for consistency.
+        """
         try:
-            data = request.json or {}
+            # Get data from request (supports both JSON and form-urlencoded)
+            data = request.get_json() or request.form
             
-            # Extract organization from NAS IP
-            organization_id = data.get('organization_id')
-            if not organization_id:
-                nas_ip = data.get('nas_ip_address')
-                if nas_ip:
-                    from app.modules.router.repository import RouterRepository
-                    router_repo = RouterRepository()
-                    router = router_repo.get_by_ip(str(nas_ip))
-                    if router:
-                        organization_id = router.organization_id
-            
-            if not organization_id:
-                return jsonify({'error': 'Organization not identified'}), 400
-            
-            if isinstance(organization_id, str):
-                organization_id = UUID(organization_id)
-            
-            result = self.service.process_radius_accounting(data, organization_id)
-            
-            if result.get('success'):
-                return jsonify(result), 200
+            # Convert to dict if needed
+            if hasattr(data, 'to_dict'):
+                accounting_data = data.to_dict()
+            elif isinstance(data, dict):
+                accounting_data = data
             else:
-                return jsonify(result), 400
+                accounting_data = {}
+            
+            # Process using the RADIUS handler
+            result = self.radius_handler.process_accounting(accounting_data)
+            
+            # Convert result to appropriate response
+            if result.get('result') == 'ok':
+                return jsonify({'result': 'ok'}), 200
+            else:
+                return jsonify({'result': 'fail', 'reason': result.get('reason', 'Unknown error')}), 200
                 
         except Exception as e:
             logger.error(f"Error in RADIUS accounting: {e}", exc_info=True)
-            return jsonify({'error': str(e)}), 500
+            return jsonify({'result': 'fail', 'reason': str(e)}), 500
+
+
+            

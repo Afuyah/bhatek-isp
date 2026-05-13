@@ -7,7 +7,7 @@ from datetime import datetime
 from flask import current_app
 
 from app.core.logging.logger import logger
-from app.integrations.radius.redius_cache import RadiusCache
+from app.integrations.radius.radius_cache import RadiusCache
 
 class RadiusPacket:
    # Packet types

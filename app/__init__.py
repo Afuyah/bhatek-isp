@@ -150,8 +150,20 @@ def create_app(config_name=None):
 
         # Router test endpoint (no token required for testing)
         '/api/v1/routers/test',
+        
+        # ==========================================================================
+        # RADIUS endpoints - called from web interface (no JWT required)
+        # ==========================================================================
+        '/api/radius/authenticate',
+        '/api/radius/accounting',
+        '/api/radius/accounting/start',
+        '/api/radius/accounting/stop',
+        
+        # Router RADIUS operations (called from web interface via AJAX)
+        '/api/v1/routers/*/radius/retry',
+        '/api/v1/routers/*/radius/secret/generate',
+        '/api/v1/routers/*/radius/regenerate',
     ]
-    
     # Wrap in correct order (last wrapped = first executed)
     # Execution order: Auth -> Tenant -> RequestID -> app
     wsgi_app = app.wsgi_app
@@ -239,6 +251,16 @@ def create_app(config_name=None):
     app.register_blueprint(billing_bp, url_prefix='/api/v1/billing')
     app.register_blueprint(payment_bp, url_prefix='/api/v1/payments')
     app.register_blueprint(session_bp, url_prefix='/api/v1/sessions')
+
+
+
+
+    # RADIUS endpoints (for FreeRADIUS to call)
+    from app.integrations.radius.radius_auth_handler import radius_auth_bp
+    #from app.integrations.radius.radius_accounting_handler import radius_accounting_bp
+
+    app.register_blueprint(radius_auth_bp)          # /api/radius/authenticate
+    #app.register_blueprint(radius_accounting_bp)    # /api/radius/accounting
 
     # Health check
     @app.route('/health')

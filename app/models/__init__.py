@@ -14,6 +14,12 @@ from app.models.billing import Plan, Subscription, Invoice, InvoiceItem, Voucher
 from app.models.payment import PaymentAccount, Transaction, Refund, PaymentWebhookLog
 from app.models.session import ActiveSession
 
+# RADIUS integration models (for FreeRADIUS)
+from app.models.radius import RadCheck, RadReply, RadUserGroup, RadAcct
+
+# NEW: NAS model for FreeRADIUS client configuration
+from app.models.nas import NAS
+
 
 # Export all models
 __all__ = [
@@ -45,5 +51,11 @@ __all__ = [
     'PaymentAccount', 'Transaction', 'Refund', 'PaymentWebhookLog',
     
     # Session models
-    'ActiveSession'
+    'ActiveSession',
+    
+    # RADIUS models (FreeRADIUS integration)
+    'RadCheck', 'RadReply', 'RadUserGroup', 'RadAcct',
+    
+    # NEW: NAS model
+    'NAS',
 ]

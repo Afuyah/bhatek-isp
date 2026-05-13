@@ -1,0 +1,58 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}Add Hotspot Server - {{ router.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4>Add Hotspot Server for {{ router.name }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Name *</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Hotspot ID *</label>
+                    <input type="text" name="hotspot_id" class="form-control" required>
+                    <small class="text-muted">Unique identifier on MikroTik</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Interface</label>
+                    <input type="text" name="interface" class="form-control" placeholder="e.g., ether2">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Address Pool</label>
+                    <input type="text" name="address_pool" class="form-control" placeholder="e.g., dhcp_pool1">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">DNS Name</label>
+                    <input type="text" name="dns_name" class="form-control" placeholder="hotspot.example.com">
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Idle Timeout (s)</label>
+                        <input type="number" name="idle_timeout" class="form-control" value="300">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Session Timeout (s)</label>
+                        <input type="number" name="session_timeout" class="form-control" value="86400">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Keepalive Timeout (s)</label>
+                        <input type="number" name="keepalive_timeout" class="form-control" value="120">
+                    </div>
+                </div>
+                <div class="mb-3 form-check mt-3">
+                    <input type="checkbox" name="is_active" class="form-check-input" id="isActive" checked>
+                    <label class="form-check-label" for="isActive">Active</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Create</button>
+                <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

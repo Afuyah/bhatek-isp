@@ -1,3 +1,4 @@
+# app/modules/router/routes.py
 from flask import Blueprint, request, jsonify, current_app
 from marshmallow import ValidationError
 
@@ -36,7 +37,7 @@ def test_connection():
                 password=data['password'],
                 port=data.get('port', 8728),
                 use_ssl=data.get('api_ssl', False),
-                timeout=8  # Reduced timeout for faster response
+                timeout=8
             )
             conn.connect()
             
@@ -122,11 +123,18 @@ def bulk_sync():
     """Bulk sync multiple routers"""
     return controller.bulk_sync()
 
+
+@router_bp.route('/bulk/radius/retry', methods=['POST'])
+@token_required
+def bulk_retry_radius():
+    """Bulk retry RADIUS configuration for multiple routers"""
+    return controller.bulk_retry_radius()
+
 # COLLECTION ROUTES
 @router_bp.route('', methods=['POST'])
 @token_required
 def create():
-    """Create a new router"""
+    """Create a new router (auto-configures RADIUS)"""
     return controller.create()
 
 
@@ -142,6 +150,13 @@ def list_routers():
 def get_active():
     """Get active routers for dropdowns"""
     return controller.get_active()
+
+
+@router_bp.route('/pending-radius', methods=['GET'])
+@token_required
+def get_pending_radius():
+    """Get routers pending RADIUS configuration"""
+    return controller.get_pending_radius()
 
 
 @router_bp.route('/network/<uuid:network_id>', methods=['GET'])
@@ -171,7 +186,7 @@ def delete(router_id):
     """Delete or deactivate router"""
     return controller.delete(router_id)
 
-
+# CONNECTION & DISCOVERY ROUTES
 @router_bp.route('/<uuid:router_id>/test', methods=['POST'])
 @token_required
 def test(router_id):
@@ -189,7 +204,7 @@ def discover(router_id):
 @router_bp.route('/<uuid:router_id>/sync', methods=['POST'])
 @token_required
 def sync(router_id):
-    """Sync router configuration"""
+    """Sync router configuration (hotspot, PPPoE servers)"""
     return controller.sync(router_id)
 
 
@@ -203,12 +218,32 @@ def health(router_id):
 @router_bp.route('/<uuid:router_id>/status', methods=['GET'])
 @token_required
 def status(router_id):
-    """Get router connection status"""
+    """Get router connection status (includes RADIUS config status)"""
     return controller.status(router_id)
 
-
+# RADIUS CONFIGURATION ROUTES
 @router_bp.route('/<uuid:router_id>/radius', methods=['POST'])
 @token_required
 def configure_radius(router_id):
-    """Configure RADIUS on router"""
+    """Manually configure RADIUS on router (legacy method)"""
     return controller.configure_radius(router_id)
+
+
+@router_bp.route('/<uuid:router_id>/radius/retry', methods=['POST'])
+@token_required
+def retry_radius_config(router_id):
+    """
+    Retry RADIUS auto-configuration for a router.
+    Uses the stored RADIUS secret to configure the MikroTik.
+    """
+    return controller.retry_radius_config(router_id)
+
+
+@router_bp.route('/<uuid:router_id>/radius/secret', methods=['GET'])
+@token_required
+def get_radius_secret(router_id):
+    """
+    Get the RADIUS shared secret for a router.
+    WARNING: This endpoint is audited and should be restricted.
+    """
+    return controller.get_radius_secret(router_id)

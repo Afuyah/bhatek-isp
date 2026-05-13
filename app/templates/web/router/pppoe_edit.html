@@ -1,0 +1,45 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}Edit PPPoE Server{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4>Edit PPPoE Server for {{ router.name }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Name *</label>
+                    <input type="text" name="name" class="form-control" value="{{ pppoe.name }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Interface</label>
+                    <input type="text" name="interface" class="form-control" value="{{ pppoe.interface or '' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Service Name</label>
+                    <input type="text" name="service_name" class="form-control" value="{{ pppoe.service_name or '' }}">
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">MTU</label>
+                        <input type="number" name="mtu" class="form-control" value="{{ pppoe.mtu }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Max Sessions</label>
+                        <input type="number" name="max_sessions" class="form-control" value="{{ pppoe.max_sessions }}">
+                    </div>
+                </div>
+                <div class="mb-3 form-check mt-3">
+                    <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if pppoe.is_active %}checked{% endif %}>
+                    <label class="form-check-label" for="isActive">Active</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Update</button>
+                <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

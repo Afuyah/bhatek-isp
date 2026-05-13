@@ -2,14 +2,16 @@ from typing import Dict, Any, List, Optional, Tuple
 from uuid import UUID
 from datetime import datetime, timedelta
 from flask import current_app
+from sqlalchemy import func
 
 from app.modules.session.repository import SessionRepository, RadiusAccountingRepository
 from app.models.session import ActiveSession
-from app.integrations.radius.redius_cache import RadiusCache
+from app.integrations.radius.radius_cache import RadiusCache
 from app.integrations.mikrotik.client import MikroTikClient
 from app.core.logging.logger import logger
 from app.core.exceptions.handlers import NotFoundError, BusinessError
 from app.core.security.encryption import EncryptionService
+
 
 class SessionService:
     """Complete session management service"""
@@ -21,6 +23,8 @@ class SessionService:
         self.encryption = EncryptionService()
         self.radius_cache = RadiusCache()
     
+        # SESSION CRUD
+        
     def create_session(self, data: Dict[str, Any]) -> ActiveSession:
         """Create new session with RADIUS cache integration"""
         # Ensure required fields
@@ -65,6 +69,8 @@ class SessionService:
         """Get active sessions by username"""
         return self.repository.get_active_by_username(username, organization_id)
     
+        # SESSION TERMINATION
+        
     def terminate_session(self, session_id: UUID, organization_id: UUID, cause: str) -> bool:
         """Terminate a session with router disconnect"""
         session = self.repository.get_by_id(session_id, organization_id)
@@ -80,12 +86,16 @@ class SessionService:
                 if router:
                     password = self.encryption.decrypt(router.password_encrypted)
                     
-                    self.mikrotik_client.disconnect_user(
-                        host=str(router.ip_address),
-                        username=router.username,
-                        password=password,
-                        target_username=session.username,
-                        port=router.api_port
+                    # Use MikroTik client to disconnect
+                    self.mikrotik_client.disconnect_hotspot_user(
+                        router_data={
+                            'id': str(router.id),
+                            'ip_address': str(router.ip_address),
+                            'username': router.username,
+                            'password_encrypted': router.password_encrypted,
+                            'api_port': router.api_port
+                        },
+                        username=session.username
                     )
         except Exception as e:
             logger.warning(f"Router disconnect failed for session {session_id}: {e}")
@@ -109,11 +119,15 @@ class SessionService:
         logger.info(f"Terminated {len(sessions)} sessions for user {username}")
         return len(sessions)
     
+        # SESSION STATISTICS
+        
     def update_session_stats(self, session_id: UUID, organization_id: UUID,
                              bytes_in: int, bytes_out: int, session_time: int) -> bool:
         """Update session statistics"""
         return self.repository.update_stats(session_id, organization_id, bytes_in, bytes_out, session_time)
     
+        # ROUTER SYNC
+        
     def sync_router_sessions(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
         """Synchronize sessions from MikroTik router"""
         from app.modules.router.repository import RouterRepository
@@ -125,12 +139,15 @@ class SessionService:
         
         password = self.encryption.decrypt(router.password_encrypted)
         
-        # Get sessions from router
+        # Get sessions from router (hotspot active sessions)
         router_sessions = self.mikrotik_client.get_active_sessions(
-            host=str(router.ip_address),
-            username=router.username,
-            password=password,
-            port=router.api_port
+            router_data={
+                'id': str(router.id),
+                'ip_address': str(router.ip_address),
+                'username': router.username,
+                'password_encrypted': router.password_encrypted,
+                'api_port': router.api_port
+            }
         )
         
         # Get local sessions
@@ -202,6 +219,8 @@ class SessionService:
         logger.info(f"Router sync completed for {router_id}: {result}")
         return result
     
+        # CLEANUP
+        
     def cleanup_expired_sessions(self, organization_id: UUID) -> int:
         """Clean up expired sessions"""
         expired_count = self.repository.expire_expired_sessions(organization_id)
@@ -211,6 +230,8 @@ class SessionService:
         
         return expired_count
     
+        # STATISTICS
+        
     def get_session_stats(self, organization_id: UUID) -> Dict[str, Any]:
         """Get session statistics for organization"""
         active_count = self.repository.count_active(organization_id)
@@ -218,8 +239,8 @@ class SessionService:
         # Get recent session stats (last 24 hours)
         day_ago = datetime.utcnow() - timedelta(days=1)
         
-        from app.modules.session.models import ActiveSession
-        recent_stats = ActiveSession.query.filter(
+        from app.models.session import ActiveSession
+        result = ActiveSession.query.filter(
             ActiveSession.organization_id == organization_id,
             ActiveSession.start_time >= day_ago
         ).with_entities(
@@ -229,69 +250,15 @@ class SessionService:
         
         return {
             'active_sessions': active_count,
-            'last_24h_sessions': recent_stats.total or 0,
-            'last_24h_bytes': recent_stats.total_bytes or 0,
-            'last_24h_gb': round((recent_stats.total_bytes or 0) / (1024**3), 2)
+            'last_24h_sessions': result.total or 0 if result else 0,
+            'last_24h_bytes': result.total_bytes or 0 if result else 0,
+            'last_24h_gb': round((result.total_bytes or 0) / (1024**3), 2) if result else 0
         }
     
-    def process_radius_accounting(self, accounting_data: Dict[str, Any], organization_id: UUID) -> Dict[str, Any]:
-        """Process RADIUS accounting packet"""
-        try:
-            acct_unique_id = accounting_data.get('acct_unique_id')
-            
-            # Check for duplicate
-            if acct_unique_id:
-                existing = self.radius_accounting_repo.get_by_unique_id(acct_unique_id, organization_id)
-                if existing:
-                    logger.warning(f"Duplicate RADIUS accounting packet: {acct_unique_id}")
-                    return {'success': False, 'reason': 'duplicate'}
-            
-            # Create accounting record
-            record_data = {
-                'organization_id': organization_id,
-                'session_id': accounting_data.get('session_id'),
-                'username': accounting_data.get('username'),
-                'nas_ip_address': accounting_data.get('nas_ip_address'),
-                'framed_ip_address': accounting_data.get('framed_ip_address'),
-                'called_station_id': accounting_data.get('called_station_id'),
-                'calling_station_id': accounting_data.get('calling_station_id'),
-                'acct_status_type': accounting_data.get('acct_status_type'),
-                'acct_start_time': accounting_data.get('acct_start_time'),
-                'acct_stop_time': accounting_data.get('acct_stop_time'),
-                'acct_input_octets': accounting_data.get('acct_input_octets', 0),
-                'acct_output_octets': accounting_data.get('acct_output_octets', 0),
-                'acct_session_time': accounting_data.get('acct_session_time', 0),
-                'acct_terminate_cause': accounting_data.get('acct_terminate_cause'),
-                'acct_unique_id': acct_unique_id
-            }
-            
-            record = self.radius_accounting_repo.create(record_data)
-            
-            # Update active session if this is a stop record
-            if accounting_data.get('acct_status_type') == 'Stop':
-                active_session = self.repository.get_by_session_id(
-                    accounting_data.get('session_id'), 
-                    organization_id
-                )
-                if active_session:
-                    self.terminate_session(
-                        active_session.id, 
-                        organization_id, 
-                        accounting_data.get('acct_terminate_cause', 'radius_stop')
-                    )
-            
-            return {
-                'success': True, 
-                'record_id': str(record.id),
-                'unique_id': acct_unique_id
-            }
-            
-        except Exception as e:
-            logger.error(f"Error processing RADIUS accounting: {e}", exc_info=True)
-            return {'success': False, 'error': str(e)}
-    
+        # USAGE REPORTS
+        
     def get_user_usage(self, username: str, organization_id: UUID, days: int = 30) -> Dict[str, Any]:
-        """Get usage statistics for a user"""
+        """Get usage statistics for a user from RADIUS accounting"""
         try:
             start_date = datetime.utcnow() - timedelta(days=days)
             
@@ -323,7 +290,7 @@ class SessionService:
             raise
     
     def get_organization_usage(self, organization_id: UUID, days: int = 30) -> Dict[str, Any]:
-        """Get usage statistics for organization"""
+        """Get usage statistics for organization from RADIUS accounting"""
         try:
             start_date = datetime.utcnow() - timedelta(days=days)
             end_date = datetime.utcnow()

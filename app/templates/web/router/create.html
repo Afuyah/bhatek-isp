@@ -6,6 +6,7 @@
 <style>
     /* ========================================
        ADD ROUTER FORM - MODERN DESIGN
+       WITH RADIUS AUTO-CONFIGURATION
        ========================================= */
     
     :root {
@@ -14,6 +15,8 @@
         --primary-dark: #1b4332;
         --success: #10b981;
         --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
         --gray-50: #f8fafc;
         --gray-100: #f1f5f9;
         --gray-200: #e2e8f0;
@@ -98,6 +101,7 @@
     .btn-back:hover {
         background: var(--gray-200);
         color: var(--gray-700);
+        text-decoration: none;
     }
 
     @media (min-width: 768px) {
@@ -128,6 +132,78 @@
         .form-container {
             padding: 1.5rem;
             border-radius: 1.25rem;
+        }
+    }
+
+    /* Steps Indicator */
+    .steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .steps::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 10%;
+        right: 10%;
+        height: 2px;
+        background: var(--gray-200);
+        z-index: 1;
+    }
+
+    .step {
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        flex: 1;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: var(--gray-100);
+        border: 2px solid var(--gray-300);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: var(--gray-500);
+        margin-bottom: 0.5rem;
+    }
+
+    .step.active .step-number {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .step.completed .step-number {
+        background: var(--success);
+        border-color: var(--success);
+        color: white;
+    }
+
+    .step-label {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+    }
+
+    .step.active .step-label {
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    @media (min-width: 768px) {
+        .step-number {
+            width: 44px;
+            height: 44px;
+        }
+        .step-label {
+            font-size: 0.75rem;
         }
     }
 
@@ -178,7 +254,6 @@
         .form-select {
             padding: 0.6rem 0.875rem;
             font-size: 0.8rem;
-            border-radius: 0.5rem;
         }
     }
 
@@ -187,6 +262,17 @@
         outline: none;
         border-color: var(--primary);
         box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+    }
+
+    .form-control.is-invalid,
+    .form-select.is-invalid {
+        border-color: var(--danger);
+    }
+
+    .invalid-feedback {
+        font-size: 0.6rem;
+        color: var(--danger);
+        margin-top: 0.25rem;
     }
 
     .form-text {
@@ -274,6 +360,102 @@
         border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
+    .test-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    /* Success Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+    }
+
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .success-modal {
+        background: white;
+        border-radius: 1rem;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    .success-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--success);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .success-icon i {
+        font-size: 30px;
+        color: white;
+    }
+
+    .radius-secret-box {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin: 1rem 0;
+        word-break: break-all;
+    }
+
+    .radius-secret {
+        font-family: monospace;
+        font-size: 0.7rem;
+        background: var(--gray-200);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+
+    .copy-btn {
+        background: var(--gray-200);
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+
+    .copy-btn:hover {
+        background: var(--gray-300);
+    }
+
+    .instruction-code {
+        background: var(--gray-800);
+        color: var(--gray-100);
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        font-family: monospace;
+        font-size: 0.7rem;
+        overflow-x: auto;
+        margin: 0.5rem 0;
+    }
+
     /* Buttons */
     .form-actions {
         display: flex;
@@ -309,6 +491,7 @@
     .btn-cancel:hover {
         background: var(--gray-200);
         color: var(--gray-700);
+        text-decoration: none;
     }
 
     .btn-save {
@@ -334,6 +517,25 @@
     .btn-save:disabled {
         opacity: 0.6;
         transform: none;
+        cursor: not-allowed;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .btn-secondary {
+        background: var(--gray-200);
+        border: none;
+        color: var(--gray-700);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
     }
 
     @media (min-width: 768px) {
@@ -342,6 +544,35 @@
             padding: 0.6rem 1.25rem;
             font-size: 0.75rem;
         }
+    }
+
+    /* Loading Spinner */
+    .loading-spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Alert */
+    .alert {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        font-size: 0.75rem;
+    }
+
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(239, 68, 68, 0.2);
     }
 </style>
 {% endblock %}
@@ -359,9 +590,32 @@
         </a>
     </div>
 
+    <!-- Steps Indicator -->
+    <div class="steps" style="max-width: 800px; margin: 0 auto 1rem auto;">
+        <div class="step active" id="step1">
+            <div class="step-number">1</div>
+            <div class="step-label">Router Details</div>
+        </div>
+        <div class="step" id="step2">
+            <div class="step-number">2</div>
+            <div class="step-label">Configuration</div>
+        </div>
+        <div class="step" id="step3">
+            <div class="step-number">3</div>
+            <div class="step-label">Complete</div>
+        </div>
+    </div>
+
     <!-- Form Container -->
     <div class="form-container">
-        <form method="POST" id="routerForm">
+        <!-- Error Alert -->
+        {% if error %}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" id="routerForm" action="{{ url_for('router_web.create', org_id=organization.id) }}">
             <!-- Network Selection -->
             <div class="form-group">
                 <label class="form-label">Network <span class="required">*</span></label>
@@ -378,12 +632,14 @@
             <div class="form-group">
                 <label class="form-label">Router Name <span class="required">*</span></label>
                 <input type="text" name="name" class="form-control" required value="{{ form_data.name if form_data else '' }}" placeholder="e.g., Main Office Router">
+                <div class="form-text">A descriptive name to identify this router</div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">IP Address <span class="required">*</span></label>
                     <input type="text" name="ip_address" class="form-control" required value="{{ form_data.ip_address if form_data else '' }}" placeholder="192.168.1.1">
+                    <div class="form-text">Public or private IP address of the router</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">API Port</label>
@@ -408,6 +664,7 @@
             <div class="form-group">
                 <label class="form-label">Location</label>
                 <input type="text" name="location" class="form-control" value="{{ form_data.location if form_data else '' }}" placeholder="e.g., Server Room A, Floor 2">
+                <div class="form-text">Physical location of the router</div>
             </div>
 
             <div class="form-group">
@@ -417,16 +674,17 @@
 
             <!-- Active Status -->
             <div class="form-check">
-                <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if not form_data or form_data.is_active != false %}checked{% endif %}>
+                <input type="checkbox" name="is_active" class="form-check-input" id="isActive" value="true" {% if not form_data or form_data.is_active != false %}checked{% endif %}>
                 <label class="form-check-label" for="isActive">Active</label>
             </div>
             <div class="form-text" style="margin-top: -0.25rem; margin-bottom: 1rem;">Inactive routers won't be monitored or synced</div>
 
             <!-- Test Connection Option -->
             <div class="form-check">
-                <input type="checkbox" name="test_connection" class="form-check-input" id="testConnection" checked>
-                <label class="form-check-label" for="testConnection">Test connection after adding</label>
+                <input type="checkbox" name="test_connection" class="form-check-input" id="testConnection" checked value="true">
+                <label class="form-check-label" for="testConnection">Test connection and auto-configure RADIUS</label>
             </div>
+            <div class="form-text" style="margin-top: -0.25rem; margin-bottom: 0.75rem;">We'll automatically test connectivity and configure RADIUS on your MikroTik router</div>
 
             <!-- Test Result -->
             <div id="testResult" class="test-result"></div>
@@ -444,68 +702,241 @@
     </div>
 </div>
 
+<!-- Success Modal -->
+<div id="successModal" class="modal-overlay">
+    <div class="success-modal">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        <h5 style="text-align: center; margin-bottom: 0.5rem;" id="modalTitle">Router Added Successfully!</h5>
+        <p style="text-align: center; font-size: 0.8rem; color: var(--gray-500);" id="modalMessage">Your router has been added to the system.</p>
+        
+        <div id="radiusConfigSection" style="display: none;">
+            <hr>
+            <h6 style="font-size: 0.85rem; margin-bottom: 0.5rem;">RADIUS Configuration</h6>
+            <p style="font-size: 0.7rem; color: var(--gray-600);">Use these credentials to configure RADIUS on your MikroTik router:</p>
+            
+            <div class="radius-secret-box">
+                <strong>RADIUS Server:</strong> <span id="radiusServer"></span><br>
+                <strong>Shared Secret:</strong> 
+                <code id="radiusSecret" class="radius-secret"></code>
+                <button class="copy-btn" onclick="copyToClipboard('radiusSecret')"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            
+            <div id="autoConfigSuccess" style="display: none;">
+                <div class="alert" style="background: rgba(16,185,129,0.1); color: var(--success); border-color: rgba(16,185,129,0.2);">
+                    <i class="fas fa-check-circle"></i> RADIUS was automatically configured on your router!
+                </div>
+            </div>
+            
+            <div id="manualConfigInstructions" style="display: none;">
+                <div class="alert" style="background: rgba(245,158,11,0.1); color: var(--warning); border-color: rgba(245,158,11,0.2); margin-bottom: 0.75rem;">
+                    <i class="fas fa-exclamation-triangle"></i> Auto-configuration failed. Please configure manually:
+                </div>
+                <div class="instruction-code">
+                    /radius add address=<span id="manualRadiusServer"></span> secret=<span id="manualRadiusSecret"></span> service=hotspot,ppp<br><br>
+                    /ip hotspot set radius=yes<br>
+                    /ppp set use-radius=yes
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+            <button class="btn-secondary" style="flex: 1;" onclick="closeModal()">Close</button>
+            <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="btn-primary" style="flex: 1; text-align: center;">Go to Routers</a>
+        </div>
+    </div>
+</div>
+
 <script>
-    const form = document.getElementById('routerForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const testConnectionCheckbox = document.getElementById('testConnection');
-    const testResultDiv = document.getElementById('testResult');
+    let isSubmitting = false;
+
+    function updateStep(step) {
+        for (let i = 1; i <= 3; i++) {
+            const stepEl = document.getElementById(`step${i}`);
+            if (i < step) {
+                stepEl.classList.add('completed');
+                stepEl.classList.remove('active');
+            } else if (i === step) {
+                stepEl.classList.add('active');
+                stepEl.classList.remove('completed');
+            } else {
+                stepEl.classList.remove('active', 'completed');
+            }
+        }
+    }
+
+    function copyToClipboard(elementId) {
+        const element = document.getElementById(elementId);
+        const text = element.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+            }, 2000);
+        });
+    }
+
+    function showModal(data) {
+        const modal = document.getElementById('successModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const radiusConfigSection = document.getElementById('radiusConfigSection');
+        const autoConfigSuccess = document.getElementById('autoConfigSuccess');
+        const manualConfigInstructions = document.getElementById('manualConfigInstructions');
+        
+        modalTitle.textContent = data.auto_configured ? 'Router Added & Configured!' : 'Router Added Successfully!';
+        modalMessage.textContent = data.auto_configured 
+            ? 'Your router has been added and RADIUS is automatically configured.'
+            : 'Your router has been added. Please complete RADIUS configuration.';
+        
+        if (data.radius_secret) {
+            radiusConfigSection.style.display = 'block';
+            document.getElementById('radiusServer').textContent = data.radius_server_ip || '163.245.217.16';
+            document.getElementById('radiusSecret').textContent = data.radius_secret;
+            document.getElementById('manualRadiusServer').textContent = data.radius_server_ip || '163.245.217.16';
+            document.getElementById('manualRadiusSecret').textContent = data.radius_secret;
+            
+            if (data.auto_configured) {
+                autoConfigSuccess.style.display = 'block';
+                manualConfigInstructions.style.display = 'none';
+            } else {
+                autoConfigSuccess.style.display = 'none';
+                manualConfigInstructions.style.display = 'block';
+                if (data.manual_config_instructions) {
+                    const instructions = data.manual_config_instructions;
+                    document.querySelector('.instruction-code').innerHTML = 
+                        instructions.command + '<br><br>' + instructions.additional_commands.join('<br>');
+                }
+            }
+        }
+        
+        updateStep(3);
+        modal.classList.add('active');
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('successModal');
+        modal.classList.remove('active');
+    }
 
     form.addEventListener('submit', async (e) => {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
-
-        const testConnection = testConnectionCheckbox.checked;
-        if (!testConnection) {
-            return true;
-        }
-
+        if (isSubmitting) return;
+        
         e.preventDefault();
+        isSubmitting = true;
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const originalBtnText = submitBtn.innerHTML;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<div class="loading-spinner"></div> Adding Router...';
+        
+        updateStep(2);
         
         const formData = new FormData(e.target);
-        const data = {
-            ip_address: formData.get('ip_address'),
-            username: formData.get('username'),
-            password: formData.get('password'),
-            port: parseInt(formData.get('api_port')) || 8728
-        };
-
-        testResultDiv.style.display = 'block';
-        testResultDiv.className = 'test-result';
-        testResultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing connection...';
-
+        const testConnection = formData.get('test_connection') === 'true' || formData.get('test_connection') === 'on';
+        
+        // If test connection is checked, test first
+        if (testConnection) {
+            const testData = {
+                ip_address: formData.get('ip_address'),
+                username: formData.get('username'),
+                password: formData.get('password'),
+                port: parseInt(formData.get('api_port')) || 8728
+            };
+            
+            const testResultDiv = document.getElementById('testResult');
+            testResultDiv.style.display = 'block';
+            testResultDiv.className = 'test-result';
+            testResultDiv.innerHTML = '<div class="loading-spinner" style="border-top-color: var(--primary);"></div> Testing connection...';
+            
+            try {
+                const token = localStorage.getItem('access_token');
+                const testResponse = await fetch('/api/v1/routers/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const testResult = await testResponse.json();
+                
+                if (testResponse.ok && testResult.success) {
+                    testResultDiv.className = 'test-result test-success';
+                    testResultDiv.innerHTML = '<i class="fas fa-check-circle"></i> Connection successful! Proceeding to add router...';
+                } else {
+                    testResultDiv.className = 'test-result test-warning';
+                    testResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (testResult.error || testResult.message || 'Connection failed') + '. Router will be added in offline mode.';
+                }
+            } catch (error) {
+                testResultDiv.className = 'test-result test-warning';
+                testResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + error.message + '. Router will be added in offline mode.';
+            }
+            
+            // Wait a moment to show test result
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        // Submit the form via AJAX
         try {
             const token = localStorage.getItem('access_token');
-            const response = await fetch('/api/v1/routers/test', {
+            const submitData = {
+                name: formData.get('name'),
+                network_id: formData.get('network_id'),
+                ip_address: formData.get('ip_address'),
+                api_port: parseInt(formData.get('api_port')) || 8728,
+                username: formData.get('username'),
+                password: formData.get('password'),
+                location: formData.get('location') || null,
+                description: formData.get('description') || null,
+                is_active: formData.get('is_active') === 'true' || formData.get('is_active') === 'on'
+            };
+            
+            const response = await fetch('/api/v1/routers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': token ? `Bearer ${token}` : ''
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(submitData)
             });
             
             const result = await response.json();
             
             if (response.ok && result.success) {
-                testResultDiv.className = 'test-result test-success';
-                testResultDiv.innerHTML = '<i class="fas fa-check-circle"></i> Connection successful! Router is reachable.';
-                setTimeout(() => {
-                    form.submit();
-                }, 1000);
+                updateStep(3);
+                showModal({
+                    auto_configured: result.auto_configured || false,
+                    radius_secret: result.radius_secret,
+                    radius_server_ip: result.radius_server_ip,
+                    manual_config_instructions: result.manual_config_instructions
+                });
             } else {
-                testResultDiv.className = 'test-result test-failed';
-                testResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (result.error || result.message || 'Connection failed') + '. You can still add the router.';
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-save"></i> Add Router Anyway';
+                throw new Error(result.error || result.message || 'Failed to add router');
             }
         } catch (error) {
+            console.error('Error:', error);
             testResultDiv.className = 'test-result test-failed';
-            testResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + error.message + '. You can still add the router.';
+            testResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error: ' + error.message;
+            testResultDiv.style.display = 'block';
+            updateStep(1);
+        } finally {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save"></i> Add Router Anyway';
+            submitBtn.innerHTML = originalBtnText;
+            isSubmitting = false;
         }
-        
-        return false;
+    });
+    
+    // Close modal on overlay click
+    document.getElementById('successModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
     });
 </script>
 {% endblock %}

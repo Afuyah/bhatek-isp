@@ -1,11 +1,14 @@
+# app/modules/router/service.py
 from typing import Dict, Any, List, Optional
 from uuid import UUID
 from datetime import datetime
+import secrets
 
 from flask import current_app
 
 from app.modules.router.repository import RouterRepository, HotspotServerRepository, PPPoeServerRepository
 from app.models.router import Router, HotspotServer, PPPoeServer
+from app.models.nas import NAS
 
 from app.core.security.encryption import EncryptionService
 from app.core.logging.logger import logger
@@ -16,7 +19,7 @@ from app.core.database.session import db
 
 
 class RouterService:
-    """Service for router management with multi-method discovery and RADIUS support"""
+    """Service for router management with multi-method"""
 
     def __init__(self):
         self.repository = RouterRepository()
@@ -25,12 +28,113 @@ class RouterService:
         self.encryption = EncryptionService()
         self.mikrotik_client = MikroTikClient()
 
-    # CREATE
+    # HELPER METHODS
+    
+    def _generate_radius_secret(self) -> str:
+        """Generate a strong unique RADIUS shared secret"""
+        return secrets.token_urlsafe(32)
+    
+    def _create_nas_entry(self, router: Router, radius_secret: str) -> NAS:
+        """Create a NAS entry for FreeRADIUS"""
+        try:
+            nas_entry = NAS(
+                organization_id=router.organization_id,
+                nasname='0.0.0.0',  # Matches any IP (for dynamic routers)
+                shortname=router.name,
+                type='mikrotik',
+                secret=radius_secret,
+                description=f"Auto-created for router {router.name}",
+                router_id=router.id,
+                is_active=True
+            )
+            db.session.add(nas_entry)
+            db.session.flush()  # Get ID without committing yet
+            
+            # Link NAS entry to router
+            router.nas_entry_id = nas_entry.id
+            db.session.commit()
+            
+            logger.info(f"Created NAS entry for router {router.name}")
+            return nas_entry
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Failed to create NAS entry: {e}")
+            raise BusinessError(f"Failed to create NAS entry: {str(e)}")
+    
+    def _auto_configure_router_radius(self, router: Router, radius_secret: str) -> Dict[str, Any]:
         
-    def create_router(self, organization_id: UUID, network_id: UUID, data: Dict[str, Any]) -> Router:
+        try:
+            password = self.encryption.decrypt(router.password_encrypted)
+            
+            # Get your VPS FreeRADIUS server IP from config
+            radius_server_ip = current_app.config.get('RADIUS_SERVER_IP', '163.245.217.16')
+            
+            # Use MikroTik client to configure RADIUS
+            result = self.mikrotik_client.configure_radius(
+                router_data={
+                    'id': str(router.id),
+                    'ip_address': str(router.ip_address),
+                    'username': router.username,
+                    'password_encrypted': router.password_encrypted,
+                    'api_port': router.api_port
+                },
+                radius_server=radius_server_ip,
+                radius_secret=radius_secret,
+                radius_port=1812,
+                radius_acct_port=1813
+            )
+            
+            if result.get('success'):
+                logger.info(f"Auto-configured RADIUS on router {router.name}")
+                
+                # Also ensure hotspot uses RADIUS
+                try:
+                    self.mikrotik_client.execute(
+                        router_data={
+                            'id': str(router.id),
+                            'ip_address': str(router.ip_address),
+                            'username': router.username,
+                            'password_encrypted': router.password_encrypted,
+                            'api_port': router.api_port
+                        },
+                        command='/ip/hotspot/set',  # ← Make command a keyword argument
+                        radius='yes'
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to enable hotspot RADIUS: {e}")
+                
+                # Also ensure PPPoE uses RADIUS
+                try:
+                    self.mikrotik_client.execute(
+                        router_data={
+                            'id': str(router.id),
+                            'ip_address': str(router.ip_address),
+                            'username': router.username,
+                            'password_encrypted': router.password_encrypted,
+                            'api_port': router.api_port
+                        },
+                        command='/ppp/set',  # ← Make command a keyword argument
+                        **{'use-radius': 'yes'}
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to enable PPPoE RADIUS: {e}")
+                
+                return {'success': True, 'message': 'RADIUS configured automatically'}
+            
+            return {'success': False, 'error': result.get('error', 'Unknown error')}
+            
+        except Exception as e:
+            logger.error(f"Auto-configuration error for router {router.name}: {e}")
+            return {'success': False, 'error': str(e)}
+
+    # CREATE OPERATIONS (with RADIUS auto-config)
+        
+    def create_router(self, organization_id: UUID, network_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Create a new router with encrypted credentials.
-        Can be added offline or with immediate connection test.
+        Create a new router with automatic RADIUS configuration.
+        
+        Returns:
+            Dict containing router object and configuration status
         """
         # Validate required fields
         required = ['name', 'ip_address', 'username', 'password']
@@ -38,6 +142,9 @@ class RouterService:
             if not data.get(field):
                 raise ValidationError(f"{field} is required")
 
+        # Generate unique RADIUS secret
+        radius_secret = self._generate_radius_secret()
+        
         # Encrypt password
         encrypted_password = self.encryption.encrypt(data['password'])
 
@@ -53,18 +160,85 @@ class RouterService:
             'location': data.get('location'),
             'description': data.get('description'),
             'is_active': data.get('is_active', True),
-            'status': 'unknown'
+            'status': 'pending',
+            'radius_secret': radius_secret,
+            'radius_config_status': 'pending',
+            'auto_config_attempts': 0
         }
 
+        # Create router
         router = self.repository.create(router_data)
+        
+        # Create NAS entry for FreeRADIUS
+        nas_entry = self._create_nas_entry(router, radius_secret)
+        
+        # Attempt auto-configuration
+        auto_configured = False
+        config_error = None
+        
+        try:
+            # Test connection first
+            test_result = self.test_connection(router.id, organization_id)
+            
+            if test_result.get('success'):
+                # Auto-configure RADIUS on MikroTik
+                config_result = self._auto_configure_router_radius(router, radius_secret)
+                
+                if config_result.get('success'):
+                    auto_configured = True
+                    self.repository.update_radius_config_status(
+                        router.id, organization_id, 'configured'
+                    )
+                    router.radius_config_status = 'configured'
+                    router.radius_configured_at = datetime.utcnow()
+                    router.status = 'online'
+                    db.session.commit()
+                else:
+                    config_error = config_result.get('error')
+                    self.repository.update_radius_config_status(
+                        router.id, organization_id, 'failed', error=config_error
+                    )
+                    router.radius_config_status = 'failed'
+                    router.status = 'radius_pending'
+                    db.session.commit()
+            else:
+                config_error = test_result.get('error', 'Connection test failed')
+                router.status = 'offline'
+                db.session.commit()
+                
+        except Exception as e:
+            config_error = str(e)
+            logger.error(f"Auto-configuration failed for router {router.name}: {e}")
+            self.repository.update_radius_config_status(
+                router.id, organization_id, 'failed', error=config_error
+            )
+            router.radius_config_status = 'failed'
+            db.session.commit()
+        
+        # Prepare response
+        response = {
+            'router': router,
+            'auto_configured': auto_configured,
+            'radius_secret': radius_secret,  # Only shown once!
+            'radius_server_ip': current_app.config.get('RADIUS_SERVER_IP', '163.245.217.16'),
+        }
+        
+        if not auto_configured:
+            response['manual_config_instructions'] = {
+                'command': f'/radius add address={current_app.config.get("RADIUS_SERVER_IP", "163.245.217.16")} secret={radius_secret} service=hotspot,ppp',
+                'additional_commands': [
+                    '/ip hotspot set radius=yes',
+                    '/ppp set use-radius=yes'
+                ],
+                'message': 'Please run these commands on your MikroTik router to complete RADIUS configuration'
+            }
+            if config_error:
+                response['error'] = config_error
+        
+        logger.info(f"Router created: {router.name} (Auto-configured: {auto_configured})")
+        return response
 
-        # Attempt auto-discovery in background (non-blocking)
-        # For immediate feedback, caller should call discover() separately
-
-        logger.info(f"Router created: {router.name} (ID: {router.id})")
-        return router
-
-    # READ
+    # READ OPERATIONS
         
     def get_router(self, router_id: UUID, organization_id: UUID) -> Router:
         """Get router by ID with tenant isolation"""
@@ -75,15 +249,22 @@ class RouterService:
 
     def get_routers_by_organization(self, organization_id: UUID, skip: int = 0, 
                                      limit: int = 100, status: str = None,
-                                     network_id: UUID = None) -> List[Router]:
+                                     network_id: UUID = None,
+                                     radius_config_status: str = None) -> List[Router]:
         """Get all routers for an organization with filters"""
-        return self.repository.get_by_organization(organization_id, skip, limit, status, network_id)
+        return self.repository.get_by_organization(
+            organization_id, skip, limit, status, network_id, radius_config_status
+        )
 
     def get_routers_by_network(self, network_id: UUID, organization_id: UUID) -> List[Router]:
         """Get all routers in a specific network"""
         return self.repository.get_by_network(network_id, organization_id)
+    
+    def get_routers_pending_radius_config(self, organization_id: UUID) -> List[Router]:
+        """Get routers that need RADIUS configuration"""
+        return self.repository.get_routers_pending_radius_config(organization_id)
 
-    # UPDATE
+    # UPDATE OPERATIONS
         
     def update_router(self, router_id: UUID, organization_id: UUID, data: Dict[str, Any]) -> Router:
         """Update router information"""
@@ -99,8 +280,46 @@ class RouterService:
 
         logger.info(f"Router updated: {router_id}")
         return router
+    
+    def retry_radius_configuration(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
+        """
+        Retry RADIUS configuration for a router that previously failed
+        """
+        router = self.get_router(router_id, organization_id)
+        
+        if not router.radius_secret:
+            raise BusinessError("Router has no RADIUS secret configured")
+        
+        # Attempt auto-configuration
+        config_result = self._auto_configure_router_radius(router, router.radius_secret)
+        
+        if config_result.get('success'):
+            self.repository.update_radius_config_status(
+                router.id, organization_id, 'configured'
+            )
+            return {
+                'success': True,
+                'message': 'RADIUS configured successfully',
+                'radius_secret': router.radius_secret
+            }
+        else:
+            error_msg = config_result.get('error', 'Unknown error')
+            self.repository.update_radius_config_status(
+                router.id, organization_id, 'failed', error=error_msg
+            )
+            return {
+                'success': False,
+                'message': f'RADIUS configuration failed: {error_msg}',
+                'manual_config_instructions': {
+                    'command': f'/radius add address={current_app.config.get("RADIUS_SERVER_IP", "163.245.217.16")} secret={router.radius_secret} service=hotspot,ppp',
+                    'additional_commands': [
+                        '/ip hotspot set radius=yes',
+                        '/ppp set use-radius=yes'
+                    ]
+                }
+            }
 
-    # DELETE
+    # DELETE OPERATIONS
         
     def delete_router(self, router_id: UUID, organization_id: UUID, soft_delete: bool = True):
         """Soft or hard delete a router"""
@@ -119,7 +338,7 @@ class RouterService:
         self.repository.delete(router_id, organization_id, soft_delete)
         logger.info(f"Router {'deactivated' if soft_delete else 'deleted'}: {router_id}")
 
-    # DISCOVERY & CONNECTION (MULTI-METHOD)
+    # DISCOVERY & CONNECTION
         
     def discover_router(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
         """
@@ -210,7 +429,6 @@ class RouterService:
     def _discover_via_ssh(self, router: Router, password: str) -> Dict[str, Any]:
         """Discover via SSH command (fallback)"""
         # Placeholder for SSH implementation
-        # This would use paramiko to run '/system identity print' etc.
         raise Exception("SSH discovery not yet implemented")
 
     # CONNECTION TEST
@@ -238,7 +456,6 @@ class RouterService:
             
             # If successful, also try to discover capabilities
             if result.get("success"):
-                # ✅ REMOVED 'await' - discover_router is not async
                 self.discover_router(router_id, organization_id)
 
             return result
@@ -391,31 +608,35 @@ class RouterService:
             logger.error(f"Failed to sync PPPoE servers for router {router.id}: {e}")
             return 0
 
-    # RADIUS CONFIGURATION
+    # MANUAL RADIUS CONFIGURATION (Legacy/Manual fallback)
         
-    def configure_radius(self, router_id: UUID, organization_id: UUID, 
-                         radius_server: str, radius_secret: str) -> Dict[str, Any]:
-        """
-        Configure RADIUS settings on router (for hotspot/PPPoE authentication)
-        """
+    def configure_radius_manual(self, router_id: UUID, organization_id: UUID, 
+                                radius_server: str, radius_secret: str) -> Dict[str, Any]:
+        
         router = self.get_router(router_id, organization_id)
         password = self.encryption.decrypt(router.password_encrypted)
 
         try:
+            # Use the correct parameter structure: router_data dict
             result = self.mikrotik_client.configure_radius(
-                host=str(router.ip_address),
-                username=router.username,
-                password=password,
-                port=router.api_port,
+                router_data={
+                    'id': str(router.id),
+                    'ip_address': str(router.ip_address),
+                    'username': router.username,
+                    'password_encrypted': router.password_encrypted,
+                    'api_port': router.api_port
+                },
                 radius_server=radius_server,
-                radius_secret=radius_secret
+                radius_secret=radius_secret,
+                radius_port=1812,
+                radius_acct_port=1813
             )
 
             if result.get('success'):
-                # Optionally store RADIUS config in organization settings
-                logger.info(f"RADIUS configured on router {router.name}")
+                # Update router status
+                self.repository.update_radius_config_status(router_id, organization_id, 'configured')
                 
-                # Update router settings to mark RADIUS as configured
+                # Update router settings
                 settings = router.settings or {}
                 settings['radius_configured'] = True
                 settings['radius_server'] = radius_server
@@ -436,10 +657,11 @@ class RouterService:
             'router_id': str(router.id),
             'name': router.name,
             'status': router.status,
+            'radius_config_status': router.radius_config_status,
             'last_seen_at': router.last_seen_at.isoformat() if router.last_seen_at else None,
-            'cpu_usage': router.cpu_usage,
-            'memory_usage': router.memory_usage,
-            'uptime_seconds': router.uptime_seconds,
+            'cpu_usage': getattr(router, 'cpu_usage', None),
+            'memory_usage': getattr(router, 'memory_usage', None),
+            'uptime_seconds': getattr(router, 'uptime_seconds', None),
             'is_active': router.is_active,
-            'has_error': bool(router.last_error)
+            'has_error': bool(getattr(router, 'last_error', None))
         }

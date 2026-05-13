@@ -1,3 +1,4 @@
+# app/modules/router/schemas.py
 from marshmallow import Schema, fields, validate, validates, ValidationError, pre_load
 import ipaddress
 import re
@@ -5,7 +6,7 @@ from uuid import UUID
 
 
 class RouterCreateSchema(Schema):
-    """Schema for creating a new router"""
+    """Schema for creating a new router with RADIUS auto-configuration"""
     
     # Required fields
     name = fields.String(required=True, validate=validate.Length(min=2, max=255))
@@ -129,7 +130,7 @@ class RouterTestSchema(Schema):
 
 
 class RouterRadiusSchema(Schema):
-    """Schema for configuring RADIUS on a router"""
+    """Schema for manually configuring RADIUS on a router"""
     
     radius_server = fields.String(required=True)
     radius_secret = fields.String(required=True, validate=validate.Length(min=1))
@@ -164,9 +165,10 @@ class RouterFilterSchema(Schema):
     page = fields.Integer(load_default=1, validate=validate.Range(min=1))
     per_page = fields.Integer(load_default=20, validate=validate.Range(min=1, max=100))
     status = fields.String(validate=validate.OneOf(['online', 'offline', 'error', 'unknown']))
-    network_id = fields.UUID()
+    network_id = fields.UUID(required=False)
     search = fields.String(validate=validate.Length(max=100))
-    is_active = fields.Boolean()
+    is_active = fields.Boolean(required=False)
+    radius_config_status = fields.String(validate=validate.OneOf(['pending', 'configured', 'failed', 'manual']))
 
 
 class RouterBulkActionSchema(Schema):
@@ -182,3 +184,56 @@ class RouterBulkActionSchema(Schema):
             raise ValidationError('At least one router ID is required')
         if len(value) > 100:
             raise ValidationError('Cannot process more than 100 routers at once')
+
+
+class RouterRadiusRetrySchema(Schema):
+    """Schema for retrying RADIUS configuration on a router"""
+    
+    # No required fields - uses stored configuration
+    # 'force' is optional with metadata instead of description parameter
+    force = fields.Boolean(load_default=False, metadata={"description": "Force reconfiguration even if already configured"})
+
+
+class RouterResponseSchema(Schema):
+    """Schema for router API responses"""
+    
+    id = fields.UUID()
+    organization_id = fields.UUID()
+    network_id = fields.UUID()
+    name = fields.String()
+    model = fields.String(allow_none=True)
+    ip_address = fields.String()
+    api_port = fields.Integer()
+    username = fields.String()
+    location = fields.String(allow_none=True)
+    description = fields.String(allow_none=True)
+    status = fields.String()
+    radius_config_status = fields.String()
+    radius_configured_at = fields.DateTime(allow_none=True)
+    is_active = fields.Boolean()
+    created_at = fields.DateTime()
+    updated_at = fields.DateTime()
+    last_seen_at = fields.DateTime(allow_none=True)
+    last_sync_at = fields.DateTime(allow_none=True)
+    
+    # Health metrics
+    cpu_usage = fields.Integer(allow_none=True)
+    memory_usage = fields.Integer(allow_none=True)
+    uptime_seconds = fields.Integer(allow_none=True)
+    
+    class Meta:
+        ordered = True
+
+
+class RouterCreateResponseSchema(Schema):
+    """Schema for router creation response (includes RADIUS config)"""
+    
+    success = fields.Boolean()
+    router = fields.Nested(RouterResponseSchema)
+    auto_configured = fields.Boolean()
+    radius_secret = fields.String(allow_none=True)
+    radius_server_ip = fields.String(allow_none=True)
+    radius_ports = fields.Dict(keys=fields.String(), values=fields.Integer(), allow_none=True)
+    manual_config_instructions = fields.Dict(allow_none=True)
+    warning = fields.String(allow_none=True)
+    message = fields.String()

@@ -5,8 +5,8 @@
 {% block extra_css %}
 <style>
     /* ========================================
-       ROUTERS MODULE - PROFESSIONAL TABLE DESIGN
-       Clean, Modern, Mobile-First
+       ROUTERS MODULE -  TABLE DESIGN
+       Enhanced with RADIUS Status
        ========================================= */
     
     :root {
@@ -16,6 +16,7 @@
         --success: #059669;
         --danger: #dc2626;
         --warning: #d97706;
+        --info: #3b82f6;
         --gray-50: #f9fafb;
         --gray-100: #f3f4f6;
         --gray-200: #e5e7eb;
@@ -88,11 +89,14 @@
         align-items: center;
         gap: 0.375rem;
         transition: all 0.2s;
+        text-decoration: none;
     }
     
     .btn-add:hover {
         background: var(--primary-dark);
         transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
     }
     
     @media (min-width: 640px) {
@@ -102,7 +106,7 @@
         }
     }
 
-    /* Stats Cards - Minimal */
+    /* Stats Cards */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -112,7 +116,7 @@
     
     @media (min-width: 640px) {
         .stats-grid {
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 0.75rem;
         }
     }
@@ -230,7 +234,7 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 0.75rem;
-        min-width: 800px;
+        min-width: 900px;
     }
     
     .routers-table thead th {
@@ -305,9 +309,35 @@
         font-weight: 500;
     }
     
-    .metrics-cell {
-        font-family: monospace;
-        font-size: 0.7rem;
+    /* RADIUS Status Badge */
+    .radius-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.125rem 0.375rem;
+        border-radius: 1rem;
+        font-size: 0.6rem;
+        font-weight: 500;
+    }
+    
+    .radius-configured {
+        background: rgba(5, 150, 105, 0.1);
+        color: var(--success);
+    }
+    
+    .radius-pending {
+        background: rgba(217, 119, 6, 0.1);
+        color: var(--warning);
+    }
+    
+    .radius-failed {
+        background: rgba(220, 38, 38, 0.1);
+        color: var(--danger);
+    }
+    
+    .radius-unknown {
+        background: rgba(107, 114, 128, 0.1);
+        color: var(--gray-500);
     }
     
     .last-seen-cell {
@@ -330,6 +360,9 @@
         cursor: pointer;
         transition: all 0.2s;
         font-size: 0.75rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
     }
     
     .btn-view {
@@ -338,6 +371,7 @@
     
     .btn-view:hover {
         background: rgba(26, 86, 219, 0.1);
+        color: var(--primary-dark);
     }
     
     .btn-edit {
@@ -346,6 +380,15 @@
     
     .btn-edit:hover {
         background: var(--gray-100);
+        color: var(--gray-700);
+    }
+    
+    .btn-radius {
+        color: var(--info);
+    }
+    
+    .btn-radius:hover {
+        background: rgba(59, 130, 246, 0.1);
     }
     
     .btn-delete {
@@ -399,7 +442,7 @@
         </a>
     </div>
 
-    <!-- Stats Cards - Only show if routers exist -->
+    <!-- Stats Cards -->
     {% if routers %}
     <div class="stats-grid">
         <div class="stat-card">
@@ -425,10 +468,17 @@
         </div>
         <div class="stat-card">
             <div>
-                <div class="stat-number">{{ routers|selectattr('status', 'equalto', 'error')|list|length }}</div>
-                <div class="stat-label">Error</div>
+                <div class="stat-number">{{ routers|selectattr('radius_config_status', 'equalto', 'configured')|list|length }}</div>
+                <div class="stat-label">RADIUS Ready</div>
             </div>
-            <div class="stat-icon"><i class="fas fa-bug"></i></div>
+            <div class="stat-icon"><i class="fas fa-shield-alt" style="color: var(--success);"></i></div>
+        </div>
+        <div class="stat-card">
+            <div>
+                <div class="stat-number">{{ routers|selectattr('radius_config_status', 'equalto', 'pending')|list|length + routers|selectattr('radius_config_status', 'equalto', 'failed')|list|length }}</div>
+                <div class="stat-label">RADIUS Pending</div>
+            </div>
+            <div class="stat-icon"><i class="fas fa-clock" style="color: var(--warning);"></i></div>
         </div>
     </div>
     {% endif %}
@@ -444,6 +494,15 @@
                     <option value="offline">Offline</option>
                     <option value="error">Error</option>
                     <option value="unknown">Unknown</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>RADIUS Status</label>
+                <select id="radiusStatusFilter">
+                    <option value="">All</option>
+                    <option value="configured">Configured</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -475,8 +534,9 @@
                     <th>IP Address</th>
                     <th class="hide-mobile">Network</th>
                     <th>Status</th>
+                    <th>RADIUS</th>
                     <th class="hide-mobile">Last Seen</th>
-                    <th style="width: 80px;">Actions</th>
+                    <th style="width: 100px;">Actions</th>
                 </tr>
             </thead>
             <tbody id="routersTableBody">
@@ -485,6 +545,7 @@
                     data-name="{{ router.name|lower }}" 
                     data-ip="{{ router.ip_address }}" 
                     data-status="{{ router.status|default('unknown') }}" 
+                    data-radius-status="{{ router.radius_config_status|default('unknown') }}"
                     data-network="{{ router.network_id or '' }}">
                     <td>
                         <div class="router-name">{{ router.name }}</div>
@@ -501,6 +562,16 @@
                         <span class="status-text" style="color: var(--danger); margin-left: 0.5rem;">(Inactive)</span>
                         {% endif %}
                     </td>
+                    <td>
+                        <span class="radius-badge radius-{{ router.radius_config_status|default('unknown') }}">
+                            <i class="fas 
+                                {%- if router.radius_config_status == 'configured' %}fa-check-circle
+                                {%- elif router.radius_config_status == 'pending' %}fa-clock
+                                {%- elif router.radius_config_status == 'failed' %}fa-exclamation-triangle
+                                {%- else %}fa-question-circle{%- endif %}"></i>
+                            {{ (router.radius_config_status|default('Not Set'))|capitalize }}
+                        </span>
+                    </td>
                     <td class="last-seen-cell hide-mobile">
                         {% if router.last_seen_at %}
                             {{ router.last_seen_at.strftime('%Y-%m-%d %H:%M') }}
@@ -510,17 +581,22 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn-icon btn-view" title="View">
+                            <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn-icon btn-view" title="View Details">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" class="btn-icon btn-edit" title="Edit">
+                            <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" class="btn-icon btn-edit" title="Edit Router">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            {% if router.radius_config_status != 'configured' and router.radius_secret %}
+                            <button type="button" class="btn-icon btn-radius" onclick="retryRadiusConfig('{{ router.id }}')" title="Retry RADIUS Configuration">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            {% endif %}
                             <button type="button" class="btn-icon btn-delete" 
                                     data-bs-toggle="modal" data-bs-target="#deleteModal"
                                     data-router-id="{{ router.id }}" 
                                     data-router-name="{{ router.name }}"
-                                    title="Delete">
+                                    title="Delete Router">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -530,6 +606,32 @@
             </tbody>
         </table>
     </div>
+    
+    <!-- Pagination -->
+    {% if pagination and pagination.pages > 1 %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if pagination.page > 1 %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('router_web.index', org_id=organization.id, page=pagination.page-1, status=request.args.get('status', ''), network_id=request.args.get('network_id', '')) }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for p in range(1, pagination.pages + 1) %}
+            <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('router_web.index', org_id=organization.id, page=p, status=request.args.get('status', ''), network_id=request.args.get('network_id', '')) }}">{{ p }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if pagination.page < pagination.pages %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('router_web.index', org_id=organization.id, page=pagination.page+1, status=request.args.get('status', ''), network_id=request.args.get('network_id', '')) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
     {% else %}
     <!-- Empty State -->
     <div class="empty-state">
@@ -552,12 +654,12 @@
             </div>
             <div class="modal-body">
                 <p>Delete router <strong id="deleteRouterName"></strong>?</p>
-                <small class="text-muted">All associated hotspot and PPPoE configurations will be removed.</small>
+                <small class="text-muted">This will also deactivate the associated RADIUS NAS entry. All hotspot and PPPoE configurations will be removed.</small>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form id="deleteForm" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Delete</button>
+                    <button type="submit" class="btn btn-danger">Delete Router</button>
                 </form>
             </div>
         </div>
@@ -565,63 +667,112 @@
 </div>
 
 <script>
-    function filterRouters() {
-        const status = document.getElementById('statusFilter').value;
-        const network = document.getElementById('networkFilter').value;
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const rows = document.querySelectorAll('.router-row');
-        let visibleCount = 0;
-        
-        rows.forEach(row => {
-            const rowStatus = row.getAttribute('data-status');
-            const rowNetwork = row.getAttribute('data-network');
-            const rowName = row.getAttribute('data-name');
-            const rowIp = row.getAttribute('data-ip');
-            let show = true;
-            
-            if (status && rowStatus !== status) show = false;
-            if (network && rowNetwork !== network) show = false;
-            if (search && !rowName.includes(search) && !rowIp.includes(search)) show = false;
-            
-            row.style.display = show ? '' : 'none';
-            if (show) visibleCount++;
-        });
-        
-        const tableBody = document.getElementById('routersTableBody');
-        const existingMsg = document.getElementById('noResultsMsg');
-        
-        if (visibleCount === 0 && rows.length > 0) {
-            if (!existingMsg) {
-                const msgRow = document.createElement('tr');
-                msgRow.id = 'noResultsMsg';
-                msgRow.innerHTML = '<td colspan="6" class="empty-state" style="text-align: center;"><i class="fas fa-search"></i><p>No matching routers</p></td>';
-                tableBody.appendChild(msgRow);
+const orgId = '{{ organization.id }}';
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} alert-dismissible fade show`;
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;min-width:250px;';
+    toast.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+async function retryRadiusConfig(routerId) {
+    if (!confirm('Retry RADIUS configuration for this router?')) return;
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`/api/v1/routers/${routerId}/radius/retry`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
             }
-        } else if (existingMsg) {
-            existingMsg.remove();
-        }
-    }
-    
-    function resetFilters() {
-        document.getElementById('statusFilter').value = '';
-        document.getElementById('networkFilter').value = '';
-        document.getElementById('searchInput').value = '';
-        filterRouters();
-    }
-    
-    const deleteModal = document.getElementById('deleteModal');
-    if (deleteModal) {
-        deleteModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const routerId = button.getAttribute('data-router-id');
-            const routerName = button.getAttribute('data-router-name');
-            document.getElementById('deleteRouterName').textContent = routerName;
-            document.getElementById('deleteForm').action = `/organization/{{ organization.id }}/routers/${routerId}/delete`;
         });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success !== false) {
+            showToast('RADIUS configuration retried successfully!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast('Failed: ' + (data.error || data.message || 'Unknown error'), 'danger');
+        }
+    } catch (error) {
+        showToast('Network error: ' + error.message, 'danger');
     }
+}
+
+function filterRouters() {
+    const status = document.getElementById('statusFilter').value;
+    const radiusStatus = document.getElementById('radiusStatusFilter').value;
+    const network = document.getElementById('networkFilter').value;
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.router-row');
+    let visibleCount = 0;
     
-    document.getElementById('statusFilter').addEventListener('change', filterRouters);
-    document.getElementById('networkFilter').addEventListener('change', filterRouters);
-    document.getElementById('searchInput').addEventListener('input', filterRouters);
+    rows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        const rowRadiusStatus = row.getAttribute('data-radius-status');
+        const rowNetwork = row.getAttribute('data-network');
+        const rowName = row.getAttribute('data-name');
+        const rowIp = row.getAttribute('data-ip');
+        let show = true;
+        
+        if (status && rowStatus !== status) show = false;
+        if (radiusStatus && rowRadiusStatus !== radiusStatus) show = false;
+        if (network && rowNetwork !== network) show = false;
+        if (search && !rowName.includes(search) && !rowIp.includes(search)) show = false;
+        
+        row.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+    });
+    
+    const tableBody = document.getElementById('routersTableBody');
+    const existingMsg = document.getElementById('noResultsMsg');
+    
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!existingMsg) {
+            const msgRow = document.createElement('tr');
+            msgRow.id = 'noResultsMsg';
+            msgRow.innerHTML = '<td colspan="7" class="empty-state" style="text-align: center;"><i class="fas fa-search"></i><p>No matching routers</p></td>';
+            tableBody.appendChild(msgRow);
+        }
+    } else if (existingMsg) {
+        existingMsg.remove();
+    }
+}
+
+function resetFilters() {
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('radiusStatusFilter').value = '';
+    document.getElementById('networkFilter').value = '';
+    document.getElementById('searchInput').value = '';
+    filterRouters();
+}
+
+// Delete Modal handler
+const deleteModal = document.getElementById('deleteModal');
+if (deleteModal) {
+    deleteModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const routerId = button.getAttribute('data-router-id');
+        const routerName = button.getAttribute('data-router-name');
+        document.getElementById('deleteRouterName').textContent = routerName;
+        document.getElementById('deleteForm').action = `/organization/${orgId}/routers/${routerId}/delete`;
+    });
+}
+
+// Event listeners
+const statusFilter = document.getElementById('statusFilter');
+const radiusStatusFilter = document.getElementById('radiusStatusFilter');
+const networkFilter = document.getElementById('networkFilter');
+const searchInput = document.getElementById('searchInput');
+
+if (statusFilter) statusFilter.addEventListener('change', filterRouters);
+if (radiusStatusFilter) radiusStatusFilter.addEventListener('change', filterRouters);
+if (networkFilter) networkFilter.addEventListener('change', filterRouters);
+if (searchInput) searchInput.addEventListener('input', filterRouters);
 </script>
 {% endblock %}
