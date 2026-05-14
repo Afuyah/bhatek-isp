@@ -1,0 +1,329 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}Renew Subscription - {{ organization.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-box {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+    .expiry-warning {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+    }
+    .expiry-danger {
+        background: #f8d7da;
+        border-left: 4px solid #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Breadcrumb -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}">Subscribers</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}">{{ subscriber.display_name }}</a></li>
+                    <li class="breadcrumb-item active">Renew Subscription</li>
+                </ol>
+            </nav>
+            <h4 class="mt-2">Renew Subscription for {{ subscriber.display_name }}</h4>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Current Subscription Info -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-tag me-2"></i>Current Subscription</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="small text-muted">Plan Name</div>
+                            <div class="fw-bold fs-5">{{ active_subscription.plan.name }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="small text-muted">Current Price</div>
+                            <div class="fw-bold fs-5 text-primary">KES {{ "%.2f"|format(active_subscription.plan.price) }}</div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="small text-muted">Start Date</div>
+                            <div>{{ active_subscription.start_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="small text-muted">Current Expiry</div>
+                            <div class="fw-bold {% if active_subscription.expiry_time < now %}text-danger{% else %}text-warning{% endif %}">
+                                {{ active_subscription.expiry_time.strftime('%Y-%m-%d %H:%M') }}
+                                {% if active_subscription.expiry_time < now %}
+                                <span class="badge bg-danger ms-2">Expired</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="small text-muted">Bandwidth</div>
+                            <div>↓{{ active_subscription.get_bandwidth_down() }}/↑{{ active_subscription.get_bandwidth_up() }} Mbps</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="small text-muted">Device Limit</div>
+                            <div>{{ active_subscription.get_device_limit() }} devices</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="small text-muted">Auto-renew</div>
+                            <div>{% if active_subscription.auto_renew %}<span class="badge bg-success">Enabled</span>{% else %}<span class="badge bg-secondary">Disabled</span>{% endif %}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Renewal Options -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-sync-alt me-2"></i>Renewal Options</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('subscriber_web.renew_subscription_post', org_id=organization.id, subscriber_id=subscriber.id) }}">
+                        <input type="hidden" name="subscription_id" value="{{ active_subscription.id }}">
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Select Renewal Type</label>
+                            
+                            <div class="form-check mb-3 p-3 border rounded {% if active_subscription.expiry_time >= now %}border-primary{% else %}border-secondary{% endif %}">
+                                <input class="form-check-input" type="radio" name="plan_id" id="same_plan" value="same" checked>
+                                <label class="form-check-label fw-bold" for="same_plan">
+                                    Renew with same plan
+                                </label>
+                                <div class="ms-4 mt-2">
+                                    <div class="small text-muted">
+                                        <i class="fas fa-clock me-1"></i> Extend by {{ active_subscription.plan.validity_display }}
+                                    </div>
+                                    <div class="small text-muted">
+                                        <i class="fas fa-calendar-plus me-1"></i> New expiry: 
+                                        <strong>{{ (active_subscription.expiry_time + active_subscription.plan.validity_timedelta).strftime('%Y-%m-%d %H:%M') }}</strong>
+                                    </div>
+                                    <div class="small text-muted">
+                                        <i class="fas fa-tachometer-alt me-1"></i> Bandwidth: ↓{{ active_subscription.get_bandwidth_down() }}/↑{{ active_subscription.get_bandwidth_up() }} Mbps
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if plans %}
+                            <div class="form-check mb-3 p-3 border rounded">
+                                <input class="form-check-input" type="radio" name="plan_id" id="upgrade_plan" value="">
+                                <label class="form-check-label fw-bold" for="upgrade_plan">
+                                    Upgrade to a different plan
+                                </label>
+                            </div>
+                            
+                            <div id="plan_selection" style="display: none;" class="mt-3 ms-4">
+                                <label class="form-label fw-bold">Select New Plan</label>
+                                <div class="row">
+                                    {% for plan in plans %}
+                                    {% if plan.id != active_subscription.plan.id %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check p-2 border rounded">
+                                            <input class="form-check-input" type="radio" name="plan_id" id="plan_{{ plan.id }}" value="{{ plan.id }}">
+                                            <label class="form-check-label fw-bold" for="plan_{{ plan.id }}">
+                                                {{ plan.name }}
+                                            </label>
+                                            <div class="small text-muted ms-4">
+                                                {{ plan.validity_display }} | ↓{{ plan.bandwidth_down_mbps }}/↑{{ plan.bandwidth_up_mbps }} Mbps
+                                            </div>
+                                            <div class="small text-primary ms-4 fw-bold">
+                                                KES {{ "%.2f"|format(plan.price) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="auto_renew" id="auto_renew" value="true" {% if active_subscription.auto_renew %}checked{% endif %}>
+                                <label class="form-check-label" for="auto_renew">
+                                    <i class="fas fa-sync-alt me-1"></i> Enable auto-renewal
+                                </label>
+                                <div class="small text-muted">Subscription will automatically renew on expiry</div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> Renewal will charge the subscriber according to the plan price. 
+                            {% if active_subscription.expiry_time < now %}
+                            The subscription has already expired. Renewal will activate it immediately.
+                            {% else %}
+                            The new expiry date will be calculated from the current expiry date.
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-1"></i> Confirm Renewal
+                            </button>
+                            <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Summary Card -->
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Renewal Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <div class="small text-muted">Subscriber</div>
+                        <div class="fw-bold">{{ subscriber.get_full_name() or subscriber.display_name }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Current Plan</div>
+                        <div>{{ active_subscription.plan.name }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Current Expiry</div>
+                        <div class="{% if active_subscription.expiry_time < now %}text-danger{% else %}text-warning{% endif %}">
+                            {{ active_subscription.expiry_time.strftime('%Y-%m-%d %H:%M') }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-2">
+                        <div class="small text-muted">Renewal Plan</div>
+                        <div id="summary_plan" class="fw-bold">{{ active_subscription.plan.name }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="small text-muted">New Expiry Date</div>
+                        <div id="summary_expiry" class="fw-bold text-success">
+                            {{ (active_subscription.expiry_time + active_subscription.plan.validity_timedelta).strftime('%Y-%m-%d') }}
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Amount to Charge</div>
+                        <div id="summary_price" class="fw-bold fs-5 text-primary">
+                            KES {{ "%.2f"|format(active_subscription.plan.price) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Help Card -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fas fa-question-circle me-2"></i>Need Help?</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <i class="fas fa-check-circle text-success me-2"></i> Renewal extends the subscription validity.<br><br>
+                        <i class="fas fa-arrow-up text-info me-2"></i> Upgrade option allows changing to a different plan.<br><br>
+                        <i class="fas fa-sync-alt text-warning me-2"></i> Enable auto-renew for automatic billing.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const samePlanRadio = document.getElementById('same_plan');
+    const upgradeRadio = document.getElementById('upgrade_plan');
+    const planSelection = document.getElementById('plan_selection');
+    const summaryPlan = document.getElementById('summary_plan');
+    const summaryExpiry = document.getElementById('summary_expiry');
+    const summaryPrice = document.getElementById('summary_price');
+    
+    // Current subscription data
+    const currentPlan = {
+        name: "{{ active_subscription.plan.name }}",
+        price: {{ active_subscription.plan.price }},
+        validity_timedelta: {{ active_subscription.plan.validity_timedelta.total_seconds() }}
+    };
+    
+    const currentExpiry = new Date("{{ active_subscription.expiry_time.isoformat() }}");
+    const now = new Date("{{ now.isoformat() }}");
+    
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+    
+    function addDays(date, days) {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+    
+    function updateSummary(planName, planPrice, daysToAdd) {
+        summaryPlan.textContent = planName;
+        summaryPrice.textContent = `KES ${planPrice.toFixed(2)}`;
+        
+        let newExpiry;
+        if (currentExpiry < now) {
+            // If expired, calculate from today
+            newExpiry = addDays(now, daysToAdd);
+        } else {
+            // If not expired, add to current expiry
+            newExpiry = addDays(currentExpiry, daysToAdd);
+        }
+        summaryExpiry.textContent = formatDate(newExpiry);
+    }
+    
+    // Same plan selected (default)
+    if (samePlanRadio) {
+        samePlanRadio.addEventListener('change', function() {
+            if (this.checked) {
+                planSelection.style.display = 'none';
+                updateSummary(
+                    "{{ active_subscription.plan.name }}",
+                    {{ active_subscription.plan.price }},
+                    {{ active_subscription.plan.validity_timedelta.days }}
+                );
+            }
+        });
+    }
+    
+    if (upgradeRadio) {
+        upgradeRadio.addEventListener('change', function() {
+            if (this.checked) {
+                planSelection.style.display = 'block';
+            }
+        });
+    }
+    
+    // Plan radio buttons
+    document.querySelectorAll('input[name="plan_id"]').forEach(radio => {
+        if (radio.id !== 'same_plan' && radio.id !== 'upgrade_plan') {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    // Extract plan data from the label or use data attributes
+                    const planCard = this.closest('.form-check');
+                    if (planCard) {
+                        const planName = planCard.querySelector('.fw-bold')?.textContent || 'Unknown Plan';
+                        const priceMatch = planCard.querySelector('.text-primary')?.textContent.match(/[\d.]+/);
+                        const planPrice = priceMatch ? parseFloat(priceMatch[0]) : 0;
+                        updateSummary(planName, planPrice, 30); // Default 30 days, you can extract actual days
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

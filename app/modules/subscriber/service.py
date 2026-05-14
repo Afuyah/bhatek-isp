@@ -67,7 +67,7 @@ class SubscriberService:
     def radius_sync_service(self):
         """Lazy load RADIUS sync service"""
         if self._radius_sync_service is None:
-            from app.modules.radius.service import RadiusSyncService
+            from app.integrations.radius.radius_sync_service import RadiusSyncService
             self._radius_sync_service = RadiusSyncService()
         return self._radius_sync_service
     
@@ -275,6 +275,8 @@ class SubscriberService:
                             plan_id: UUID, auto_renew: bool = False) -> Subscription:
         """Create a new subscription for a subscriber"""
         try:
+            from decimal import Decimal
+            
             plan = self.plan_repository.get_by_id(plan_id, organization_id)
             if not plan:
                 raise NotFoundError('Plan not found')
@@ -308,8 +310,10 @@ class SubscriberService:
             subscription = Subscription(**subscription_data)
             db.session.add(subscription)
             
-            # Update total spent
-            subscriber.total_spent = (subscriber.total_spent or 0) + float(plan.price)
+            #  Update total spent with proper Decimal handling
+            current_spent = Decimal(str(subscriber.total_spent)) if subscriber.total_spent else Decimal('0')
+            plan_price = Decimal(str(plan.price))
+            subscriber.total_spent = current_spent + plan_price
             
             db.session.commit()
             
@@ -555,8 +559,8 @@ class SubscriberService:
 # DEVICE MANAGEMENT
 
     def add_device(self, subscriber_id: UUID, organization_id: UUID, 
-                   mac_address: str, device_name: str = None, 
-                   device_type: str = None) -> Dict[str, Any]:
+               mac_address: str, device_name: str = None, 
+               device_type: str = None) -> Dict[str, Any]:
         """Add a device to subscriber"""
         try:
             subscriber = self.get_subscriber(subscriber_id, organization_id)
@@ -580,10 +584,8 @@ class SubscriberService:
             if len(devices) >= max_devices:
                 raise BusinessError(f'Device limit reached ({max_devices} devices)')
             
-            # Add device
+            # Prepare device data (without organization_id and subscriber_id)
             device_data = {
-                'organization_id': organization_id,
-                'subscriber_id': subscriber_id,
                 'mac_address': mac_address.upper(),
                 'device_name': device_name,
                 'device_type': device_type,
@@ -592,7 +594,12 @@ class SubscriberService:
                 'last_seen_at': datetime.utcnow()
             }
             
-            device = self.repository.add_device(device_data)
+            # ✅ CORRECT: Pass all 3 required arguments
+            device = self.repository.add_device(
+                subscriber_id=subscriber_id,
+                organization_id=organization_id,
+                data=device_data
+            )
             
             logger.info(f"Added device {mac_address} to subscriber {subscriber_id}")
             

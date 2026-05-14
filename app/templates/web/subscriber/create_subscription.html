@@ -1,0 +1,303 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}Assign Plan - {{ organization.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .plan-card {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .plan-card:hover {
+        border-color: #0d6efd;
+        background-color: #f8f9fa;
+    }
+    .plan-card.selected {
+        border-color: #0d6efd;
+        background-color: #e7f1ff;
+        border-width: 2px;
+    }
+    .plan-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0d6efd;
+    }
+    .plan-features {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Breadcrumb -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}">Subscribers</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}">{{ subscriber.display_name }}</a></li>
+                    <li class="breadcrumb-item active">Assign Plan</li>
+                </ol>
+            </nav>
+            <h4 class="mt-2">Assign Internet Plan to {{ subscriber.display_name }}</h4>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Select Internet Plan</h5>
+                </div>
+                <div class="card-body">
+                    {% if plans %}
+                    <form method="POST" action="{{ url_for('subscriber_web.create_subscription', org_id=organization.id, subscriber_id=subscriber.id) }}">
+                        <input type="hidden" name="subscriber_id" value="{{ subscriber.id }}">
+                        
+                        <div class="row">
+                            {% for plan in plans %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card plan-card h-100" data-plan-id="{{ plan.id }}" onclick="selectPlan('{{ plan.id }}')">
+                                    <div class="card-body">
+                                        <div class="form-check">
+                                            <input class="form-check-input plan-radio" type="radio" name="plan_id" id="plan_{{ plan.id }}" value="{{ plan.id }}" {% if loop.first %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold fs-5" for="plan_{{ plan.id }}">
+                                                {{ plan.name }}
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="plan-price mt-2">
+                                            KES {{ "%.2f"|format(plan.price) }}
+                                            {% if plan.setup_fee > 0 %}
+                                            <span class="small text-muted">+ KES {{ "%.2f"|format(plan.setup_fee) }} setup</span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <hr>
+                                        
+                                        <div class="plan-features">
+                                            <div class="mb-2">
+                                                <i class="fas fa-clock me-2"></i>
+                                                <strong>Validity:</strong> {{ plan.validity_display }}
+                                            </div>
+                                            <div class="mb-2">
+                                                <i class="fas fa-tachometer-alt me-2"></i>
+                                                <strong>Bandwidth:</strong> ↓{{ plan.bandwidth_down_mbps }}/↑{{ plan.bandwidth_up_mbps }} Mbps
+                                            </div>
+                                            <div class="mb-2">
+                                                <i class="fas fa-mobile-alt me-2"></i>
+                                                <strong>Concurrent Logins:</strong> {{ plan.concurrent_logins }}
+                                            </div>
+                                            <div class="mb-2">
+                                                <i class="fas fa-microchip me-2"></i>
+                                                <strong>Device Limit:</strong> {{ plan.device_limit }}
+                                            </div>
+                                            {% if plan.session_timeout_seconds %}
+                                            <div class="mb-2">
+                                                <i class="fas fa-hourglass-half me-2"></i>
+                                                <strong>Session Timeout:</strong> {{ (plan.session_timeout_seconds / 3600)|int }} hours
+                                            </div>
+                                            {% endif %}
+                                            {% if plan.idle_timeout_seconds %}
+                                            <div class="mb-2">
+                                                <i class="fas fa-bed me-2"></i>
+                                                <strong>Idle Timeout:</strong> {{ (plan.idle_timeout_seconds / 60)|int }} minutes
+                                            </div>
+                                            {% endif %}
+                                            {% if plan.validity_type == 'data_based' and plan.data_limit_mb %}
+                                            <div class="mb-2">
+                                                <i class="fas fa-database me-2"></i>
+                                                <strong>Data Limit:</strong> 
+                                                {% if plan.data_limit_mb >= 1024 %}
+                                                    {{ (plan.data_limit_mb / 1024)|int }} GB
+                                                {% else %}
+                                                    {{ plan.data_limit_mb }} MB
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                            {% if plan.auto_renew %}
+                                            <div class="mb-2">
+                                                <i class="fas fa-sync-alt me-2 text-success"></i>
+                                                <span class="text-success">Auto-renew available</span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if plan.description %}
+                                        <div class="mt-2 small text-muted">
+                                            <i class="fas fa-info-circle me-1"></i> {{ plan.description|truncate(100) }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="auto_renew" id="auto_renew" value="true">
+                                <label class="form-check-label" for="auto_renew">
+                                    <i class="fas fa-sync-alt me-1"></i> Auto-renew subscription
+                                </label>
+                                <div class="small text-muted">Subscription will automatically renew on expiry date</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-1"></i> Assign Plan
+                            </button>
+                            <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No active plans available. Please <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="alert-link">create a plan</a> first.
+                    </div>
+                    <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Subscriber
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Subscriber Info Card -->
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-user me-2"></i>Subscriber Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <div class="small text-muted">Name</div>
+                        <div class="fw-bold">{{ subscriber.get_full_name() or subscriber.display_name }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Phone</div>
+                        <div>{{ subscriber.phone or 'Not set' }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Email</div>
+                        <div>{{ subscriber.email or 'Not set' }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Type</div>
+                        <div><span class="badge bg-primary">{{ subscriber.subscriber_type|upper }}</span></div>
+                    </div>
+                    {% if subscriber.subscriber_type == 'pppoe' %}
+                    <div class="mb-2">
+                        <div class="small text-muted">PPPoE Username</div>
+                        <div><code>{{ subscriber.username }}</code></div>
+                    </div>
+                    {% endif %}
+                    <div class="mb-2">
+                        <div class="small text-muted">Status</div>
+                        <div><span class="badge {% if subscriber.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">{{ subscriber.status|capitalize }}</span></div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Registered On</div>
+                        <div>{{ subscriber.created_at.strftime('%Y-%m-%d') if subscriber.created_at else 'N/A' }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Current Subscription Info (if exists) -->
+            {% if active_subscription %}
+            <div class="card mb-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-tag me-2"></i>Current Active Plan</h6>
+                </div>
+                <div class="card-body">
+                    <div class="fw-bold">{{ active_subscription.plan.name }}</div>
+                    <div class="small text-muted mt-1">
+                        <i class="fas fa-calendar me-1"></i> Expires: {{ active_subscription.expiry_time.strftime('%Y-%m-%d') }}
+                    </div>
+                    <div class="small text-muted">
+                        <i class="fas fa-tachometer-alt me-1"></i> ↓{{ active_subscription.get_bandwidth_down() }}/↑{{ active_subscription.get_bandwidth_up() }} Mbps
+                    </div>
+                    <div class="alert alert-info mt-2 mb-0 small">
+                        <i class="fas fa-info-circle me-1"></i> Assigning a new plan will replace the current subscription.
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Help Card -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fas fa-question-circle me-2"></i>Need Help?</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <i class="fas fa-check-circle text-success me-2"></i> The subscriber will have immediate access after plan assignment.<br><br>
+                        <i class="fas fa-clock text-info me-2"></i> Time-based plans expire after the validity period.<br><br>
+                        <i class="fas fa-database text-primary me-2"></i> Data-based plans expire when data limit is reached.<br><br>
+                        <i class="fas fa-sync-alt text-warning me-2"></i> Enable auto-renew for automatic billing.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectPlan(planId) {
+        // Uncheck all radio buttons
+        document.querySelectorAll('.plan-radio').forEach(radio => {
+            radio.checked = false;
+        });
+        
+        // Check the selected plan's radio button
+        const selectedRadio = document.getElementById(`plan_${planId}`);
+        if (selectedRadio) {
+            selectedRadio.checked = true;
+        }
+        
+        // Remove selected class from all plan cards
+        document.querySelectorAll('.plan-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Add selected class to the clicked card
+        const selectedCard = document.querySelector(`.plan-card[data-plan-id="${planId}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+        }
+    }
+    
+    // Initialize - highlight the preselected plan (first one by default)
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectedRadio = document.querySelector('.plan-radio:checked');
+        if (selectedRadio) {
+            const parentCard = selectedRadio.closest('.plan-card');
+            if (parentCard) {
+                parentCard.classList.add('selected');
+            }
+        }
+        
+        // Add click handlers to all plan cards for better UX
+        document.querySelectorAll('.plan-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Don't trigger if clicking on the radio button itself (to avoid double handling)
+                if (e.target.type !== 'radio') {
+                    const radioId = this.querySelector('.plan-radio').id;
+                    const radio = document.getElementById(radioId);
+                    if (radio) {
+                        radio.checked = true;
+                        // Trigger the selectPlan function
+                        const planId = this.getAttribute('data-plan-id');
+                        selectPlan(planId);
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

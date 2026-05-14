@@ -1,0 +1,98 @@
+{% extends "web/base.html" %}
+
+{% block title %}PPPoE Users - {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">PPPoE Users</h1>
+        <a href="{{ url_for('subscriber_web.create_pppoe', org_id=organization.id) }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add PPPoE User
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">PPPoE User List</h5>
+        </div>
+        <div class="card-body">
+            {% if subscribers %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Plan</th>
+                            <th>Status</th>
+                            <th>Expiry</th>
+                            <th>Total Spent</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subscriber in subscribers %}
+                        <tr>
+                            <td>{{ subscriber.username }}</td>
+                            <td>
+                                {% if subscriber.active_subscription %}
+                                    {{ subscriber.active_subscription.plan.name }}
+                                {% else %}
+                                    <span class="badge bg-warning">No active plan</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if subscriber.status == 'active' %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ subscriber.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if subscriber.active_subscription %}
+                                    {{ subscriber.active_subscription.expiry_time|datetimeformat }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>KES {{ "%.2f"|format(subscriber.total_spent or 0) }}</td>
+                            <td>
+                                <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+                                   class="btn btn-sm btn-info">View</a>
+                                <a href="{{ url_for('subscriber_web.edit', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+                                   class="btn btn-sm btn-warning">Edit</a>
+                                <button type="button" class="btn btn-sm btn-danger" 
+                                        onclick="confirmDelete('{{ subscriber.id }}', '{{ subscriber.username }}')">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No PPPoE users found. <a href="{{ url_for('subscriber_web.create_pppoe', org_id=organization.id) }}">Create your first PPPoE user</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(id, name) {
+    if (confirm('Are you sure you want to delete PPPoE user "' + name + '"?')) {
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ url_for("subscriber_web.delete", org_id=organization.id, subscriber_id="") }}' + id;
+        
+        var softInput = document.createElement('input');
+        softInput.type = 'hidden';
+        softInput.name = 'soft';
+        softInput.value = 'true';
+        form.appendChild(softInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

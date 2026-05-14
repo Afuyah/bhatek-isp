@@ -1,4 +1,3 @@
-
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request, abort
 from functools import wraps
 from uuid import UUID
@@ -10,6 +9,7 @@ from app.modules.billing.service import BillingService
 from app.modules.organization.service import OrganizationService
 from app.modules.auth.repository import UserRepository
 from app.modules.network.service import NetworkService
+from app.core.exceptions.handlers import NotFoundError, BusinessError
 
 # Create web blueprint with organization ID in URL pattern
 subscriber_web_bp = Blueprint('subscriber_web', __name__, url_prefix='/organization/<org_id>/subscribers')
@@ -70,6 +70,7 @@ def web_subscriber_access_required(f):
     return decorated_function
 
 # SUBSCRIBER LISTING
+
 @subscriber_web_bp.route('/')
 @web_subscriber_access_required
 def index(org_id, current_user=None, current_organization=None, hotspot_plans=None, pppoe_plans=None):
@@ -100,7 +101,7 @@ def index(org_id, current_user=None, current_organization=None, hotspot_plans=No
         subscriber_type=subscriber_type
     )
     
-    # ✅ Pre-load active subscription for each subscriber
+    # Pre-load active subscription for each subscriber
     for subscriber in subscribers:
         subscriber.active_sub = subscriber_service.get_active_subscription(
             subscriber.id, current_organization.id
@@ -131,7 +132,8 @@ def index(org_id, current_user=None, current_organization=None, hotspot_plans=No
         stats=stats,
         filters={'type': subscriber_type, 'status': status, 'search': search}
     )
-    
+
+
 @subscriber_web_bp.route('/hotspot')
 @web_subscriber_access_required
 def hotspot_users(org_id, current_user=None, current_organization=None, hotspot_plans=None, pppoe_plans=None):
@@ -188,6 +190,7 @@ def pppoe_users(org_id, current_user=None, current_organization=None, hotspot_pl
     )
 
 # SUBSCRIBER CREATE (Hotspot & PPPoE)
+
 @subscriber_web_bp.route('/create/hotspot', methods=['GET', 'POST'])
 @web_subscriber_access_required
 def create_hotspot(org_id, current_user=None, current_organization=None, hotspot_plans=None, pppoe_plans=None):
@@ -283,6 +286,7 @@ def create_pppoe(org_id, current_user=None, current_organization=None, hotspot_p
                              plans=pppoe_plans, form_data=request.form)
 
 # SUBSCRIBER DETAILS
+
 @subscriber_web_bp.route('/<subscriber_id>')
 @web_subscriber_access_required
 def show(org_id, subscriber_id, current_user=None, current_organization=None, hotspot_plans=None, pppoe_plans=None):
@@ -304,6 +308,9 @@ def show(org_id, subscriber_id, current_user=None, current_organization=None, ho
         # Get statistics
         stats = subscriber_service.get_subscriber_stats(subscriber_uuid, current_organization.id)
         
+        # Add current time for expiry comparison
+        now = datetime.utcnow()
+        
         return render_template(
             'web/subscriber/show.html',
             organization=current_organization,
@@ -312,7 +319,8 @@ def show(org_id, subscriber_id, current_user=None, current_organization=None, ho
             active_subscription=active_subscription,
             subscription_history=subscription_history,
             devices=devices,
-            stats=stats
+            stats=stats,
+            now=now
         )
         
     except ValueError:
@@ -412,10 +420,11 @@ def delete(org_id, subscriber_id, current_user=None, current_organization=None, 
     return redirect(url_for('subscriber_web.index', org_id=org_id))
 
 # SUBSCRIPTION MANAGEMENT
+
 @subscriber_web_bp.route('/<subscriber_id>/subscriptions/create', methods=['GET', 'POST'])
 @web_subscriber_access_required
 def create_subscription(org_id, subscriber_id, current_user=None, current_organization=None, hotspot_plans=None, pppoe_plans=None):
-    """Create a subscription for a subscriber (admin only)"""
+    """Create a subscription for a subscriber (assign plan)"""
     
     try:
         subscriber_uuid = UUID(subscriber_id)
@@ -447,7 +456,7 @@ def create_subscription(org_id, subscriber_id, current_user=None, current_organi
             auto_renew=auto_renew
         )
         
-        flash(f'Subscription created successfully! Expires: {subscription.expiry_time.strftime("%Y-%m-%d")}', 'success')
+        flash(f'Plan assigned successfully! Subscription expires: {subscription.expiry_time.strftime("%Y-%m-%d")}', 'success')
         return redirect(url_for('subscriber_web.show', org_id=org_id, subscriber_id=subscriber_id))
         
     except ValueError:
@@ -459,6 +468,104 @@ def create_subscription(org_id, subscriber_id, current_user=None, current_organi
         return redirect(url_for('subscriber_web.show', org_id=org_id, subscriber_id=subscriber_id))
 
 
+@subscriber_web_bp.route('/<subscriber_id>/subscriptions/renew', methods=['GET'])
+@web_subscriber_access_required
+def renew_subscription_form(org_id, subscriber_id, current_user=None, current_organization=None, hotspot_plans=None, pppoe_plans=None):
+    """Show form to renew subscription"""
+    try:
+        subscriber_uuid = UUID(subscriber_id)
+        subscriber = subscriber_service.get_subscriber(subscriber_uuid, current_organization.id)
+        
+        # Get active subscription
+        active_subscription = subscriber_service.get_active_subscription(subscriber_uuid, current_organization.id)
+        
+        if not active_subscription:
+            flash('No active subscription found to renew', 'warning')
+            return redirect(url_for('subscriber_web.show', org_id=org_id, subscriber_id=subscriber_id))
+        
+        # Get all active plans for potential upgrade
+        all_plans = billing_service.get_plans(current_organization.id, only_active=True)
+        
+        # Current time for expiry comparison
+        now = datetime.utcnow()
+        
+        return render_template(
+            'web/subscriber/renew_subscription.html',
+            organization=current_organization,
+            user=current_user,
+            subscriber=subscriber,
+            active_subscription=active_subscription,
+            plans=all_plans,
+            now=now
+        )
+        
+    except ValueError:
+        flash('Invalid subscriber ID format', 'danger')
+        return redirect(url_for('subscriber_web.index', org_id=org_id))
+    except Exception as e:
+        logger.error(f"Error loading renew form: {e}", exc_info=True)
+        flash(f'Error loading renewal form: {str(e)}', 'danger')
+        return redirect(url_for('subscriber_web.show', org_id=org_id, subscriber_id=subscriber_id))
+
+
+@subscriber_web_bp.route('/<subscriber_id>/subscriptions/renew', methods=['POST'])
+@web_subscriber_access_required
+def renew_subscription_post(org_id, subscriber_id, current_user=None, current_organization=None, hotspot_plans=None, pppoe_plans=None):
+    """Process subscription renewal"""
+    try:
+        subscriber_uuid = UUID(subscriber_id)
+        subscription_id = request.form.get('subscription_id')
+        plan_id = request.form.get('plan_id')
+        auto_renew = request.form.get('auto_renew') == 'true'
+        
+        if not subscription_id:
+            flash('Invalid subscription', 'danger')
+            return redirect(url_for('subscriber_web.show', org_id=org_id, subscriber_id=subscriber_id))
+        
+        subscription_uuid = UUID(subscription_id)
+        
+        # If a new plan is selected (not 'same'), upgrade to different plan
+        if plan_id and plan_id != 'same':
+            # Cancel old subscription
+            try:
+                billing_service.cancel_subscription(subscription_uuid, current_organization.id, 'replaced_by_new_plan')
+            except Exception as e:
+                logger.warning(f"Could not cancel old subscription: {e}")
+            
+            # Create new subscription with new plan
+            new_subscription = billing_service.create_subscription(
+                organization_id=current_organization.id,
+                subscriber_id=subscriber_uuid,
+                plan_id=UUID(plan_id),
+                auto_renew=auto_renew
+            )
+            
+            flash(f'Plan upgraded to {new_subscription.plan.name} successfully! Expires: {new_subscription.expiry_time.strftime("%Y-%m-%d")}', 'success')
+        else:
+            # Renew with same plan
+            result = billing_service.renew_subscription(subscription_uuid, current_organization.id)
+            
+            # Get updated subscription to show new expiry
+            updated_sub = billing_service.get_subscription(subscription_uuid, current_organization.id)
+            flash(f'Subscription renewed successfully! New expiry: {updated_sub.expiry_time.strftime("%Y-%m-%d")}', 'success')
+        
+        return redirect(url_for('subscriber_web.show', org_id=org_id, subscriber_id=subscriber_id))
+        
+    except ValueError as e:
+        flash(f'Invalid ID format: {str(e)}', 'danger')
+        return redirect(url_for('subscriber_web.show', org_id=org_id, subscriber_id=subscriber_id))
+    except NotFoundError as e:
+        flash(str(e), 'danger')
+        return redirect(url_for('subscriber_web.show', org_id=org_id, subscriber_id=subscriber_id))
+    except BusinessError as e:
+        flash(str(e), 'warning')
+        return redirect(url_for('subscriber_web.show', org_id=org_id, subscriber_id=subscriber_id))
+    except Exception as e:
+        logger.error(f"Error processing renewal: {e}", exc_info=True)
+        flash(f'Error renewing subscription: {str(e)}', 'danger')
+        return redirect(url_for('subscriber_web.show', org_id=org_id, subscriber_id=subscriber_id))
+
+
 @subscriber_web_bp.route('/subscriptions/<subscription_id>/cancel', methods=['POST'])
 @web_subscriber_access_required
 def cancel_subscription(org_id, subscription_id, current_user=None, current_organization=None, hotspot_plans=None, pppoe_plans=None):
@@ -466,7 +573,8 @@ def cancel_subscription(org_id, subscription_id, current_user=None, current_orga
     
     try:
         sub_uuid = UUID(subscription_id)
-        subscriber_service.cancel_subscription(sub_uuid, current_organization.id)
+        reason = request.form.get('reason', 'user_requested')
+        billing_service.cancel_subscription(sub_uuid, current_organization.id, reason)
         flash('Subscription cancelled successfully', 'success')
         
     except ValueError:
@@ -478,6 +586,7 @@ def cancel_subscription(org_id, subscription_id, current_user=None, current_orga
     return redirect(request.referrer or url_for('subscriber_web.index', org_id=org_id))
 
 # DEVICE MANAGEMENT
+
 @subscriber_web_bp.route('/<subscriber_id>/devices/create', methods=['GET', 'POST'])
 @web_subscriber_access_required
 def add_device(org_id, subscriber_id, current_user=None, current_organization=None, hotspot_plans=None, pppoe_plans=None):
