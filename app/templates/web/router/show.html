@@ -2,818 +2,461 @@
 
 {% block title %}{{ organization.name }} - {{ router.name }}{% endblock %}
 
-{% block extra_css %}
-<style>
-  
-    /* ========================================
-       ROUTER DETAILS - MODERN DESIGN
-       WITH RADIUS SUPPORT
-       ========================================= */
-    
-    :root {
-        --primary: #2d6a4f;
-        --primary-light: #40916c;
-        --primary-dark: #1b4332;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --info: #3b82f6;
-        --gray-50: #f8fafc;
-        --gray-100: #f1f5f9;
-        --gray-200: #e2e8f0;
-        --gray-300: #cbd5e1;
-        --gray-400: #94a3b8;
-        --gray-500: #64748b;
-        --gray-600: #475569;
-        --gray-700: #334155;
-        --gray-800: #1e293b;
-    }
-
-    .router-detail-container {
-        padding: 0.75rem;
-    }
-
-    @media (min-width: 768px) {
-        .router-detail-container {
-            padding: 1rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .router-detail-container {
-            padding: 1.5rem;
-        }
-    }
-
-    /* Breadcrumb */
-    .breadcrumb-custom {
-        margin-bottom: 0.75rem;
-    }
-
-    .breadcrumb-custom .breadcrumb {
-        background: transparent;
-        padding: 0;
-        margin: 0;
-    }
-
-    .breadcrumb-custom .breadcrumb-item {
-        font-size: 0.7rem;
-    }
-
-    .breadcrumb-custom .breadcrumb-item a {
-        color: var(--gray-500);
-        text-decoration: none;
-    }
-
-    .breadcrumb-custom .breadcrumb-item a:hover {
-        color: var(--primary);
-    }
-
-    @media (min-width: 768px) {
-        .breadcrumb-custom .breadcrumb-item {
-            font-size: 0.75rem;
-        }
-    }
-
-    /* Header Section */
-    .header-section {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
-
-    @media (min-width: 768px) {
-        .header-section {
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.25rem;
-        }
-    }
-
-    .title-section h4 {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin: 0;
-        color: var(--gray-800);
-    }
-
-    @media (min-width: 768px) {
-        .title-section h4 {
-            font-size: 1.25rem;
-        }
-    }
-
-    .badge-group {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 0.25rem;
-    }
-
-    .status-badge-sm {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.2rem 0.6rem;
-        border-radius: 1rem;
-        font-size: 0.65rem;
-        font-weight: 600;
-    }
-
-    @media (min-width: 768px) {
-        .status-badge-sm {
-            font-size: 0.7rem;
-            padding: 0.25rem 0.75rem;
-        }
-    }
-
-    .status-online {
-        background: rgba(16, 185, 129, 0.1);
-        color: var(--success);
-    }
-    .status-offline {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--danger);
-    }
-    .status-error {
-        background: rgba(245, 158, 11, 0.1);
-        color: var(--warning);
-    }
-    .status-unknown {
-        background: rgba(100, 116, 139, 0.1);
-        color: var(--gray-500);
-    }
-
-    .btn-group-custom {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    /* Action Bar */
-    .action-bar {
-        background: white;
-        border-radius: 0.875rem;
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-        border: 1px solid var(--gray-200);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        justify-content: center;
-    }
-
-    @media (min-width: 640px) {
-        .action-bar {
-            justify-content: flex-start;
-            padding: 0.875rem;
-        }
-    }
-
-    @media (min-width: 768px) {
-        .action-bar {
-            padding: 1rem;
-            margin-bottom: 1.25rem;
-            border-radius: 1rem;
-        }
-    }
-
-    .action-btn {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.7rem;
-        border-radius: 0.5rem;
-        transition: all 0.2s;
-    }
-
-    @media (min-width: 768px) {
-        .action-btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-        }
-    }
-
-    /* Cards */
-    .info-card {
-        background: white;
-        border-radius: 0.875rem;
-        padding: 0.875rem;
-        margin-bottom: 0.875rem;
-        border: 1px solid var(--gray-200);
-    }
-
-    @media (min-width: 768px) {
-        .info-card {
-            padding: 1rem;
-            border-radius: 1rem;
-            margin-bottom: 1rem;
-        }
-    }
-
-    .card-title {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        margin-bottom: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--gray-200);
-        padding-bottom: 0.5rem;
-    }
-
-    @media (min-width: 768px) {
-        .card-title {
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-        }
-    }
-
-    .card-title i {
-        color: var(--primary);
-    }
-
-    /* Info Rows */
-    .info-row {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid var(--gray-100);
-    }
-
-    @media (min-width: 640px) {
-        .info-row {
-            flex-direction: row;
-            gap: 0;
-        }
-    }
-
-    .info-row:last-child {
-        border-bottom: none;
-    }
-
-    .info-label {
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: var(--gray-500);
-        width: 100%;
-    }
-
-    @media (min-width: 640px) {
-        .info-label {
-            width: 130px;
-            font-size: 0.75rem;
-            flex-shrink: 0;
-        }
-    }
-
-    .info-value {
-        font-size: 0.7rem;
-        color: var(--gray-700);
-        word-break: break-word;
-    }
-
-    @media (min-width: 768px) {
-        .info-value {
-            font-size: 0.75rem;
-        }
-    }
-
-    .info-value code {
-        background: var(--gray-100);
-        padding: 0.125rem 0.375rem;
-        border-radius: 0.25rem;
-        font-size: 0.65rem;
-    }
-
-    /* Health Metrics */
-    .health-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
-
-    @media (min-width: 640px) {
-        .health-grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-        }
-    }
-
-    .health-item {
-        text-align: center;
-    }
-
-    .health-label {
-        font-size: 0.6rem;
-        color: var(--gray-500);
-        margin-bottom: 0.25rem;
-    }
-
-    .health-value {
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: var(--gray-700);
-    }
-
-    .health-bar {
-        width: 100%;
-        background: var(--gray-200);
-        border-radius: 0.5rem;
-        overflow: hidden;
-        height: 4px;
-        margin-top: 0.25rem;
-    }
-
-    .health-fill {
-        height: 100%;
-        border-radius: 0.5rem;
-        transition: width 0.3s;
-    }
-
-    .health-fill.cpu { background: var(--info); }
-    .health-fill.memory { background: var(--success); }
-
-    /* RADIUS Card */
-    .radius-status {
-        background: var(--gray-50);
-        border-radius: 0.5rem;
-        padding: 0.5rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .radius-secret-box {
-        background: var(--gray-800);
-        color: var(--gray-100);
-        padding: 0.5rem;
-        border-radius: 0.5rem;
-        font-family: monospace;
-        font-size: 0.7rem;
-        word-break: break-all;
-        margin-bottom: 0.5rem;
-    }
-
-    .copy-btn {
-        background: var(--gray-600);
-        border: none;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        font-size: 0.6rem;
-        cursor: pointer;
-    }
-
-    .copy-btn:hover {
-        background: var(--primary);
-    }
-
-    /* Tables */
-    .table-responsive-sm {
-        overflow-x: auto;
-        margin: 0 -0.875rem;
-        padding: 0 0.875rem;
-    }
-
-    @media (min-width: 768px) {
-        .table-responsive-sm {
-            margin: 0;
-            padding: 0;
-        }
-    }
-
-    .table-custom {
-        width: 100%;
-        margin-bottom: 0;
-    }
-
-    .table-custom thead th {
-        font-size: 0.65rem;
-        font-weight: 600;
-        color: var(--gray-500);
-        padding: 0.5rem;
-        border-bottom: 1px solid var(--gray-200);
-    }
-
-    .table-custom tbody td {
-        font-size: 0.65rem;
-        padding: 0.5rem;
-        vertical-align: middle;
-        border-color: var(--gray-100);
-    }
-
-    @media (min-width: 768px) {
-        .table-custom thead th {
-            font-size: 0.7rem;
-            padding: 0.6rem 0.75rem;
-        }
-        .table-custom tbody td {
-            font-size: 0.7rem;
-            padding: 0.6rem 0.75rem;
-        }
-    }
-
-    .btn-icon-sm {
-        padding: 0.2rem 0.4rem;
-        font-size: 0.6rem;
-        border-radius: 0.3rem;
-    }
-
-    .empty-text {
-        text-align: center;
-        padding: 1rem;
-        color: var(--gray-400);
-        font-size: 0.7rem;
-    }
-
-    /* Toast */
-    .toast-notification {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 250px;
-        animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    /* Make sure action-bar styles are correct */
-    .action-bar {
-        background: white;
-        border-radius: 0.875rem;
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-        border: 1px solid var(--gray-200);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-    
-    .action-btn {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.7rem;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        border: none;
-    }
-    
-    form.inline-form {
-        display: inline;
-        margin: 0;
-        padding: 0;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="router-detail-container">
+<div class="p-2 sm:p-3 md:p-4 lg:p-5 space-y-3 sm:space-y-4">
+    
     <!-- Breadcrumb -->
-    <nav class="breadcrumb-custom" aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('router_web.index', org_id=organization.id) }}">Routers</a></li>
-            <li class="breadcrumb-item active">{{ router.name|truncate(30) }}</li>
+    <nav class="text-xs sm:text-sm">
+        <ol class="flex items-center gap-1 text-gray-500 flex-wrap">
+            <li><a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="hover:text-blue-600 transition-colors">Routers</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+            <li class="text-gray-700 font-medium truncate max-w-[150px] md:max-w-none">{{ router.name }}</li>
         </ol>
     </nav>
 
-    <!-- Header -->
-    <div class="header-section">
-        <div class="title-section">
-            <h4>{{ router.name }}</h4>
-            <div class="badge-group">
-                <span class="status-badge-sm status-{{ router.status if router.status in ['online','offline','error'] else 'unknown' }}">
-                    <i class="fas fa-circle" style="font-size: 0.4rem;"></i>
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">{{ router.name }}</h1>
+            <div class="flex flex-wrap gap-2 mt-2">
+                <!-- Status Badge -->
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                    {% if router.status == 'online' %}bg-emerald-100 text-emerald-700
+                    {% elif router.status == 'offline' %}bg-red-100 text-red-700
+                    {% elif router.status == 'error' %}bg-amber-100 text-amber-700
+                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                    <span class="w-1.5 h-1.5 rounded-full 
+                        {% if router.status == 'online' %}bg-emerald-500
+                        {% elif router.status == 'offline' %}bg-red-500
+                        {% elif router.status == 'error' %}bg-amber-500
+                        {% else %}bg-gray-400{% endif %}"></span>
                     {{ router.status|capitalize if router.status else 'Unknown' }}
                 </span>
+                
+                <!-- Inactive Badge -->
                 {% if not router.is_active %}
-                <span class="badge bg-secondary">Inactive</span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                    <i class="fas fa-ban text-xs"></i> Inactive
+                </span>
                 {% endif %}
+                
+                <!-- RADIUS Status Badge -->
                 {% if router.radius_config_status %}
-                <span class="radius-status-badge status-badge-sm 
-                    {%- if router.radius_config_status == 'configured' %}status-online
-                    {%- elif router.radius_config_status == 'failed' %}status-error
-                    {%- elif router.radius_config_status == 'pending' %}status-warning
-                    {%- else %}status-unknown{% endif %}">
-                    <i class="fas fa-shield-alt"></i>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                    {% if router.radius_config_status == 'configured' %}bg-emerald-100 text-emerald-700
+                    {% elif router.radius_config_status == 'failed' %}bg-red-100 text-red-700
+                    {% elif router.radius_config_status == 'pending' %}bg-amber-100 text-amber-700
+                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                    <i class="fas fa-shield-alt text-xs"></i>
                     RADIUS: {{ router.radius_config_status|capitalize }}
                 </span>
                 {% endif %}
             </div>
         </div>
-        <div class="btn-group-custom">
-            <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" class="btn btn-outline-primary action-btn">
-                <i class="fas fa-edit me-1"></i>Edit
+        <div class="flex gap-2">
+            <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" 
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-colors duration-150">
+                <i class="fas fa-edit text-xs"></i> Edit
             </a>
-            <button class="btn btn-outline-danger action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                <i class="fas fa-trash me-1"></i>Delete
+            <button onclick="openDeleteModal()" 
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-sm rounded-lg transition-colors duration-150">
+                <i class="fas fa-trash text-xs"></i> Delete
             </button>
         </div>
     </div>
 
-    <!-- ================================================================ -->
-    <!-- ACTION BUTTONS - USING HTML FORMS (NO JAVASCRIPT FETCH) -->
-    <!-- ================================================================ -->
-    <div class="action-bar">
-        <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}" class="inline-form">
-            <button type="submit" class="btn btn-primary action-btn">
-                <i class="fas fa-plug me-1"></i>Test Connection
+    <!-- Action Buttons Bar -->
+    <div class="bg-white rounded-xl border border-gray-200 p-3 flex flex-wrap gap-2">
+        <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}" class="inline">
+            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors duration-150">
+                <i class="fas fa-plug text-xs"></i> Test Connection
             </button>
         </form>
         
-        <form method="POST" action="{{ url_for('router_web.sync', org_id=organization.id, router_id=router.id) }}" class="inline-form">
-            <button type="submit" class="btn btn-secondary action-btn">
-                <i class="fas fa-sync me-1"></i>Sync Config
+        <form method="POST" action="{{ url_for('router_web.sync', org_id=organization.id, router_id=router.id) }}" class="inline">
+            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-lg transition-colors duration-150">
+                <i class="fas fa-sync text-xs"></i> Sync Config
             </button>
         </form>
         
-        <form method="POST" action="{{ url_for('router_web.discover', org_id=organization.id, router_id=router.id) }}" class="inline-form">
-            <button type="submit" class="btn btn-info action-btn">
-                <i class="fas fa-microchip me-1"></i>Discover
+        <form method="POST" action="{{ url_for('router_web.discover', org_id=organization.id, router_id=router.id) }}" class="inline">
+            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs rounded-lg transition-colors duration-150">
+                <i class="fas fa-microchip text-xs"></i> Discover
             </button>
         </form>
         
         {% if router.radius_config_status != 'configured' %}
-        <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}" class="inline-form">
-            <button type="submit" class="btn btn-warning action-btn">
-                <i class="fas fa-shield-alt me-1"></i>Retry RADIUS
+        <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}" class="inline">
+            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs rounded-lg transition-colors duration-150">
+                <i class="fas fa-shield-alt text-xs"></i> Retry RADIUS
             </button>
         </form>
         {% endif %}
     </div>
 
     <!-- Basic Information Card -->
-    <div class="info-card">
-        <div class="card-title"><i class="fas fa-info-circle"></i> Basic Information</div>
-        <div class="info-row">
-            <div class="info-label">Name</div>
-            <div class="info-value">{{ router.name }}</div>
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-50 border-b border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <i class="fas fa-info-circle text-blue-500"></i> Basic Information
+            </h3>
         </div>
-        <div class="info-row">
-            <div class="info-label">Network</div>
-            <div class="info-value">{{ network_name if network_name else 'Not assigned' }}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">IP Address</div>
-            <div class="info-value"><code>{{ router.ip_address }}:{{ router.api_port }}</code></div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Username</div>
-            <div class="info-value"><code>{{ router.username }}</code></div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Model</div>
-            <div class="info-value">{{ router.model or 'Unknown' }}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">RouterOS</div>
-            <div class="info-value">{{ router.routeros_version or 'Unknown' }}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Location</div>
-            <div class="info-value">{{ router.location or 'Not specified' }}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Description</div>
-            <div class="info-value">{{ router.description or 'No description' }}</div>
+        <div class="p-3 sm:p-4 space-y-2">
+            <div class="flex flex-col sm:flex-row sm:justify-between">
+                <span class="text-xs font-medium text-gray-500 w-28">Name</span>
+                <span class="text-sm text-gray-800">{{ router.name }}</span>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:justify-between">
+                <span class="text-xs font-medium text-gray-500 w-28">Network</span>
+                <span class="text-sm text-gray-800">{{ network_name if network_name else 'Not assigned' }}</span>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:justify-between">
+                <span class="text-xs font-medium text-gray-500 w-28">IP Address</span>
+                <code class="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded">{{ router.ip_address }}:{{ router.api_port }}</code>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:justify-between">
+                <span class="text-xs font-medium text-gray-500 w-28">Username</span>
+                <code class="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded">{{ router.username }}</code>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:justify-between">
+                <span class="text-xs font-medium text-gray-500 w-28">Model</span>
+                <span class="text-sm text-gray-800">{{ router.model or 'Unknown' }}</span>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:justify-between">
+                <span class="text-xs font-medium text-gray-500 w-28">RouterOS</span>
+                <span class="text-sm text-gray-800">{{ router.routeros_version or 'Unknown' }}</span>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:justify-between">
+                <span class="text-xs font-medium text-gray-500 w-28">Location</span>
+                <span class="text-sm text-gray-800">{{ router.location or 'Not specified' }}</span>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:justify-between">
+                <span class="text-xs font-medium text-gray-500 w-28">Description</span>
+                <span class="text-sm text-gray-800">{{ router.description or 'No description' }}</span>
+            </div>
         </div>
     </div>
 
     <!-- Health Metrics Card -->
-    <div class="info-card">
-        <div class="card-title"><i class="fas fa-chart-line"></i> Health Metrics</div>
-        <div class="health-grid">
-            <div class="health-item">
-                <div class="health-label">CPU Usage</div>
-                <div class="health-value">{{ router.cpu_usage|default(0) }}%</div>
-                <div class="health-bar"><div class="health-fill cpu" style="width: {{ router.cpu_usage|default(0) }}%"></div></div>
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-50 border-b border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <i class="fas fa-chart-line text-blue-500"></i> Health Metrics
+            </h3>
+        </div>
+        <div class="p-3 sm:p-4 space-y-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="text-center">
+                    <div class="text-[10px] text-gray-500 mb-1">CPU Usage</div>
+                    <div class="text-lg font-bold text-gray-800">{{ router.cpu_usage|default(0) }}%</div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                        <div class="bg-blue-500 h-1.5 rounded-full" style="width: {{ router.cpu_usage|default(0) }}%"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="text-[10px] text-gray-500 mb-1">Memory Usage</div>
+                    <div class="text-lg font-bold text-gray-800">{{ router.memory_usage|default(0) }}%</div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                        <div class="bg-emerald-500 h-1.5 rounded-full" style="width: {{ router.memory_usage|default(0) }}%"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="text-[10px] text-gray-500 mb-1">Uptime</div>
+                    <div class="text-lg font-bold text-gray-800">{{ (router.uptime_seconds|default(0) // 3600) }}h</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-[10px] text-gray-500 mb-1">Pool Size</div>
+                    <div class="text-lg font-bold text-gray-800">{{ router.connection_pool_size|default(5) }}</div>
+                </div>
             </div>
-            <div class="health-item">
-                <div class="health-label">Memory Usage</div>
-                <div class="health-value">{{ router.memory_usage|default(0) }}%</div>
-                <div class="health-bar"><div class="health-fill memory" style="width: {{ router.memory_usage|default(0) }}%"></div></div>
+            <div class="border-t border-gray-100 pt-2 space-y-1">
+                <div class="flex flex-col sm:flex-row sm:justify-between">
+                    <span class="text-xs font-medium text-gray-500 w-28">Last Seen</span>
+                    <span class="text-sm text-gray-700">{{ router.last_seen_at.strftime('%Y-%m-%d %H:%M:%S') if router.last_seen_at else 'Never' }}</span>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between">
+                    <span class="text-xs font-medium text-gray-500 w-28">Last Sync</span>
+                    <span class="text-sm text-gray-700">{{ router.last_sync_at.strftime('%Y-%m-%d %H:%M:%S') if router.last_sync_at else 'Never' }}</span>
+                </div>
+                {% if router.last_config_error %}
+                <div class="flex flex-col sm:flex-row sm:justify-between">
+                    <span class="text-xs font-medium text-red-500 w-28">Config Error</span>
+                    <span class="text-sm text-red-600">{{ router.last_config_error[:200] }}</span>
+                </div>
+                {% endif %}
+                {% if router.last_error %}
+                <div class="flex flex-col sm:flex-row sm:justify-between">
+                    <span class="text-xs font-medium text-red-500 w-28">Last Error</span>
+                    <span class="text-sm text-red-600">{{ router.last_error[:200] }}</span>
+                </div>
+                {% endif %}
             </div>
-            <div class="health-item">
-                <div class="health-label">Uptime</div>
-                <div class="health-value">{{ (router.uptime_seconds|default(0) // 3600) }}h</div>
-            </div>
-            <div class="health-item">
-                <div class="health-label">Pool Size</div>
-                <div class="health-value">{{ router.connection_pool_size|default(5) }}</div>
-            </div>
         </div>
-        <div class="info-row">
-            <div class="info-label">Last Seen</div>
-            <div class="info-value">{{ router.last_seen_at.strftime('%Y-%m-%d %H:%M:%S') if router.last_seen_at else 'Never' }}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Last Sync</div>
-            <div class="info-value">{{ router.last_sync_at.strftime('%Y-%m-%d %H:%M:%S') if router.last_sync_at else 'Never' }}</div>
-        </div>
-        {% if router.last_config_error %}
-        <div class="info-row">
-            <div class="info-label">Config Error</div>
-            <div class="info-value text-danger">{{ router.last_config_error[:200] }}</div>
-        </div>
-        {% endif %}
-        {% if router.last_error %}
-        <div class="info-row">
-            <div class="info-label">Last Error</div>
-            <div class="info-value text-danger">{{ router.last_error[:200] }}</div>
-        </div>
-        {% endif %}
     </div>
 
     <!-- RADIUS Configuration Card -->
-    <div class="info-card" id="radius-config-section">
-        <div class="card-title">
-            <span><i class="fas fa-shield-alt"></i> RADIUS Configuration</span>
-            {% if router.radius_config_status == 'configured' %}
-            <span class="badge bg-success">Configured</span>
-            {% elif router.radius_config_status == 'failed' %}
-            <span class="badge bg-danger">Failed</span>
-            {% elif router.radius_config_status == 'pending' %}
-            <span class="badge bg-warning">Pending</span>
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden" id="radius-config-section">
+        <div class="px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-50 border-b border-gray-200">
+            <div class="flex flex-wrap justify-between items-center gap-2">
+                <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-shield-alt text-blue-500"></i> RADIUS Configuration
+                </h3>
+                {% if router.radius_config_status == 'configured' %}
+                <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">Configured</span>
+                {% elif router.radius_config_status == 'failed' %}
+                <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">Failed</span>
+                {% elif router.radius_config_status == 'pending' %}
+                <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700">Pending</span>
+                {% else %}
+                <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">Not Configured</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="p-3 sm:p-4 space-y-3">
+            {% if router.radius_secret %}
+            <div class="space-y-2">
+                <div class="flex flex-col sm:flex-row sm:justify-between">
+                    <span class="text-xs font-medium text-gray-500 w-32">RADIUS Server</span>
+                    <code class="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded" id="radiusServer">{{ radius_server_ip or '163.245.217.16' }}</code>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
+                    <span class="text-xs font-medium text-gray-500 w-32">Shared Secret</span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <code class="text-sm font-mono bg-gray-800 text-gray-100 px-2 py-1 rounded break-all" id="radiusSecret">{{ router.radius_secret }}</code>
+                        <button onclick="copyToClipboard('radiusSecret')" 
+                                class="inline-flex items-center gap-1 px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-[10px] rounded transition-colors">
+                            <i class="fas fa-copy text-[9px]"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between">
+                    <span class="text-xs font-medium text-gray-500 w-32">Authentication Port</span>
+                    <span class="text-sm text-gray-700">1812</span>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between">
+                    <span class="text-xs font-medium text-gray-500 w-32">Accounting Port</span>
+                    <span class="text-sm text-gray-700">1813</span>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between">
+                    <span class="text-xs font-medium text-gray-500 w-32">Config Status</span>
+                    <div>
+                        {% if router.radius_config_status == 'configured' %}
+                        <span class="text-emerald-600 text-sm">✓ Configured at {{ router.radius_configured_at.strftime('%Y-%m-%d %H:%M:%S') if router.radius_configured_at else 'Unknown' }}</span>
+                        {% elif router.radius_config_status == 'failed' %}
+                        <span class="text-red-600 text-sm">✗ Auto-configuration failed ({{ router.auto_config_attempts }} attempts)</span>
+                        {% elif router.radius_config_status == 'pending' %}
+                        <span class="text-amber-600 text-sm">⏳ Awaiting configuration</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if router.radius_config_status != 'configured' %}
+            <div class="mt-3 p-2 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                <strong>Manual Configuration Required:</strong> Run these commands on your MikroTik router:
+            </div>
+            <div class="bg-gray-800 rounded-lg p-3 font-mono text-xs text-gray-100 overflow-x-auto">
+                <code>/radius add address={{ radius_server_ip or '163.245.217.16' }} secret={{ router.radius_secret }} service=hotspot,ppp<br>
+                /ip hotspot set radius=yes<br>
+                /ppp set use-radius=yes</code>
+            </div>
+            <div class="text-xs text-gray-500">
+                <i class="fas fa-info-circle mr-1"></i> After running these commands, click "Retry RADIUS" above to verify configuration.
+            </div>
+            {% endif %}
+            
             {% else %}
-            <span class="badge bg-secondary">Not Configured</span>
+            <div class="text-center py-4 text-gray-400">
+                <i class="fas fa-key text-2xl mb-2 block opacity-50"></i>
+                <p class="text-sm">No RADIUS secret configured.</p>
+                <form method="POST" action="{{ url_for('router_web.regenerate_radius_secret', org_id=organization.id, router_id=router.id) }}" class="inline mt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors duration-150" onclick="return confirm('Generate a new RADIUS secret? This will enable RADIUS authentication for this router.')">
+                        <i class="fas fa-key"></i> Generate RADIUS Secret
+                    </button>
+                </form>
+            </div>
             {% endif %}
         </div>
-        
-        {% if router.radius_secret %}
-        <div class="radius-status">
-            <div class="info-row">
-                <div class="info-label">RADIUS Server</div>
-                <div class="info-value"><code id="radiusServer">{{ radius_server_ip or '163.245.217.16' }}</code></div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Shared Secret</div>
-                <div class="info-value">
-                    <code id="radiusSecret" class="radius-secret-box" style="display: inline-block; padding: 0.25rem 0.5rem;">
-                        {{ router.radius_secret }}
-                    </code>
-                    <button class="copy-btn" onclick="copyToClipboard('radiusSecret')">
-                        <i class="fas fa-copy"></i> Copy
-                    </button>
-                </div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Authentication Port</div>
-                <div class="info-value">1812</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Accounting Port</div>
-                <div class="info-value">1813</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Config Status</div>
-                <div class="info-value">
-                    {% if router.radius_config_status == 'configured' %}
-                    <span class="text-success">✓ Configured at {{ router.radius_configured_at.strftime('%Y-%m-%d %H:%M:%S') if router.radius_configured_at else 'Unknown' }}</span>
-                    {% elif router.radius_config_status == 'failed' %}
-                    <span class="text-danger">✗ Auto-configuration failed ({{ router.auto_config_attempts }} attempts)</span>
-                    {% elif router.radius_config_status == 'pending' %}
-                    <span class="text-warning">⏳ Awaiting configuration</span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        {% if router.radius_config_status != 'configured' %}
-        <div class="alert alert-warning alert-sm" style="font-size: 0.7rem; margin-bottom: 0.5rem;">
-            <i class="fas fa-exclamation-triangle"></i> 
-            <strong>Manual Configuration Required:</strong> Run these commands on your MikroTik router:
-        </div>
-        <div class="radius-secret-box" style="background: var(--gray-800); color: white; font-family: monospace; font-size: 0.7rem; padding: 0.75rem;">
-            /radius add address={{ radius_server_ip or '163.245.217.16' }} secret={{ router.radius_secret }} service=hotspot,ppp<br>
-            /ip hotspot set radius=yes<br>
-            /ppp set use-radius=yes
-        </div>
-        <div class="text-muted" style="font-size: 0.6rem; margin-top: 0.5rem;">
-            <i class="fas fa-info-circle"></i> After running these commands, click "Retry RADIUS" above to verify configuration.
-        </div>
-        {% endif %}
-        
-        {% else %}
-        <div class="empty-text">
-            No RADIUS secret configured.
-            <form method="POST" action="{{ url_for('router_web.regenerate_radius_secret', org_id=organization.id, router_id=router.id) }}" class="inline-form" style="display: inline-block; margin-top: 0.5rem;">
-                <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Generate a new RADIUS secret? This will enable RADIUS authentication for this router.')">
-                    <i class="fas fa-key"></i> Generate RADIUS Secret
-                </button>
-            </form>
-        </div>
-        {% endif %}
     </div>
 
     <!-- Hotspot Servers Card -->
-    <div class="info-card">
-        <div class="card-title">
-            <span><i class="fas fa-wifi"></i> Hotspot Servers</span>
-            <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}" class="btn btn-primary btn-icon-sm">
-                <i class="fas fa-plus"></i> Add
-            </a>
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-50 border-b border-gray-200">
+            <div class="flex flex-wrap justify-between items-center gap-2">
+                <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-wifi text-blue-500"></i> Hotspot Servers
+                </h3>
+                <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}" 
+                   class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors">
+                    <i class="fas fa-plus text-[10px]"></i> Add
+                </a>
+            </div>
         </div>
-        {% if hotspot_servers %}
-        <div class="table-responsive-sm">
-            <table class="table-custom">
-                <thead>
-                    <tr><th>Name</th><th>Hotspot ID</th><th>Interface</th><th>Status</th><th></th></tr>
-                </thead>
-                <tbody>
-                    {% for hs in hotspot_servers %}
-                    <tr>
-                        <td><strong>{{ hs.name }}</strong></td>
-                        <td><code>{{ hs.hotspot_id }}</code></td>
-                        <td>{{ hs.interface or '-' }}</td>
-                        <td>{% if hs.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
-                        <td><a href="{{ url_for('router_web.edit_hotspot', org_id=organization.id, hotspot_id=hs.id) }}" class="btn btn-link btn-icon-sm"><i class="fas fa-edit"></i></a></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="overflow-x-auto">
+            {% if hotspot_servers %}
+            <div class="min-w-[500px]">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Name</th>
+                            <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Hotspot ID</th>
+                            <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Interface</th>
+                            <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Status</th>
+                            <th class="text-center px-3 py-2 text-xs font-semibold text-gray-600 w-12">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for hs in hotspot_servers %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-3 py-2 text-sm font-medium text-gray-800">{{ hs.name }}</td>
+                            <td class="px-3 py-2"><code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{{ hs.hotspot_id }}</code></td>
+                            <td class="px-3 py-2 text-sm text-gray-600">{{ hs.interface or '-' }}</td>
+                            <td class="px-3 py-2">
+                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-medium {{ 'bg-emerald-100 text-emerald-700' if hs.is_active else 'bg-gray-100 text-gray-600' }}">
+                                    {{ 'Active' if hs.is_active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2 text-center">
+                                <a href="{{ url_for('router_web.edit_hotspot', org_id=organization.id, hotspot_id=hs.id) }}" 
+                                   class="p-1 text-gray-500 hover:text-blue-600 transition-colors" title="Edit">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-6 text-gray-400">
+                <i class="fas fa-wifi text-2xl mb-2 block opacity-50"></i>
+                <p class="text-sm">No hotspot servers configured. <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}" class="text-blue-600 hover:underline">Add one</a></p>
+            </div>
+            {% endif %}
         </div>
-        {% else %}
-        <div class="empty-text">No hotspot servers configured. <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}">Add one</a></div>
-        {% endif %}
     </div>
 
     <!-- PPPoE Servers Card -->
-    <div class="info-card">
-        <div class="card-title">
-            <span><i class="fas fa-network-wired"></i> PPPoE Servers</span>
-            <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}" class="btn btn-primary btn-icon-sm">
-                <i class="fas fa-plus"></i> Add
-            </a>
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-50 border-b border-gray-200">
+            <div class="flex flex-wrap justify-between items-center gap-2">
+                <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-network-wired text-blue-500"></i> PPPoE Servers
+                </h3>
+                <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}" 
+                   class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors">
+                    <i class="fas fa-plus text-[10px]"></i> Add
+                </a>
+            </div>
         </div>
-        {% if pppoe_servers %}
-        <div class="table-responsive-sm">
-            <table class="table-custom">
-                <thead>
-                    <tr><th>Name</th><th>Service Name</th><th>Interface</th><th>MTU</th><th>Status</th><th></th></tr>
-                </thead>
-                <tbody>
-                    {% for ps in pppoe_servers %}
-                    <tr>
-                        <td><strong>{{ ps.name }}</strong></td>
-                        <td><code>{{ ps.service_name or '-' }}</code></td>
-                        <td>{{ ps.interface or '-' }}</td>
-                        <td>{{ ps.mtu|default(1492) }}</td>
-                        <td>{% if ps.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
-                        <td><a href="{{ url_for('router_web.edit_pppoe', org_id=organization.id, pppoe_id=ps.id) }}" class="btn btn-link btn-icon-sm"><i class="fas fa-edit"></i></a></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="overflow-x-auto">
+            {% if pppoe_servers %}
+            <div class="min-w-[600px]">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Name</th>
+                            <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Service Name</th>
+                            <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Interface</th>
+                            <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">MTU</th>
+                            <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Status</th>
+                            <th class="text-center px-3 py-2 text-xs font-semibold text-gray-600 w-12">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for ps in pppoe_servers %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-3 py-2 text-sm font-medium text-gray-800">{{ ps.name }}</td>
+                            <td class="px-3 py-2"><code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{{ ps.service_name or '-' }}</code></td>
+                            <td class="px-3 py-2 text-sm text-gray-600">{{ ps.interface or '-' }}</td>
+                            <td class="px-3 py-2 text-sm text-gray-600">{{ ps.mtu|default(1492) }}</td>
+                            <td class="px-3 py-2">
+                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-medium {{ 'bg-emerald-100 text-emerald-700' if ps.is_active else 'bg-gray-100 text-gray-600' }}">
+                                    {{ 'Active' if ps.is_active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2 text-center">
+                                <a href="{{ url_for('router_web.edit_pppoe', org_id=organization.id, pppoe_id=ps.id) }}" 
+                                   class="p-1 text-gray-500 hover:text-blue-600 transition-colors" title="Edit">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-6 text-gray-400">
+                <i class="fas fa-network-wired text-2xl mb-2 block opacity-50"></i>
+                <p class="text-sm">No PPPoE servers configured. <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}" class="text-blue-600 hover:underline">Add one</a></p>
+            </div>
+            {% endif %}
         </div>
-        {% else %}
-        <div class="empty-text">No PPPoE servers configured. <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}">Add one</a></div>
-        {% endif %}
     </div>
 </div>
 
 <!-- Delete Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Delete router <strong>{{ router.name }}</strong>?</p>
-                <small class="text-muted">This will also deactivate the associated RADIUS NAS entry.</small>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form method="POST" action="{{ url_for('router_web.delete', org_id=organization.id, router_id=router.id) }}" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Delete Router</button>
-                </form>
-            </div>
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeDeleteModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="fas fa-trash text-red-500"></i> Confirm Delete
+            </h3>
+            <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <p class="text-gray-700">Delete router <strong class="text-gray-900">{{ router.name }}</strong>?</p>
+            <p class="text-xs text-gray-500 mt-2">This will also deactivate the associated RADIUS NAS entry.</p>
+        </div>
+        <div class="flex justify-end gap-2 p-4 border-t border-gray-200">
+            <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                Cancel
+            </button>
+            <form method="POST" action="{{ url_for('router_web.delete', org_id=organization.id, router_id=router.id) }}" class="inline">
+                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                    <i class="fas fa-trash mr-1"></i> Delete Router
+                </button>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
-function copyToClipboard(elementId) {
-    const element = document.getElementById(elementId);
-    const text = element.innerText;
-    navigator.clipboard.writeText(text).then(() => {
-        // Show a simple alert or toast
-        console.log('Copied to clipboard!');
-    }).catch(() => {
-        alert('Failed to copy');
+    function copyToClipboard(elementId) {
+        const element = document.getElementById(elementId);
+        const text = element.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            if (typeof showToast === 'function') {
+                showToast('Copied to clipboard!', 'success');
+            }
+        }).catch(() => {
+            if (typeof showToast === 'function') {
+                showToast('Failed to copy', 'error');
+            }
+        });
+    }
+    
+    function openDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteModal();
+        }
     });
-}
 </script>
 {% endblock %}
