@@ -2,461 +2,58 @@
 
 {% block title %}{{ organization.name }} - Networks{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ========================================
-       NETWORKS MODULE - TABLE DESIGN
-       Minimal, Clean, Mobile-First
-       ========================================= */
-    
-    :root {
-        --primary: #1a56db;
-        --primary-dark: #1e40af;
-        --primary-light: #3b82f6;
-        --success: #059669;
-        --danger: #dc2626;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
-    }
-
-    /* Container - Minimal Padding */
-    .networks-container {
-        padding: 0.75rem;
-    }
-    
-    @media (min-width: 640px) {
-        .networks-container {
-            padding: 1rem;
-        }
-    }
-    
-    @media (min-width: 1024px) {
-        .networks-container {
-            padding: 1.25rem;
-        }
-    }
-
-    /* Header */
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
-    
-    .page-title h1 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--gray-900);
-        margin: 0 0 0.125rem 0;
-    }
-    
-    .page-title p {
-        font-size: 0.7rem;
-        color: var(--gray-500);
-        margin: 0;
-    }
-    
-    @media (min-width: 640px) {
-        .page-title h1 {
-            font-size: 1.5rem;
-        }
-        .page-title p {
-            font-size: 0.8rem;
-        }
-    }
-
-    /* Add Button */
-    .btn-add {
-        background: var(--primary);
-        border: none;
-        color: white;
-        padding: 0.4rem 0.875rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        border-radius: 0.375rem;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-    }
-    
-    .btn-add:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
-    }
-    
-    @media (min-width: 640px) {
-        .btn-add {
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-        }
-    }
-
-    /* Filter Bar - Minimal */
-    .filter-bar {
-        background: white;
-        border-radius: 0.5rem;
-        border: 1px solid var(--gray-200);
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-    }
-    
-    .filter-form {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        align-items: flex-end;
-    }
-    
-    .filter-group {
-        flex: 1;
-        min-width: 120px;
-    }
-    
-    .filter-group label {
-        font-size: 0.65rem;
-        font-weight: 500;
-        color: var(--gray-500);
-        margin-bottom: 0.25rem;
-        display: block;
-    }
-    
-    .filter-group input,
-    .filter-group select {
-        width: 100%;
-        padding: 0.4rem 0.6rem;
-        font-size: 0.75rem;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.375rem;
-        background: white;
-    }
-    
-    .filter-group input:focus,
-    .filter-group select:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.1);
-    }
-    
-    .filter-actions {
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    .btn-filter {
-        background: var(--primary);
-        border: none;
-        color: white;
-        padding: 0.4rem 0.75rem;
-        font-size: 0.7rem;
-        border-radius: 0.375rem;
-        cursor: pointer;
-    }
-    
-    .btn-filter:hover {
-        background: var(--primary-dark);
-    }
-    
-    .btn-reset {
-        background: var(--gray-100);
-        border: 1px solid var(--gray-200);
-        color: var(--gray-600);
-        padding: 0.4rem 0.75rem;
-        font-size: 0.7rem;
-        border-radius: 0.375rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-    
-    .btn-reset:hover {
-        background: var(--gray-200);
-    }
-
-    /* Table Container - Responsive Scroll */
-    .table-container {
-        background: white;
-        border-radius: 0.5rem;
-        border: 1px solid var(--gray-200);
-        overflow-x: auto;
-        margin-bottom: 1rem;
-    }
-    
-    .networks-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.75rem;
-        min-width: 640px;
-    }
-    
-    .networks-table thead th {
-        text-align: left;
-        padding: 0.75rem 0.75rem;
-        background: var(--gray-50);
-        font-weight: 600;
-        color: var(--gray-600);
-        border-bottom: 1px solid var(--gray-200);
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-    }
-    
-    .networks-table tbody td {
-        padding: 0.625rem 0.75rem;
-        border-bottom: 1px solid var(--gray-100);
-        color: var(--gray-700);
-        vertical-align: middle;
-    }
-    
-    .networks-table tbody tr:hover {
-        background: var(--gray-50);
-    }
-    
-    @media (min-width: 768px) {
-        .networks-table thead th {
-            padding: 0.875rem 1rem;
-            font-size: 0.75rem;
-        }
-        .networks-table tbody td {
-            padding: 0.75rem 1rem;
-            font-size: 0.8rem;
-        }
-    }
-
-    /* Table Cell Styles */
-    .network-name {
-        font-weight: 600;
-        color: var(--gray-800);
-    }
-    
-    .network-desc {
-        font-size: 0.65rem;
-        color: var(--gray-500);
-        margin-top: 0.125rem;
-    }
-    
-    .type-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.2rem 0.5rem;
-        border-radius: 0.25rem;
-        font-size: 0.65rem;
-        font-weight: 500;
-    }
-    
-    .type-hotspot {
-        background: rgba(59, 130, 246, 0.1);
-        color: var(--primary);
-    }
-    
-    .type-pppoe {
-        background: rgba(5, 150, 105, 0.1);
-        color: var(--success);
-    }
-    
-    .type-hybrid {
-        background: rgba(245, 158, 11, 0.1);
-        color: #d97706;
-    }
-    
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-    }
-    
-    .status-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-    }
-    
-    .status-dot.active {
-        background: var(--success);
-    }
-    
-    .status-dot.inactive {
-        background: var(--danger);
-    }
-    
-    .status-text {
-        font-size: 0.7rem;
-        font-weight: 500;
-    }
-    
-    .stat-numbers {
-        font-family: monospace;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-    
-    .action-buttons {
-        display: flex;
-        gap: 0.25rem;
-        flex-wrap: wrap;
-    }
-    
-    .btn-icon {
-        background: none;
-        border: none;
-        padding: 0.3rem 0.5rem;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 0.75rem;
-    }
-    
-    .btn-view {
-        color: var(--primary);
-    }
-    
-    .btn-view:hover {
-        background: rgba(26, 86, 219, 0.1);
-    }
-    
-    .btn-edit {
-        color: var(--gray-600);
-    }
-    
-    .btn-edit:hover {
-        background: var(--gray-100);
-    }
-    
-    .btn-delete {
-        color: var(--danger);
-    }
-    
-    .btn-delete:hover {
-        background: rgba(220, 38, 38, 0.1);
-    }
-
-    /* Pagination - Minimal */
-    .pagination {
-        display: flex;
-        justify-content: center;
-        gap: 0.25rem;
-        flex-wrap: wrap;
-        margin-top: 0.5rem;
-    }
-    
-    .page-link {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 30px;
-        padding: 0.3rem 0.6rem;
-        font-size: 0.7rem;
-        border-radius: 0.375rem;
-        background: white;
-        border: 1px solid var(--gray-200);
-        color: var(--gray-600);
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-    
-    .page-link:hover {
-        background: var(--gray-50);
-        border-color: var(--gray-300);
-    }
-    
-    .page-link.active {
-        background: var(--primary);
-        border-color: var(--primary);
-        color: white;
-    }
-    
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 2rem 1rem;
-        background: white;
-        border-radius: 0.5rem;
-        border: 1px solid var(--gray-200);
-    }
-    
-    .empty-state i {
-        font-size: 2rem;
-        color: var(--gray-300);
-        margin-bottom: 0.5rem;
-    }
-    
-    .empty-state p {
-        font-size: 0.75rem;
-        color: var(--gray-500);
-        margin: 0 0 1rem 0;
-    }
-    
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-        .filter-group {
-            min-width: calc(50% - 0.5rem);
-        }
-        
-        .networks-table .hide-mobile {
-            display: none;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="networks-container">
+<div class="p-3 md:p-2 lg:p-6 space-y-4">
+    
     <!-- Header -->
-    <div class="page-header">
-        <div class="page-title">
-            <h1>Networks</h1>
-            <p>Manage your network infrastructure</p>
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">Networks</h1>
+            <p class="text-xs md:text-sm text-gray-500 mt-0.5">Manage your network infrastructure</p>
         </div>
-        <a href="{{ url_for('network_web.create', org_id=organization.id) }}" class="btn-add">
-            <i class="fas fa-plus"></i> Add Network
+        <a href="{{ url_for('network_web.create', org_id=organization.id) }}" 
+           class="inline-flex items-center justify-center gap-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-150">
+            <i class="fas fa-plus text-xs"></i> Add Network
         </a>
     </div>
 
     <!-- Filter Bar -->
-    <div class="filter-bar">
-        <form method="GET" action="{{ url_for('network_web.index', org_id=organization.id) }}" class="filter-form">
-            <div class="filter-group">
-                <label>Search</label>
-                <input type="text" name="search" class="form-control" 
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <form method="GET" action="{{ url_for('network_web.index', org_id=organization.id) }}" 
+              class="flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[120px]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Search</label>
+                <input type="text" name="search" 
+                       class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]"
                        placeholder="Name or description..." 
                        value="{{ request.args.get('search', '') }}">
             </div>
-            <div class="filter-group">
-                <label>Type</label>
-                <select name="type">
+            <div class="flex-1 min-w-[120px]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                <select name="type" 
+                        class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db]">
                     <option value="">All Types</option>
                     <option value="hotspot" {% if request.args.get('type') == 'hotspot' %}selected{% endif %}>Hotspot</option>
                     <option value="pppoe" {% if request.args.get('type') == 'pppoe' %}selected{% endif %}>PPPoE</option>
                     <option value="hybrid" {% if request.args.get('type') == 'hybrid' %}selected{% endif %}>Hybrid</option>
                 </select>
             </div>
-            <div class="filter-group">
-                <label>Status</label>
-                <select name="is_active">
+            <div class="flex-1 min-w-[120px]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                <select name="is_active" 
+                        class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db]">
                     <option value="">All Status</option>
                     <option value="true" {% if request.args.get('is_active') == 'true' %}selected{% endif %}>Active</option>
                     <option value="false" {% if request.args.get('is_active') == 'false' %}selected{% endif %}>Inactive</option>
                 </select>
             </div>
-            <div class="filter-actions">
-                <button type="submit" class="btn-filter">
-                    <i class="fas fa-search"></i> Filter
+            <div class="flex gap-2">
+                <button type="submit" class="px-4 py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                    <i class="fas fa-search text-xs mr-1"></i> Filter
                 </button>
-                <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="btn-reset">
-                    <i class="fas fa-times"></i> Reset
+                <a href="{{ url_for('network_web.index', org_id=organization.id) }}" 
+                   class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                    <i class="fas fa-times text-xs mr-1"></i> Reset
                 </a>
             </div>
         </form>
@@ -464,78 +61,80 @@
 
     <!-- Networks Table -->
     {% if networks %}
-    <div class="table-container">
-        <table class="networks-table">
-            <thead>
-                <tr>
-                    <th>Network</th>
-                    <th>Type</th>
-                    <th class="hide-mobile">Bandwidth</th>
-                    <th>Status</th>
-                    <th>Routers</th>
-                    <th>Created</th>
-                    <th style="width: 80px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for network in networks %}
-                <tr>
-                    <td>
-                        <div class="network-name">{{ network.name }}</div>
-                        <div class="network-desc">{{ network.description|truncate(50) if network.description else '—' }}</div>
-                    </td>
-                    <td>
-                        <span class="type-badge type-{{ network.type }}">
-                            <i class="fas {% if network.type == 'hotspot' %}fa-wifi{% elif network.type == 'pppoe' %}fa-network-wired{% else %}fa-code-branch{% endif %}"></i>
-                            {{ network.type|upper }}
-                        </span>
-                    </td>
-                    <td class="hide-mobile">
-                        <span class="stat-numbers">
-                            ↓ {{ network.bandwidth_down_mbps|default('∞') }} / ↑ {{ network.bandwidth_up_mbps|default('∞') }}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="status-badge">
-                            <span class="status-dot {{ 'active' if network.is_active else 'inactive' }}"></span>
-                            <span class="status-text">{{ 'Active' if network.is_active else 'Inactive' }}</span>
-                        </span>
-                    </td>
-                    <td>
-                        <span class="stat-numbers">{{ network.router_count|default(0) }}</span>
-                    </td>
-                    <td>
-                        <span class="stat-numbers">{{ network.created_at[:10] if network.created_at else '—' }}</span>
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <a href="{{ url_for('network_web.show', org_id=organization.id, network_id=network.id) }}" class="btn-icon btn-view" title="View">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ url_for('network_web.edit', org_id=organization.id, network_id=network.id) }}" class="btn-icon btn-edit" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button type="button" class="btn-icon btn-delete" 
-                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                    data-network-id="{{ network.id }}" 
-                                    data-network-name="{{ network.name }}"
-                                    title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Network</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Bandwidth</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">Routers</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">Created</th>
+                        <th class="text-center px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for network in networks %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                        <td class="px-4 py-3">
+                            <div class="font-semibold text-gray-800">{{ network.name }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">{{ network.description|truncate(50) if network.description else '—' }}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium
+                                {% if network.type == 'hotspot' %}bg-blue-50 text-blue-700
+                                {% elif network.type == 'pppoe' %}bg-emerald-50 text-emerald-700
+                                {% else %}bg-amber-50 text-amber-700{% endif %}">
+                                <i class="fas {% if network.type == 'hotspot' %}fa-wifi{% elif network.type == 'pppoe' %}fa-network-wired{% else %}fa-code-branch{% endif %} text-xs"></i>
+                                {{ network.type|upper }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 font-mono text-xs text-gray-600 hidden md:table-cell">
+                            ↓ {{ network.bandwidth_down_mbps|default('∞') }} / ↑ {{ network.bandwidth_up_mbps|default('∞') }} Mbps
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full {{ 'bg-emerald-500' if network.is_active else 'bg-red-500' }}"></span>
+                                <span class="text-xs font-medium {{ 'text-emerald-700' if network.is_active else 'text-red-700' }}">
+                                    {{ 'Active' if network.is_active else 'Inactive' }}
+                                </span>
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-700 hidden sm:table-cell">
+                            {{ network.router_count|default(0) }}
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-500 hidden lg:table-cell">
+                            {{ network.created_at[:10] if network.created_at else '—' }}
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center justify-center gap-1">
+                                <a href="{{ url_for('network_web.show', org_id=organization.id, network_id=network.id) }}" 
+                                   class="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="View">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </a>
+                                <a href="{{ url_for('network_web.edit', org_id=organization.id, network_id=network.id) }}" 
+                                   class="p-1.5 rounded-md text-gray-600 hover:bg-gray-100 transition-colors duration-150" title="Edit">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </a>
+                                
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Pagination -->
     {% if pagination and pagination.pages > 1 %}
-    <div class="pagination">
+    <div class="flex justify-center gap-1 flex-wrap">
         {% if pagination.page > 1 %}
-        <a class="page-link" href="{{ url_for('network_web.index', org_id=organization.id, page=pagination.page-1, **request.args) }}">
-            <i class="fas fa-chevron-left"></i>
+        <a href="{{ url_for('network_web.index', org_id=organization.id, page=pagination.page-1, **request.args) }}" 
+           class="inline-flex items-center justify-center min-w-[32px] px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors duration-150">
+            <i class="fas fa-chevron-left text-xs"></i>
         </a>
         {% endif %}
         
@@ -544,26 +143,30 @@
         {% set start_page = [end_page - 4, 1]|max %}
         
         {% if start_page > 1 %}
-        <a class="page-link" href="{{ url_for('network_web.index', org_id=organization.id, page=1, **request.args) }}">1</a>
-        {% if start_page > 2 %}<span class="page-link disabled">...</span>{% endif %}
+        <a href="{{ url_for('network_web.index', org_id=organization.id, page=1, **request.args) }}" 
+           class="inline-flex items-center justify-center min-w-[32px] px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors duration-150">1</a>
+        {% if start_page > 2 %}<span class="px-2 py-1.5 text-sm text-gray-400">...</span>{% endif %}
         {% endif %}
         
         {% for p in range(start_page, end_page + 1) %}
             {% if p == pagination.page %}
-            <span class="page-link active">{{ p }}</span>
+            <span class="inline-flex items-center justify-center min-w-[32px] px-3 py-1.5 text-sm bg-[#1a56db] border border-[#1a56db] rounded-md text-white">{{ p }}</span>
             {% else %}
-            <a class="page-link" href="{{ url_for('network_web.index', org_id=organization.id, page=p, **request.args) }}">{{ p }}</a>
+            <a href="{{ url_for('network_web.index', org_id=organization.id, page=p, **request.args) }}" 
+               class="inline-flex items-center justify-center min-w-[32px] px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors duration-150">{{ p }}</a>
             {% endif %}
         {% endfor %}
         
         {% if end_page < pagination.pages %}
-        {% if end_page < pagination.pages - 1 %}<span class="page-link disabled">...</span>{% endif %}
-        <a class="page-link" href="{{ url_for('network_web.index', org_id=organization.id, page=pagination.pages, **request.args) }}">{{ pagination.pages }}</a>
+        {% if end_page < pagination.pages - 1 %}<span class="px-2 py-1.5 text-sm text-gray-400">...</span>{% endif %}
+        <a href="{{ url_for('network_web.index', org_id=organization.id, page=pagination.pages, **request.args) }}" 
+           class="inline-flex items-center justify-center min-w-[32px] px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors duration-150">{{ pagination.pages }}</a>
         {% endif %}
         
         {% if pagination.page < pagination.pages %}
-        <a class="page-link" href="{{ url_for('network_web.index', org_id=organization.id, page=pagination.page+1, **request.args) }}">
-            <i class="fas fa-chevron-right"></i>
+        <a href="{{ url_for('network_web.index', org_id=organization.id, page=pagination.page+1, **request.args) }}" 
+           class="inline-flex items-center justify-center min-w-[32px] px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors duration-150">
+            <i class="fas fa-chevron-right text-xs"></i>
         </a>
         {% endif %}
     </div>
@@ -571,49 +174,67 @@
 
     {% else %}
     <!-- Empty State -->
-    <div class="empty-state">
-        <i class="fas fa-network-wired"></i>
-        <p>No networks found</p>
-        <a href="{{ url_for('network_web.create', org_id=organization.id) }}" class="btn-add">
-            <i class="fas fa-plus"></i> Create Network
+    <div class="bg-white rounded-lg border border-gray-200 text-center py-12">
+        <i class="fas fa-network-wired text-5xl text-gray-300 mb-3 block"></i>
+        <p class="text-gray-500 text-sm mb-4">No networks found</p>
+        <a href="{{ url_for('network_web.create', org_id=organization.id) }}" 
+           class="inline-flex items-center gap-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-150">
+            <i class="fas fa-plus text-xs"></i> Create Network
         </a>
     </div>
     {% endif %}
 </div>
 
 <!-- Delete Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Delete network <strong id="deleteNetworkName"></strong>?</p>
-                <small class="text-muted">This will affect all routers in this network.</small>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeDeleteModal()"></div>
+    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Confirm Delete</h3>
+            <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <p class="text-gray-700">Delete network <strong id="deleteNetworkName" class="text-gray-900"></strong>?</p>
+            <p class="text-xs text-gray-500 mt-2">This will affect all routers in this network.</p>
+        </div>
+        <div class="flex justify-end gap-2 p-4 border-t border-gray-200">
+            <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                Cancel
+            </button>
+            <form id="deleteForm" method="POST" class="inline">
+                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                    Delete
+                </button>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
-    // Delete modal handler
-    const deleteModal = document.getElementById('deleteModal');
-    if (deleteModal) {
-        deleteModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const networkId = button.getAttribute('data-network-id');
-            const networkName = button.getAttribute('data-network-name');
-            document.getElementById('deleteNetworkName').textContent = networkName;
-            document.getElementById('deleteForm').action = `/organization/{{ organization.id }}/networks/${networkId}/delete`;
-        });
+    function openDeleteModal(networkId, networkName) {
+        const modal = document.getElementById('deleteModal');
+        const deleteForm = document.getElementById('deleteForm');
+        const nameSpan = document.getElementById('deleteNetworkName');
+        
+        nameSpan.textContent = networkName;
+        deleteForm.action = `/organization/{{ organization.id }}/networks/${networkId}/delete`;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
+    
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteModal();
+        }
+    });
 </script>
 {% endblock %}

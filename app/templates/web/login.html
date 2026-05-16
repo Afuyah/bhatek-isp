@@ -1,517 +1,126 @@
 {% extends "web/base.html" %}
+
 {% block title %}Login | Bhatek ISP Portal{% endblock %}
 
 {% block content %}
 
-<div class="login-wrapper">
-    <div class="login-container ">
-        <!-- Left Side - Brand & Features -->
-        <div class="login-brand">
-            <div class="brand-content">
-                <div class="brand-logo">
-                    <i class="fas fa-broadcast-tower"></i>
-                    <span>Bhatek</span>
-                </div>
-                <h2>ISP Management<br>Simplified</h2>
-                <p>Enterprise-grade platform for internet service providers</p>
+<div class="min-h-screen bg-gradient-to-br from-[#eef5f2] to-[#d4e4df] flex items-center justify-center p-4">
+    <div class="max-w-[1100px] w-full flex flex-col md:flex-row bg-white rounded-2xl shadow-2xl overflow-hidden">
+        
+        <!-- Left Side - Brand Section (Hidden on Mobile) -->
+        <div class="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] p-8 lg:p-10 relative overflow-hidden">
+            <!-- Background Decoration -->
+            <div class="absolute -top-1/2 -right-1/2 w-full h-full bg-white/5 rounded-full blur-3xl"></div>
+            
+            <div class="relative z-10 text-white">
+               
                 
-                <div class="feature-list">
-                    <div class="feature-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Real-time bandwidth monitoring</span>
+                <!-- Heading -->
+                <h2 class="text-2xl lg:text-3xl font-bold mb-3 leading-tight">
+                    ISP Management<br>Simplified
+                </h2>
+                <p class="text-white/85 text-sm mb-6 lg:mb-8 leading-relaxed">
+                    Enterprise-grade platform for internet service providers
+                </p>
+                
+                <!-- Feature List -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 text-sm">
+                        <i class="fas fa-check-circle text-white/90 text-xs"></i>
+                        <span class="text-white/85">Real-time bandwidth monitoring</span>
                     </div>
-                    <div class="feature-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Automated billing & M-Pesa</span>
+                    <div class="flex items-center gap-3 text-sm">
+                        <i class="fas fa-check-circle text-white/90 text-xs"></i>
+                        <span class="text-white/85">Automated billing & M-Pesa</span>
                     </div>
-                    <div class="feature-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Multi-router management</span>
+                    <div class="flex items-center gap-3 text-sm">
+                        <i class="fas fa-check-circle text-white/90 text-xs"></i>
+                        <span class="text-white/85">Multi-router management</span>
                     </div>
-                    <div class="feature-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>24/7 network insights</span>
+                    <div class="flex items-center gap-3 text-sm">
+                        <i class="fas fa-check-circle text-white/90 text-xs"></i>
+                        <span class="text-white/85">24/7 network insights</span>
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <!-- Right Side - Login Form -->
-        <div class="login-form-wrapper">
-            <div class="login-card">
+        <div class="w-full md:w-1/2 p-6 sm:p-8 lg:p-10">
+            <div class="max-w-[360px] mx-auto">
                 <!-- Header -->
-                <div class="login-header">
-                    <div class="login-icon">
-                        <i class="fas fa-user-circle"></i>
+                <div class="text-center mb-6">
+                    <div class="w-14 h-14 bg-[#2d6a4f]/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-user-circle text-[#2d6a4f] text-2xl"></i>
                     </div>
-                    <h3>Welcome Back</h3>
-                    <p>Sign in to your dashboard</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-1">Welcome Back</h3>
+                    <p class="text-sm text-gray-500">Sign in to your dashboard</p>
                 </div>
-
+                
                 <!-- Error Message -->
                 {% if error %}
-                <div class="alert-message error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    {{ error }}
+                <div class="flex items-center gap-2 bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-5 border border-red-100">
+                    <i class="fas fa-exclamation-circle text-sm"></i>
+                    <span>{{ error }}</span>
                 </div>
                 {% endif %}
-
+                
                 <!-- Login Form -->
                 <form method="POST" id="loginForm">
-                    <div class="input-group-custom">
-                        <label>Email Address</label>
-                        <div class="input-field">
-                            <i class="fas fa-envelope"></i>
+                    <!-- Email Field -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Email Address</label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
                             <input type="email" id="email" name="email" required 
+                                   class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
                                    placeholder="admin@bhatek.com">
                         </div>
                     </div>
-
-                    <div class="input-group-custom">
-                        <label>Password</label>
-                        <div class="input-field">
-                            <i class="fas fa-lock"></i>
+                    
+                    <!-- Password Field -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
                             <input type="password" id="password" name="password" required 
+                                   class="w-full pl-9 pr-10 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
                                    placeholder="Enter your password">
-                            <button type="button" class="toggle-password" onclick="togglePassword()">
+                            <button type="button" onclick="togglePassword()" 
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                                 <i class="fas fa-eye" id="toggleIcon"></i>
                             </button>
                         </div>
                     </div>
-
-                    <div class="form-options">
-                        <label class="checkbox-custom">
-                            <input type="checkbox" id="remember">
-                            <span class="checkmark"></span>
-                            Remember me
+                    
+                    <!-- Options -->
+                    <div class="flex justify-between items-center mb-6">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-600">
+                            <input type="checkbox" id="remember" class="w-3.5 h-3.5 rounded border-gray-300 text-[#2d6a4f] focus:ring-[#2d6a4f]/20">
+                            <span>Remember me</span>
                         </label>
-                        <a href="#" class="forgot-link">Forgot password?</a>
+                        <a href="#" class="text-xs text-[#2d6a4f] font-medium hover:underline">Forgot password?</a>
                     </div>
-
-                    <button type="submit" class="btn-login" id="loginBtn">
+                    
+                    <!-- Login Button -->
+                    <button type="submit" id="loginBtn" 
+                            class="w-full bg-gradient-to-r from-[#2d6a4f] to-[#40916c] hover:from-[#1b4332] hover:to-[#2d6a4f] text-white font-semibold py-2.5 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
                         <span>Sign In</span>
-                        <i class="fas fa-arrow-right"></i>
+                        <i class="fas fa-arrow-right ml-2 text-sm"></i>
                     </button>
                 </form>
-
-                <!-- Footer Link -->
-                <div class="login-footer">
-                    <p>New to Bhatek? <a href="/">Create an account</a></p>
+                
+                <!-- Footer -->
+                <div class="text-center mt-6 pt-4 border-t border-gray-100">
+                    <p class="text-xs text-gray-500">
+                        New to Bhatek? <a href="/" class="text-[#2d6a4f] font-semibold hover:underline">Create an account</a>
+                    </p>
                 </div>
             </div>
         </div>
+        
     </div>
 </div>
-
-<style>
-    /* ========================================
-       PROFESSIONAL LOGIN PAGE - MODERN DESIGN
-       ========================================= */
-    
-    :root {
-        --primary: #2d6a4f;
-        --primary-dark: #1b4332;
-        --primary-light: #40916c;
-        --gray-50: #f8fafc;
-        --gray-100: #f1f5f9;
-        --gray-200: #e2e8f0;
-        --gray-300: #cbd5e1;
-        --gray-400: #94a3b8;
-        --gray-500: #64748b;
-        --gray-600: #475569;
-        --gray-700: #334155;
-        --gray-800: #1e293b;
-        --gray-900: #0f172a;
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    .login-wrapper {
-        min-height: 100vh;
-        background: linear-gradient(135deg, #eef5f2 0%, #d4e4df 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-    }
-
-    .login-container {
-        max-width: 1100px;
-        width: 100%;
-        display: flex;
-        background: white;
-        border-radius: 2rem;
-        overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-
-    /* ========================================
-       LEFT SIDE - BRAND SECTION
-       ========================================= */
-    
-    .login-brand {
-        flex: 1;
-        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-        padding: 2.5rem;
-        display: flex;
-        align-items: center;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .login-brand::before {
-        content: '';
-        position: absolute;
-        top: -30%;
-        right: -30%;
-        width: 80%;
-        height: 80%;
-        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-        pointer-events: none;
-    }
-
-    .brand-content {
-        position: relative;
-        z-index: 1;
-        color: white;
-    }
-
-    .brand-logo {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .brand-logo i {
-        font-size: 1.8rem;
-    }
-
-    .brand-logo span {
-        font-size: 1.3rem;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-    }
-
-    .brand-content h2 {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        line-height: 1.2;
-    }
-
-    .brand-content p {
-        font-size: 0.85rem;
-        opacity: 0.85;
-        margin-bottom: 2rem;
-        line-height: 1.5;
-    }
-
-    .feature-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .feature-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 0.8rem;
-        opacity: 0.9;
-    }
-
-    .feature-item i {
-        font-size: 0.8rem;
-        opacity: 1;
-    }
-
-    /* ========================================
-       RIGHT SIDE - LOGIN FORM
-       ========================================= */
-    
-    .login-form-wrapper {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2.5rem;
-        background: white;
-    }
-
-    .login-card {
-        width: 100%;
-        max-width: 360px;
-    }
-
-    .login-header {
-        text-align: center;
-        margin-bottom: 1.5rem;
-    }
-
-    .login-icon {
-        width: 56px;
-        height: 56px;
-        background: rgba(45, 106, 79, 0.1);
-        border-radius: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1rem;
-    }
-
-    .login-icon i {
-        font-size: 1.8rem;
-        color: var(--primary);
-    }
-
-    .login-header h3 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--gray-800);
-        margin-bottom: 0.25rem;
-    }
-
-    .login-header p {
-        font-size: 0.8rem;
-        color: var(--gray-500);
-    }
-
-    /* Alert Message */
-    .alert-message {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        border-radius: 0.75rem;
-        font-size: 0.8rem;
-        margin-bottom: 1.25rem;
-    }
-
-    .alert-message.error {
-        background: #fee2e2;
-        color: #dc2626;
-        border: 1px solid #fecaca;
-    }
-
-    .alert-message.success {
-        background: #d1fae5;
-        color: #065f46;
-        border: 1px solid #a7f3d0;
-    }
-
-    /* Form Groups */
-    .input-group-custom {
-        margin-bottom: 1.25rem;
-    }
-
-    .input-group-custom label {
-        display: block;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        margin-bottom: 0.4rem;
-    }
-
-    .input-field {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-
-    .input-field i:first-child {
-        position: absolute;
-        left: 1rem;
-        color: var(--gray-400);
-        font-size: 0.9rem;
-        pointer-events: none;
-    }
-
-    .input-field input {
-        width: 100%;
-        padding: 0.75rem 2.5rem;
-        font-size: 0.85rem;
-        border: 1.5px solid var(--gray-200);
-        border-radius: 0.75rem;
-        transition: all 0.2s;
-        outline: none;
-        background: white;
-    }
-
-    .input-field input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
-    }
-
-    .toggle-password {
-        position: absolute;
-        right: 1rem;
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: var(--gray-400);
-        font-size: 0.85rem;
-        padding: 0;
-    }
-
-    .toggle-password:hover {
-        color: var(--gray-600);
-    }
-
-    /* Form Options */
-    .form-options {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-
-    .checkbox-custom {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        font-size: 0.75rem;
-        color: var(--gray-600);
-    }
-
-    .checkbox-custom input {
-        display: none;
-    }
-
-    .checkmark {
-        width: 16px;
-        height: 16px;
-        border: 2px solid var(--gray-300);
-        border-radius: 4px;
-        display: inline-block;
-        position: relative;
-        transition: all 0.2s;
-    }
-
-    .checkbox-custom input:checked + .checkmark {
-        background: var(--primary);
-        border-color: var(--primary);
-    }
-
-    .checkbox-custom input:checked + .checkmark::after {
-        content: '✓';
-        position: absolute;
-        top: -1px;
-        left: 2px;
-        color: white;
-        font-size: 10px;
-    }
-
-    .forgot-link {
-        font-size: 0.75rem;
-        color: var(--primary);
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .forgot-link:hover {
-        text-decoration: underline;
-    }
-
-    /* Login Button */
-    .btn-login {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-        border: none;
-        color: white;
-        padding: 0.85rem;
-        border-radius: 0.75rem;
-        font-weight: 600;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .btn-login:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(45, 106, 79, 0.3);
-    }
-
-    .btn-login:disabled {
-        opacity: 0.7;
-        transform: none;
-    }
-
-    /* Login Footer */
-    .login-footer {
-        text-align: center;
-        margin-top: 1.5rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--gray-100);
-    }
-
-    .login-footer p {
-        font-size: 0.75rem;
-        color: var(--gray-500);
-    }
-
-    .login-footer a {
-        color: var(--primary);
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .login-footer a:hover {
-        text-decoration: underline;
-    }
-
-    /* ========================================
-       RESPONSIVE DESIGN
-       ========================================= */
-    
-    @media (max-width: 900px) {
-        .login-container {
-            max-width: 500px;
-            flex-direction: column;
-        }
-
-        .login-brand {
-            display: none;
-        }
-
-        .login-form-wrapper {
-            padding: 2rem 1.5rem;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .login-form-wrapper {
-            padding: 1.5rem;
-        }
-
-        .login-header h3 {
-            font-size: 1.3rem;
-        }
-
-        .login-icon {
-            width: 48px;
-            height: 48px;
-        }
-
-        .login-icon i {
-            font-size: 1.5rem;
-        }
-
-        .input-field input {
-            padding: 0.7rem 2.2rem;
-            font-size: 0.8rem;
-        }
-    }
-</style>
 
 <script>
     function togglePassword() {
@@ -528,11 +137,12 @@
             toggleIcon.classList.add('fa-eye');
         }
     }
-
-    document.getElementById('loginForm').addEventListener('submit', function() {
+    
+    // Form submission handler with loading state
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
         const btn = document.getElementById('loginBtn');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Signing In...';
     });
 </script>
 

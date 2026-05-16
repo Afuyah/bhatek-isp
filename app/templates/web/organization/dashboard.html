@@ -2,1036 +2,319 @@
 
 {% block title %}{{ organization.name }} - Dashboard{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ========================================
-       MODERN DASHBOARD - MOBILE FIRST
-       ========================================= */
-    
-    :root {
-        --primary: #2d6a4f;
-        --primary-light: #40916c;
-        --primary-dark: #1b4332;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --info: #3b82f6;
-        --gray-50: #f8fafc;
-        --gray-100: #f1f5f9;
-        --gray-200: #e2e8f0;
-        --gray-300: #cbd5e1;
-        --gray-400: #94a3b8;
-        --gray-500: #64748b;
-        --gray-600: #475569;
-        --gray-700: #334155;
-        --gray-800: #1e293b;
-    }
-
-    /* Mobile-first container */
-    .dashboard-container {
-        padding: 0.75rem;
-    }
-
-    /* Tablet and up */
-    @media (min-width: 768px) {
-        .dashboard-container {
-            padding: 1rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .dashboard-container {
-            padding: 1.5rem;
-        }
-    }
-
-    /* Welcome Banner - Mobile Optimized */
-    .welcome-banner {
-        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-        border-radius: 1rem;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        color: white;
-        position: relative;
-        overflow: hidden;
-    }
-
-    @media (min-width: 768px) {
-        .welcome-banner {
-            border-radius: 1.25rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .welcome-banner {
-            border-radius: 1.5rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-    }
-
-    .welcome-content h2 {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-    }
-
-    .welcome-content p {
-        font-size: 0.7rem;
-        opacity: 0.85;
-        margin-bottom: 0;
-    }
-
-    @media (min-width: 768px) {
-        .welcome-content h2 {
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-        .welcome-content p {
-            font-size: 0.85rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .welcome-content h2 {
-            font-size: 1.75rem;
-        }
-        .welcome-content p {
-            font-size: 0.95rem;
-        }
-    }
-
-    /* Date Card - Mobile */
-    .date-card {
-        background: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(8px);
-        border-radius: 0.75rem;
-        padding: 0.5rem 0.75rem;
-        text-align: left;
-        margin-top: 0.75rem;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .date-card .day {
-        font-size: 0.7rem;
-        font-weight: 500;
-        opacity: 0.85;
-    }
-
-    .date-card .date {
-        font-size: 0.85rem;
-        font-weight: 700;
-    }
-
-    @media (min-width: 768px) {
-        .date-card {
-            text-align: right;
-            margin-top: 0;
-            padding: 0.75rem 1rem;
-        }
-        .date-card .day {
-            font-size: 0.8rem;
-        }
-        .date-card .date {
-            font-size: 1rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .date-card {
-            padding: 1rem 1.5rem;
-        }
-        .date-card .day {
-            font-size: 1rem;
-        }
-        .date-card .date {
-            font-size: 1.25rem;
-        }
-    }
-
-    /* Stats Grid - Mobile First */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
-
-    @media (min-width: 768px) {
-        .stats-grid {
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-    }
-
-    @media (min-width: 992px) {
-        .stats-grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.25rem;
-            margin-bottom: 1.75rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .stats-grid {
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-    }
-
-    /* Stat Card - Compact Mobile */
-    .stat-card {
-        background: white;
-        border-radius: 0.875rem;
-        padding: 0.875rem;
-        transition: all 0.2s ease;
-        border: 1px solid var(--gray-200);
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-    }
-
-    @media (min-width: 768px) {
-        .stat-card {
-            padding: 1rem;
-            border-radius: 1rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .stat-card {
-            padding: 1.25rem;
-            border-radius: 1.25rem;
-        }
-    }
-
-    .stat-card::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, var(--primary), var(--primary-light));
-        transform: scaleX(0);
-        transition: transform 0.3s ease;
-    }
-
-    @media (min-width: 768px) {
-        .stat-card::after {
-            height: 3px;
-        }
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    .stat-card:hover::after {
-        transform: scaleX(1);
-    }
-
-    .stat-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-        margin-bottom: 0.75rem;
-    }
-
-    @media (min-width: 768px) {
-        .stat-icon {
-            width: 42px;
-            height: 42px;
-            font-size: 1.25rem;
-            margin-bottom: 0.875rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-    }
-
-    .stat-icon.primary { background: rgba(45, 106, 79, 0.1); color: var(--primary); }
-    .stat-icon.success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-    .stat-icon.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-    .stat-icon.info { background: rgba(59, 130, 246, 0.1); color: var(--info); }
-
-    .stat-value {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--gray-800);
-        margin-bottom: 0.2rem;
-        line-height: 1.2;
-    }
-
-    @media (min-width: 768px) {
-        .stat-value {
-            font-size: 1.4rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .stat-value {
-            font-size: 2rem;
-            margin-bottom: 0.25rem;
-        }
-    }
-
-    .stat-label {
-        font-size: 0.7rem;
-        color: var(--gray-500);
-        margin-bottom: 0.35rem;
-    }
-
-    @media (min-width: 768px) {
-        .stat-label {
-            font-size: 0.75rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .stat-label {
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-        }
-    }
-
-    .stat-trend {
-        font-size: 0.6rem;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.2rem;
-        padding: 0.2rem 0.4rem;
-        border-radius: 1rem;
-    }
-
-    @media (min-width: 768px) {
-        .stat-trend {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .stat-trend {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-        }
-    }
-
-    .stat-trend.up { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-    .stat-trend.down { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-    .stat-trend.neutral { background: rgba(100, 116, 139, 0.1); color: var(--gray-500); }
-
-    /* Quick Actions - Mobile Optimized */
-    .quick-actions {
-        background: white;
-        border-radius: 1rem;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid var(--gray-200);
-    }
-
-    @media (min-width: 768px) {
-        .quick-actions {
-            border-radius: 1.125rem;
-            padding: 1.25rem;
-            margin-bottom: 1.25rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .quick-actions {
-            border-radius: 1.25rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.875rem;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    @media (min-width: 768px) {
-        .section-header {
-            margin-bottom: 1rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .section-header {
-            margin-bottom: 1.25rem;
-        }
-    }
-
-    .section-header h5 {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-    @media (min-width: 768px) {
-        .section-header h5 {
-            font-size: 0.9rem;
-            gap: 0.5rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .section-header h5 {
-            font-size: 1rem;
-        }
-    }
-
-    .action-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
-    }
-
-    @media (min-width: 480px) {
-        .action-grid {
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
-
-    @media (min-width: 768px) {
-        .action-grid {
-            gap: 0.875rem;
-        }
-    }
-
-    @media (min-width: 992px) {
-        .action-grid {
-            grid-template-columns: repeat(6, 1fr);
-            gap: 1rem;
-        }
-    }
-
-    .action-btn {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);
-        border-radius: 0.75rem;
-        padding: 0.7rem 0.5rem;
-        text-align: center;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: block;
-    }
-
-    @media (min-width: 768px) {
-        .action-btn {
-            padding: 0.875rem 0.5rem;
-            border-radius: 0.875rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .action-btn {
-            padding: 1rem 0.75rem;
-            border-radius: 1rem;
-        }
-    }
-
-    .action-btn:hover {
-        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-        border-color: transparent;
-        transform: translateY(-2px);
-        text-decoration: none;
-    }
-
-    .action-btn i {
-        font-size: 1rem;
-        color: var(--primary);
-        margin-bottom: 0.35rem;
-        display: block;
-        transition: color 0.3s ease;
-    }
-
-    .action-btn span {
-        font-size: 0.65rem;
-        color: var(--gray-600);
-        font-weight: 500;
-        transition: color 0.3s ease;
-    }
-
-    @media (min-width: 768px) {
-        .action-btn i {
-            font-size: 1.125rem;
-            margin-bottom: 0.4rem;
-        }
-        .action-btn span {
-            font-size: 0.7rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .action-btn i {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-        }
-        .action-btn span {
-            font-size: 0.75rem;
-        }
-    }
-
-    .action-btn:hover i,
-    .action-btn:hover span {
-        color: white;
-    }
-
-    /* Data Cards - Mobile Optimized */
-    .row.g-4 {
-        --bs-gutter-y: 0.75rem;
-        --bs-gutter-x: 0.75rem;
-    }
-
-    @media (min-width: 768px) {
-        .row.g-4 {
-            --bs-gutter-y: 1rem;
-            --bs-gutter-x: 1rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .row.g-4 {
-            --bs-gutter-y: 1.5rem;
-            --bs-gutter-x: 1.5rem;
-        }
-    }
-
-    .data-card {
-        background: white;
-        border-radius: 1rem;
-        border: 1px solid var(--gray-200);
-        overflow: hidden;
-        height: 100%;
-    }
-
-    @media (min-width: 768px) {
-        .data-card {
-            border-radius: 1.125rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .data-card {
-            border-radius: 1.25rem;
-        }
-    }
-
-    .data-card-header {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid var(--gray-200);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    @media (min-width: 768px) {
-        .data-card-header {
-            padding: 1rem 1.25rem;
-        }
-    }
-
-    .data-card-header h5 {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-    @media (min-width: 768px) {
-        .data-card-header h5 {
-            font-size: 0.85rem;
-            gap: 0.5rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .data-card-header h5 {
-            font-size: 0.95rem;
-        }
-    }
-
-    .badge-count {
-        background: var(--primary);
-        color: white;
-        border-radius: 1rem;
-        padding: 0.2rem 0.5rem;
-        font-size: 0.6rem;
-        font-weight: 600;
-    }
-
-    /* List Items - Compact Mobile */
-    .activity-list {
-        max-height: 350px;
-        overflow-y: auto;
-    }
-
-    .list-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.7rem 0.875rem;
-        border-bottom: 1px solid var(--gray-100);
-        transition: background 0.2s ease;
-    }
-
-    @media (min-width: 768px) {
-        .list-item {
-            gap: 1rem;
-            padding: 0.875rem 1rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .list-item {
-            padding: 1rem 1.25rem;
-        }
-    }
-
-    .list-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.85rem;
-        flex-shrink: 0;
-    }
-
-    @media (min-width: 768px) {
-        .list-icon {
-            width: 36px;
-            height: 36px;
-            font-size: 0.9rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .list-icon {
-            width: 40px;
-            height: 40px;
-            font-size: 1rem;
-        }
-    }
-
-    .list-icon.blue { background: rgba(59, 130, 246, 0.1); color: var(--info); }
-    .list-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-    .list-icon.orange { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-    .list-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
-
-    .list-content {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .list-title {
-        font-weight: 600;
-        font-size: 0.8rem;
-        color: var(--gray-800);
-        margin-bottom: 0.2rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    @media (min-width: 768px) {
-        .list-title {
-            font-size: 0.85rem;
-            margin-bottom: 0.25rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .list-title {
-            font-size: 0.875rem;
-        }
-    }
-
-    .list-subtitle {
-        font-size: 0.65rem;
-        color: var(--gray-500);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    @media (min-width: 768px) {
-        .list-subtitle {
-            font-size: 0.7rem;
-        }
-    }
-
-    .list-end {
-        text-align: right;
-        flex-shrink: 0;
-    }
-
-    .list-value {
-        font-weight: 600;
-        font-size: 0.75rem;
-        color: var(--gray-700);
-    }
-
-    @media (min-width: 768px) {
-        .list-value {
-            font-size: 0.8rem;
-        }
-    }
-
-    .list-status {
-        font-size: 0.6rem;
-        padding: 0.15rem 0.4rem;
-        border-radius: 1rem;
-        display: inline-block;
-    }
-
-    @media (min-width: 768px) {
-        .list-status {
-            font-size: 0.65rem;
-            padding: 0.2rem 0.5rem;
-        }
-    }
-
-    .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-    .status-inactive { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-    .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-
-    /* Empty State - Compact */
-    .empty-state {
-        text-align: center;
-        padding: 1.5rem 1rem;
-        color: var(--gray-400);
-    }
-
-    @media (min-width: 768px) {
-        .empty-state {
-            padding: 2rem 1.5rem;
-        }
-    }
-
-    .empty-state i {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-        opacity: 0.5;
-    }
-
-    @media (min-width: 768px) {
-        .empty-state i {
-            font-size: 2.5rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-    }
-
-    .empty-state p {
-        font-size: 0.75rem;
-        margin: 0;
-    }
-
-    @media (min-width: 768px) {
-        .empty-state p {
-            font-size: 0.8rem;
-        }
-    }
-
-    /* Scrollbar */
-    .activity-list::-webkit-scrollbar {
-        width: 3px;
-    }
-
-    @media (min-width: 768px) {
-        .activity-list::-webkit-scrollbar {
-            width: 4px;
-        }
-    }
-
-    .activity-list::-webkit-scrollbar-track {
-        background: var(--gray-100);
-    }
-
-    .activity-list::-webkit-scrollbar-thumb {
-        background: var(--gray-300);
-        border-radius: 4px;
-    }
-
-    /* Action Link */
-    .action-link {
-        font-size: 0.7rem;
-        color: var(--primary);
-        text-decoration: none;
-    }
-
-    @media (min-width: 768px) {
-        .action-link {
-            font-size: 0.75rem;
-        }
-    }
-
-    .action-link:hover {
-        text-decoration: underline;
-        color: var(--primary-dark);
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="dashboard-container">
+<div class="p-3 md:p-4 lg:p-6 space-y-3 md:space-y-4 lg:space-y-6">
+    
     <!-- Welcome Banner -->
-    <div class="welcome-banner">
-        <div class="row align-items-center g-2">
-            <div class="col-12 col-md-8">
-                <div class="welcome-content">
-                    <h2>Welcome back, {{ user.first_name or user.email }}</h2>
-                    <p>{{ organization.name }} dashboard overview</p>
-                </div>
+    <div class="bg-gradient-to-r from-[#1b4332] to-[#2d6a4f] rounded-xl md:rounded-2xl p-3 md:p-5 lg:p-6 text-white">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2 md:gap-3">
+            <div>
+                <h2 class="text-base md:text-xl lg:text-2xl font-bold mb-0.5 md:mb-1">
+                    Welcome back, {{ user.first_name or user.email }}
+                </h2>
+                <p class="text-xs md:text-sm text-white/80">{{ organization.name }} dashboard overview</p>
             </div>
-            <div class="col-12 col-md-4">
-                <div class="date-card">
-                    <div class="day">{{ now.strftime('%A') }}</div>
-                    <div class="date">{{ now.strftime('%b %d, %Y') }}</div>
-                </div>
+            <div class="bg-white/10 backdrop-blur rounded-lg md:rounded-xl px-3 md:px-4 py-1.5 md:py-2 text-left md:text-right border border-white/15">
+                <div class="text-xs md:text-sm font-medium text-white/80">{{ now.strftime('%A') }}</div>
+                <div class="text-sm md:text-base lg:text-lg font-bold">{{ now.strftime('%b %d, %Y') }}</div>
             </div>
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-        <div class="stat-card" onclick="window.location.href='#'">
-            <div class="stat-icon primary"><i class="fas fa-users"></i></div>
-            <div class="stat-value">{{ stats.total_subscribers|default(0) }}</div>
-            <div class="stat-label">Subscribers</div>
-            <div class="stat-trend up"><i class="fas fa-arrow-up"></i> {{ stats.subscriber_growth|default(0) }}%</div>
+    <!-- Stats Grid - 2 columns on mobile, 4 on desktop -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 lg:gap-4">
+        <!-- Subscribers Card -->
+        <div onclick="window.location.href='#'" 
+             class="bg-white rounded-lg md:rounded-xl p-3 md:p-4 border border-gray-200 cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center mb-2 md:mb-3">
+                <i class="fas fa-users text-[#2d6a4f] text-sm md:text-base"></i>
+            </div>
+            <div class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{{ stats.total_subscribers|default(0) }}</div>
+            <div class="text-xs md:text-sm text-gray-500 mt-0.5">Subscribers</div>
+            <div class="inline-flex items-center gap-1 text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 mt-1.5">
+                <i class="fas fa-arrow-up text-[8px]"></i> {{ stats.subscriber_growth|default(0) }}%
+            </div>
         </div>
 
-        <div class="stat-card" onclick="window.location.href='#'">
-            <div class="stat-icon success"><i class="fas fa-wifi"></i></div>
-            <div class="stat-value">{{ stats.active_sessions|default(0) }}</div>
-            <div class="stat-label">Active Sessions</div>
-            <div class="stat-trend up"><i class="fas fa-arrow-up"></i> {{ stats.session_growth|default(0) }}</div>
+        <!-- Active Sessions Card -->
+        <div onclick="window.location.href='#'" 
+             class="bg-white rounded-lg md:rounded-xl p-3 md:p-4 border border-gray-200 cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-2 md:mb-3">
+                <i class="fas fa-wifi text-emerald-500 text-sm md:text-base"></i>
+            </div>
+            <div class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{{ stats.active_sessions|default(0) }}</div>
+            <div class="text-xs md:text-sm text-gray-500 mt-0.5">Active Sessions</div>
+            <div class="inline-flex items-center gap-1 text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 mt-1.5">
+                <i class="fas fa-arrow-up text-[8px]"></i> {{ stats.session_growth|default(0) }}
+            </div>
         </div>
 
-        <div class="stat-card" onclick="window.location.href='{{ url_for('billing_web.dashboard', org_id=organization.id) }}'">
-            <div class="stat-icon warning"><i class="fas fa-chart-line"></i></div>
-            <div class="stat-value">KES {{ "{:,.0f}".format(stats.monthly_revenue|default(0)) }}</div>
-            <div class="stat-label">Revenue</div>
-            <div class="stat-trend up"><i class="fas fa-arrow-up"></i> {{ stats.revenue_growth|default(0) }}%</div>
+        <!-- Revenue Card -->
+        <div onclick="window.location.href='{{ url_for('billing_web.dashboard', org_id=organization.id) }}'" 
+             class="bg-white rounded-lg md:rounded-xl p-3 md:p-4 border border-gray-200 cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-amber-500/10 rounded-lg flex items-center justify-center mb-2 md:mb-3">
+                <i class="fas fa-chart-line text-amber-500 text-sm md:text-base"></i>
+            </div>
+            <div class="text-base md:text-xl lg:text-2xl font-bold text-gray-800">KES {{ "{:,.0f}".format(stats.monthly_revenue|default(0)) }}</div>
+            <div class="text-xs md:text-sm text-gray-500 mt-0.5">Revenue</div>
+            <div class="inline-flex items-center gap-1 text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 mt-1.5">
+                <i class="fas fa-arrow-up text-[8px]"></i> {{ stats.revenue_growth|default(0) }}%
+            </div>
         </div>
 
-        <div class="stat-card" onclick="window.location.href='{{ url_for('router_web.index', org_id=organization.id) }}'">
-            <div class="stat-icon info"><i class="fas fa-server"></i></div>
-            <div class="stat-value">{{ stats.active_routers|default(0) }}</div>
-            <div class="stat-label">Routers</div>
-            <div class="stat-trend neutral"><i class="fas fa-check-circle"></i> {{ stats.online_routers|default(0) }} online</div>
+        <!-- Routers Card -->
+        <div onclick="window.location.href='{{ url_for('router_web.index', org_id=organization.id) }}'" 
+             class="bg-white rounded-lg md:rounded-xl p-3 md:p-4 border border-gray-200 cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-2 md:mb-3">
+                <i class="fas fa-server text-blue-500 text-sm md:text-base"></i>
+            </div>
+            <div class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{{ stats.active_routers|default(0) }}</div>
+            <div class="text-xs md:text-sm text-gray-500 mt-0.5">Routers</div>
+            <div class="inline-flex items-center gap-1 text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 mt-1.5">
+                <i class="fas fa-check-circle text-[8px]"></i> {{ stats.online_routers|default(0) }} online
+            </div>
         </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="quick-actions">
-        <div class="section-header">
-            <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+    <div class="bg-white rounded-lg md:rounded-xl p-3 md:p-4 border border-gray-200">
+        <div class="flex items-center justify-between mb-2 md:mb-3">
+            <h5 class="text-sm md:text-base font-semibold text-gray-700">
+                <i class="fas fa-bolt mr-1.5 text-[#2d6a4f]"></i> Quick Actions
+            </h5>
         </div>
-        <div class="action-grid">
-            <a href="#" class="action-btn">
-                <i class="fas fa-user-plus"></i>
-                <span>Add User</span>
+        <div class="grid grid-cols-3 md:grid-cols-6 gap-1.5 md:gap-2">
+            <a href="#" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
+                <i class="fas fa-user-plus text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Add User</span>
             </a>
-            <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="action-btn">
-                <i class="fas fa-ticket-alt"></i>
-                <span>Voucher</span>
+            <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
+                <i class="fas fa-ticket-alt text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Voucher</span>
             </a>
-            <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="action-btn">
-                <i class="fas fa-plus-circle"></i>
-                <span>Router</span>
+            <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
+                <i class="fas fa-plus-circle text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Router</span>
             </a>
-            <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="action-btn">
-                <i class="fas fa-tag"></i>
-                <span>Plans</span>
+            <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
+                <i class="fas fa-tag text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Plans</span>
             </a>
-            <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="action-btn">
-                <i class="fas fa-network-wired"></i>
-                <span>Network</span>
+            <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
+                <i class="fas fa-network-wired text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Network</span>
             </a>
-            <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="action-btn">
-                <i class="fas fa-wifi"></i>
-                <span>AP</span>
+            <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
+                <i class="fas fa-wifi text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">AP</span>
             </a>
         </div>
     </div>
 
-    <div class="row g-3 g-md-4">
+    <!-- Two Column Grid for Data Cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
+        
         <!-- Expiring Subscriptions -->
-        <div class="col-12 col-lg-6">
-            <div class="data-card">
-                <div class="data-card-header">
-                    <h5><i class="fas fa-clock"></i> Expiring Soon</h5>
-                    <span class="badge-count">{{ expiring_subscriptions|length }}</span>
-                </div>
-                <div class="activity-list">
-                    {% if expiring_subscriptions %}
-                        {% for sub in expiring_subscriptions %}
-                        <div class="list-item">
-                            <div class="list-icon orange">
-                                <i class="fas fa-hourglass-half"></i>
+        <div class="bg-white rounded-lg md:rounded-xl border border-gray-200 overflow-hidden">
+            <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200">
+                <h5 class="text-sm md:text-base font-semibold text-gray-700">
+                    <i class="fas fa-clock mr-1.5 text-amber-500"></i> Expiring Soon
+                </h5>
+                <span class="bg-[#2d6a4f] text-white text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-full">{{ expiring_subscriptions|length }}</span>
+            </div>
+            <div class="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+                {% if expiring_subscriptions %}
+                    {% for sub in expiring_subscriptions %}
+                    <div class="flex items-center gap-2 md:gap-3 p-3 md:p-4 hover:bg-gray-50 transition-colors duration-150">
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-amber-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-hourglass-half text-amber-500 text-sm md:text-base"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm md:text-base font-semibold text-gray-800 truncate">
+                                {{ sub.subscriber.phone if sub.subscriber else 'Unknown' }}
                             </div>
-                            <div class="list-content">
-                                <div class="list-title">{{ sub.subscriber.phone if sub.subscriber else 'Unknown' }}</div>
-                                <div class="list-subtitle">{{ sub.plan.name if sub.plan else 'No Plan' }} • {{ sub.days_remaining() }} days left</div>
-                            </div>
-                            <div class="list-end">
-                                <div class="list-value">{{ sub.expiry_time.strftime('%b %d') if sub.expiry_time else 'N/A' }}</div>
-                                <div class="list-status status-pending">Expiring</div>
+                            <div class="text-[10px] md:text-xs text-gray-500 truncate">
+                                {{ sub.plan.name if sub.plan else 'No Plan' }} • {{ sub.days_remaining() }} days left
                             </div>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-check-circle"></i>
-                            <p>No expiring subscriptions</p>
+                        <div class="text-right flex-shrink-0">
+                            <div class="text-xs md:text-sm font-semibold text-gray-700">
+                                {{ sub.expiry_time.strftime('%b %d') if sub.expiry_time else 'N/A' }}
+                            </div>
+                            <span class="inline-block text-[9px] md:text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">
+                                Expiring
+                            </span>
                         </div>
-                    {% endif %}
-                </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 md:py-12 text-gray-400">
+                        <i class="fas fa-check-circle text-3xl md:text-4xl mb-2 block opacity-50"></i>
+                        <p class="text-xs md:text-sm">No expiring subscriptions</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
         <!-- Recent Voucher Batches -->
-        <div class="col-12 col-lg-6">
-            <div class="data-card">
-                <div class="data-card-header">
-                    <h5><i class="fas fa-ticket-alt"></i> Voucher Batches</h5>
-                    <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="action-link">View All →</a>
-                </div>
-                <div class="activity-list">
-                    {% if voucher_batches %}
-                        {% for batch in voucher_batches %}
-                        <div class="list-item">
-                            <div class="list-icon green">
-                                <i class="fas fa-layer-group"></i>
-                            </div>
-                            <div class="list-content">
-                                <div class="list-title">{{ batch.batch_name }}</div>
-                                <div class="list-subtitle">{{ batch.quantity }} vouchers • KES {{ "%.0f"|format(batch.total_amount) }}</div>
-                            </div>
-                            <div class="list-end">
-                                <div class="list-value">{{ batch.created_at.strftime('%b %d') if batch.created_at else 'N/A' }}</div>
-                                <div class="list-status status-active">{{ batch.status }}</div>
+        <div class="bg-white rounded-lg md:rounded-xl border border-gray-200 overflow-hidden">
+            <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200">
+                <h5 class="text-sm md:text-base font-semibold text-gray-700">
+                    <i class="fas fa-ticket-alt mr-1.5 text-emerald-500"></i> Voucher Batches
+                </h5>
+                <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="text-[10px] md:text-xs text-[#2d6a4f] hover:underline">
+                    View All →
+                </a>
+            </div>
+            <div class="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+                {% if voucher_batches %}
+                    {% for batch in voucher_batches %}
+                    <div class="flex items-center gap-2 md:gap-3 p-3 md:p-4 hover:bg-gray-50 transition-colors duration-150">
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-layer-group text-emerald-500 text-sm md:text-base"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm md:text-base font-semibold text-gray-800 truncate">{{ batch.batch_name }}</div>
+                            <div class="text-[10px] md:text-xs text-gray-500">
+                                {{ batch.quantity }} vouchers • KES {{ "%.0f"|format(batch.total_amount) }}
                             </div>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-ticket-alt"></i>
-                            <p>No voucher batches</p>
+                        <div class="text-right flex-shrink-0">
+                            <div class="text-[10px] md:text-xs text-gray-500">
+                                {{ batch.created_at.strftime('%b %d') if batch.created_at else 'N/A' }}
+                            </div>
+                            <span class="inline-block text-[9px] md:text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-600">
+                                {{ batch.status }}
+                            </span>
                         </div>
-                    {% endif %}
-                </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 md:py-12 text-gray-400">
+                        <i class="fas fa-ticket-alt text-3xl md:text-4xl mb-2 block opacity-50"></i>
+                        <p class="text-xs md:text-sm">No voucher batches</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
         <!-- Recent Routers -->
-        <div class="col-12 col-lg-6">
-            <div class="data-card">
-                <div class="data-card-header">
-                    <h5><i class="fas fa-server"></i> Recent Routers</h5>
-                    <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="action-link">View All →</a>
-                </div>
-                <div class="activity-list">
-                    {% if recent_routers %}
-                        {% for router in recent_routers %}
-                        <div class="list-item">
-                            <div class="list-icon purple">
-                                <i class="fas fa-microchip"></i>
-                            </div>
-                            <div class="list-content">
-                                <div class="list-title">{{ router.name }}</div>
-                                <div class="list-subtitle">{{ router.ip_address }}</div>
-                            </div>
-                            <div class="list-end">
-                                <div class="list-status {{ 'status-active' if router.status == 'online' else 'status-inactive' }}">
-                                    {{ router.status|capitalize }}
-                                </div>
-                            </div>
+        <div class="bg-white rounded-lg md:rounded-xl border border-gray-200 overflow-hidden">
+            <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200">
+                <h5 class="text-sm md:text-base font-semibold text-gray-700">
+                    <i class="fas fa-server mr-1.5 text-purple-500"></i> Recent Routers
+                </h5>
+                <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="text-[10px] md:text-xs text-[#2d6a4f] hover:underline">
+                    View All →
+                </a>
+            </div>
+            <div class="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+                {% if recent_routers %}
+                    {% for router in recent_routers %}
+                    <div class="flex items-center gap-2 md:gap-3 p-3 md:p-4 hover:bg-gray-50 transition-colors duration-150">
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-microchip text-purple-500 text-sm md:text-base"></i>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-server"></i>
-                            <p>No routers added</p>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm md:text-base font-semibold text-gray-800 truncate">{{ router.name }}</div>
+                            <div class="text-[10px] md:text-xs text-gray-500 truncate">{{ router.ip_address }}</div>
                         </div>
-                    {% endif %}
-                </div>
+                        <div class="flex-shrink-0">
+                            <span class="inline-block text-[9px] md:text-[10px] font-semibold px-1.5 py-0.5 rounded-full 
+                                {% if router.status == 'online' %}bg-green-50 text-green-600
+                                {% else %}bg-red-50 text-red-600{% endif %}">
+                                {{ router.status|capitalize }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 md:py-12 text-gray-400">
+                        <i class="fas fa-server text-3xl md:text-4xl mb-2 block opacity-50"></i>
+                        <p class="text-xs md:text-sm">No routers added</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
         <!-- Recent Access Points -->
-        <div class="col-12 col-lg-6">
-            <div class="data-card">
-                <div class="data-card-header">
-                    <h5><i class="fas fa-wifi"></i> Access Points</h5>
-                    <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="action-link">View All →</a>
-                </div>
-                <div class="activity-list">
-                    {% if recent_aps %}
-                        {% for ap in recent_aps %}
-                        <div class="list-item">
-                            <div class="list-icon blue">
-                                <i class="fas fa-broadcast-tower"></i>
-                            </div>
-                            <div class="list-content">
-                                <div class="list-title">{{ ap.name }}</div>
-                                <div class="list-subtitle">{{ ap.ssid }}</div>
-                            </div>
-                            <div class="list-end">
-                                <div class="list-status {{ 'status-active' if ap.status == 'online' else 'status-inactive' }}">
-                                    {{ ap.status|capitalize }}
-                                </div>
-                            </div>
+        <div class="bg-white rounded-lg md:rounded-xl border border-gray-200 overflow-hidden">
+            <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200">
+                <h5 class="text-sm md:text-base font-semibold text-gray-700">
+                    <i class="fas fa-wifi mr-1.5 text-blue-500"></i> Access Points
+                </h5>
+                <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="text-[10px] md:text-xs text-[#2d6a4f] hover:underline">
+                    View All →
+                </a>
+            </div>
+            <div class="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+                {% if recent_aps %}
+                    {% for ap in recent_aps %}
+                    <div class="flex items-center gap-2 md:gap-3 p-3 md:p-4 hover:bg-gray-50 transition-colors duration-150">
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-broadcast-tower text-blue-500 text-sm md:text-base"></i>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-wifi"></i>
-                            <p>No access points</p>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm md:text-base font-semibold text-gray-800 truncate">{{ ap.name }}</div>
+                            <div class="text-[10px] md:text-xs text-gray-500 truncate">{{ ap.ssid }}</div>
                         </div>
-                    {% endif %}
-                </div>
+                        <div class="flex-shrink-0">
+                            <span class="inline-block text-[9px] md:text-[10px] font-semibold px-1.5 py-0.5 rounded-full 
+                                {% if ap.status == 'online' %}bg-green-50 text-green-600
+                                {% else %}bg-red-50 text-red-600{% endif %}">
+                                {{ ap.status|capitalize }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 md:py-12 text-gray-400">
+                        <i class="fas fa-wifi text-3xl md:text-4xl mb-2 block opacity-50"></i>
+                        <p class="text-xs md:text-sm">No access points</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Auto-refresh data every 30 seconds for live dashboard
+    let refreshInterval;
+    
+    function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(() => {
+            fetchDashboardData();
+        }, 30000);
+    }
+    
+    async function fetchDashboardData() {
+        try {
+            const response = await fetch('/api/v1/dashboard/stats?org_id={{ organization.id }}');
+            const data = await response.json();
+            
+            // Update stats without page reload
+            if (data.total_subscribers !== undefined) {
+                document.querySelector('.stat-value').textContent = data.total_subscribers;
+            }
+        } catch (error) {
+            console.debug('Auto-refresh failed:', error);
+        }
+    }
+    
+    // Start auto-refresh on page load
+    if (document.visibilityState === 'visible') {
+        startAutoRefresh();
+    }
+    
+    // Handle page visibility
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            if (refreshInterval) clearInterval(refreshInterval);
+        } else {
+            startAutoRefresh();
+        }
+    });
+</script>
 {% endblock %}

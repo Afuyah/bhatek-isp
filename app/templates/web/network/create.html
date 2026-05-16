@@ -2,544 +2,181 @@
 
 {% block title %}Create Network - {{ organization.name }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ========================================
-       CREATE NETWORK FORM - MODERN DESIGN
-       ========================================= */
-    
-    :root {
-        --primary: #2d6a4f;
-        --primary-light: #40916c;
-        --primary-dark: #1b4332;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --info: #3b82f6;
-        --gray-50: #f8fafc;
-        --gray-100: #f1f5f9;
-        --gray-200: #e2e8f0;
-        --gray-300: #cbd5e1;
-        --gray-400: #94a3b8;
-        --gray-500: #64748b;
-        --gray-600: #475569;
-        --gray-700: #334155;
-        --gray-800: #1e293b;
-    }
-
-    /* Container */
-    .create-network-container {
-        padding: 0.75rem;
-    }
-
-    @media (min-width: 768px) {
-        .create-network-container {
-            padding: 1rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .create-network-container {
-            padding: 1.5rem;
-        }
-    }
-
-    /* Header */
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
-
-    @media (min-width: 768px) {
-        .page-header {
-            margin-bottom: 1.5rem;
-            gap: 1rem;
-        }
-    }
-
-    .page-title h4 {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.2rem;
-        color: var(--gray-800);
-    }
-
-    .page-title p {
-        font-size: 0.7rem;
-        color: var(--gray-500);
-        margin-bottom: 0;
-    }
-
-    @media (min-width: 768px) {
-        .page-title h4 {
-            font-size: 1.25rem;
-        }
-        .page-title p {
-            font-size: 0.8rem;
-        }
-    }
-
-    .btn-back {
-        background: var(--gray-100);
-        border: 1px solid var(--gray-200);
-        color: var(--gray-600);
-        padding: 0.4rem 0.875rem;
-        font-size: 0.7rem;
-        border-radius: 0.5rem;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-back:hover {
-        background: var(--gray-200);
-        color: var(--gray-700);
-    }
-
-    @media (min-width: 768px) {
-        .btn-back {
-            padding: 0.5rem 1rem;
-            font-size: 0.75rem;
-        }
-    }
-
-    /* Form Container */
-    .form-container {
-        background: white;
-        border-radius: 1rem;
-        padding: 1rem;
-        border: 1px solid var(--gray-200);
-    }
-
-    @media (min-width: 768px) {
-        .form-container {
-            padding: 1.25rem;
-            border-radius: 1.125rem;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .form-container {
-            padding: 1.5rem;
-            border-radius: 1.25rem;
-        }
-    }
-
-    /* Form Elements */
-    .form-group {
-        margin-bottom: 1rem;
-    }
-
-    @media (min-width: 768px) {
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-    }
-
-    .form-label {
-        font-weight: 600;
-        margin-bottom: 0.35rem;
-        color: var(--gray-700);
-        font-size: 0.75rem;
-        display: block;
-    }
-
-    @media (min-width: 768px) {
-        .form-label {
-            font-size: 0.8rem;
-            margin-bottom: 0.4rem;
-        }
-    }
-
-    .required {
-        color: var(--danger);
-        margin-left: 0.2rem;
-    }
-
-    .form-control,
-    .form-select {
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.5rem;
-        transition: all 0.2s;
-        background: white;
-    }
-
-    @media (min-width: 768px) {
-        .form-control,
-        .form-select {
-            padding: 0.6rem 0.875rem;
-            font-size: 0.8rem;
-            border-radius: 0.5rem;
-        }
-    }
-
-    .form-control:focus,
-    .form-select:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
-    }
-
-    textarea.form-control {
-        resize: vertical;
-        min-height: 80px;
-    }
-
-    .form-text {
-        font-size: 0.6rem;
-        color: var(--gray-500);
-        margin-top: 0.25rem;
-    }
-
-    @media (min-width: 768px) {
-        .form-text {
-            font-size: 0.65rem;
-        }
-    }
-
-    /* Type Cards */
-    .type-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    @media (min-width: 640px) {
-        .type-grid {
-            flex-direction: row;
-            gap: 0.75rem;
-        }
-        .type-grid .type-card {
-            flex: 1;
-        }
-    }
-
-    .type-card {
-        border: 2px solid var(--gray-200);
-        border-radius: 0.75rem;
-        padding: 0.875rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-align: center;
-    }
-
-    @media (min-width: 768px) {
-        .type-card {
-            padding: 1rem;
-            border-radius: 1rem;
-        }
-    }
-
-    .type-card:hover {
-        border-color: var(--primary);
-        background: var(--gray-50);
-    }
-
-    .type-card.selected {
-        border-color: var(--primary);
-        background: linear-gradient(135deg, rgba(45, 106, 79, 0.05) 0%, rgba(64, 145, 108, 0.05) 100%);
-    }
-
-    .type-card input[type="radio"] {
-        display: none;
-    }
-
-    .type-icon {
-        font-size: 1.25rem;
-        margin-bottom: 0.35rem;
-    }
-
-    @media (min-width: 768px) {
-        .type-icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-    }
-
-    .type-title {
-        font-weight: 600;
-        font-size: 0.75rem;
-        margin-bottom: 0.2rem;
-        color: var(--gray-700);
-    }
-
-    .type-desc {
-        font-size: 0.6rem;
-        color: var(--gray-500);
-    }
-
-    @media (min-width: 768px) {
-        .type-title {
-            font-size: 0.85rem;
-        }
-        .type-desc {
-            font-size: 0.65rem;
-        }
-    }
-
-    /* Slug Preview */
-    .slug-preview {
-        background: var(--gray-50);
-        border-radius: 0.5rem;
-        padding: 0.5rem 0.75rem;
-        font-family: monospace;
-        font-size: 0.7rem;
-        color: var(--primary);
-        margin-top: 0.5rem;
-        display: none;
-        border: 1px solid var(--gray-200);
-        word-break: break-all;
-    }
-
-    .slug-preview.active {
-        display: block;
-    }
-
-    /* Form Check */
-    .form-check {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .form-check-input {
-        width: 1rem;
-        height: 1rem;
-        margin: 0;
-        cursor: pointer;
-    }
-
-    .form-check-label {
-        font-size: 0.75rem;
-        color: var(--gray-700);
-        cursor: pointer;
-    }
-
-    /* Form Actions */
-    .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.75rem;
-        padding-top: 1rem;
-        margin-top: 0.5rem;
-        border-top: 1px solid var(--gray-200);
-    }
-
-    @media (min-width: 768px) {
-        .form-actions {
-            gap: 1rem;
-            padding-top: 1.25rem;
-        }
-    }
-
-    .btn-cancel {
-        background: var(--gray-100);
-        border: 1px solid var(--gray-200);
-        color: var(--gray-600);
-        padding: 0.5rem 1rem;
-        font-size: 0.7rem;
-        border-radius: 0.5rem;
-        font-weight: 500;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-cancel:hover {
-        background: var(--gray-200);
-        color: var(--gray-700);
-    }
-
-    .btn-submit {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-        border: none;
-        color: white;
-        padding: 0.5rem 1rem;
-        font-size: 0.7rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-submit:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
-        color: white;
-    }
-
-    .btn-submit:disabled {
-        opacity: 0.6;
-        transform: none;
-    }
-
-    @media (min-width: 768px) {
-        .btn-cancel,
-        .btn-submit {
-            padding: 0.6rem 1.25rem;
-            font-size: 0.75rem;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="create-network-container">
+<div class="p-3 md:p-4 lg:p-6 space-y-4">
+    
     <!-- Header -->
-    <div class="page-header">
-        <div class="page-title">
-            <h4>Create New Network</h4>
-            <p>Add a new network to {{ organization.name }}</p>
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">Create Network</h1>
+            <p class="text-xs md:text-sm text-gray-500 mt-0.5">Add a new network to {{ organization.name }}</p>
         </div>
-        <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back
+        <a href="{{ url_for('network_web.index', org_id=organization.id) }}" 
+           class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-colors duration-150">
+            <i class="fas fa-arrow-left text-xs"></i> Back
         </a>
     </div>
 
     <!-- Form Container -->
-    <div class="form-container">
+    <div class="bg-white rounded-lg md:rounded-xl border border-gray-200 p-4 md:p-6">
         <form method="POST" id="createNetworkForm">
+            
             <!-- Network Name -->
-            <div class="form-group">
-                <label class="form-label">Network Name <span class="required">*</span></label>
-                <input type="text" id="networkName" name="name" class="form-control" required 
-                       value="{{ form_data.name if form_data else '' }}" 
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Network Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="networkName" name="name" 
+                       class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
+                       required value="{{ form_data.name if form_data else '' }}" 
                        placeholder="e.g., Headquarters, Branch Office, Guest WiFi">
-                <div class="form-text">Choose a descriptive name for this network</div>
+                <p class="text-xs text-gray-500 mt-1">Choose a descriptive name for this network</p>
             </div>
 
             <!-- Slug (Auto-generated) -->
-            <div class="form-group">
-                <label class="form-label">Slug (URL Identifier)</label>
-                <input type="text" id="networkSlug" name="slug" class="form-control" 
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Slug (URL Identifier)</label>
+                <input type="text" id="networkSlug" name="slug" 
+                       class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all font-mono"
                        value="{{ form_data.slug if form_data else '' }}" 
                        placeholder="auto-generated from name">
-                <div class="form-text">Leave empty to auto-generate from name. Use only lowercase letters, numbers, and hyphens.</div>
-                <div id="slugPreview" class="slug-preview">
-                    <i class="fas fa-link me-2"></i>
+                <p class="text-xs text-gray-500 mt-1">Leave empty to auto-generate from name. Use only lowercase letters, numbers, and hyphens.</p>
+                <div id="slugPreview" class="hidden mt-2 bg-gray-50 rounded-lg p-2 text-xs font-mono text-[#2d6a4f] border border-gray-200">
+                    <i class="fas fa-link mr-2"></i>
                     <span id="slugPreviewUrl"></span>
                 </div>
             </div>
 
             <!-- Network Type -->
-            <div class="form-group">
-                <label class="form-label mb-2">Network Type <span class="required">*</span></label>
-                <div class="type-grid">
-                    <div class="type-card" data-type="hotspot">
-                        <input type="radio" name="type" value="hotspot" id="typeHotspot" 
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Network Type <span class="text-red-500">*</span>
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Hotspot -->
+                    <div class="type-card border-2 rounded-xl p-4 text-center cursor-pointer transition-all hover:border-[#2d6a4f] hover:bg-gray-50"
+                         data-type="hotspot">
+                        <input type="radio" name="type" value="hotspot" id="typeHotspot" class="hidden"
                                {% if form_data and form_data.type == 'hotspot' %}checked{% endif %}>
-                        <div class="type-icon">
-                            <i class="fas fa-wifi" style="color: var(--info);"></i>
-                        </div>
-                        <div class="type-title">Hotspot</div>
-                        <div class="type-desc">Public WiFi with captive portal</div>
+                        <i class="fas fa-wifi text-2xl md:text-3xl text-blue-500 mb-2 block"></i>
+                        <div class="font-semibold text-sm md:text-base text-gray-800 mb-0.5">Hotspot</div>
+                        <div class="text-xs text-gray-500">Public WiFi with captive portal</div>
                     </div>
-                    <div class="type-card" data-type="pppoe">
-                        <input type="radio" name="type" value="pppoe" id="typePppoe" 
-                               {% if form_data.type == 'pppoe' %}checked{% endif %}>
-                        <div class="type-icon">
-                            <i class="fas fa-network-wired" style="color: var(--success);"></i>
-                        </div>
-                        <div class="type-title">PPPoE</div>
-                        <div class="type-desc">Point-to-Point Protocol over Ethernet</div>
+                    
+                    <!-- PPPoE -->
+                    <div class="type-card border-2 rounded-xl p-4 text-center cursor-pointer transition-all hover:border-[#2d6a4f] hover:bg-gray-50"
+                         data-type="pppoe">
+                        <input type="radio" name="type" value="pppoe" id="typePppoe" class="hidden"
+                               {% if form_data and form_data.type == 'pppoe' %}checked{% endif %}>
+                        <i class="fas fa-network-wired text-2xl md:text-3xl text-emerald-500 mb-2 block"></i>
+                        <div class="font-semibold text-sm md:text-base text-gray-800 mb-0.5">PPPoE</div>
+                        <div class="text-xs text-gray-500">Point-to-Point Protocol over Ethernet</div>
                     </div>
-                    <div class="type-card" data-type="hybrid">
-                        <input type="radio" name="type" value="hybrid" id="typeHybrid" 
+                    
+                    <!-- Hybrid -->
+                    <div class="type-card border-2 rounded-xl p-4 text-center cursor-pointer transition-all hover:border-[#2d6a4f] hover:bg-gray-50"
+                         data-type="hybrid">
+                        <input type="radio" name="type" value="hybrid" id="typeHybrid" class="hidden"
                                {% if not form_data or form_data.type == 'hybrid' %}checked{% endif %}>
-                        <div class="type-icon">
-                            <i class="fas fa-code-branch" style="color: var(--warning);"></i>
-                        </div>
-                        <div class="type-title">Hybrid</div>
-                        <div class="type-desc">Both Hotspot and PPPoE</div>
+                        <i class="fas fa-code-branch text-2xl md:text-3xl text-amber-500 mb-2 block"></i>
+                        <div class="font-semibold text-sm md:text-base text-gray-800 mb-0.5">Hybrid</div>
+                        <div class="text-xs text-gray-500">Both Hotspot and PPPoE</div>
                     </div>
                 </div>
             </div>
 
             <!-- Description -->
-            <div class="form-group">
-                <label class="form-label">Description</label>
-                <textarea name="description" class="form-control" rows="2" 
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Description</label>
+                <textarea name="description" rows="3" 
+                          class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all resize-y"
                           placeholder="Brief description of the network's purpose and location">{{ form_data.description if form_data else '' }}</textarea>
             </div>
 
             <!-- Active Status -->
-            <div class="form-check">
-                <input type="checkbox" name="is_active" class="form-check-input" id="networkActive" 
-                       {% if not form_data or form_data.is_active != false %}checked{% endif %}>
-                <label class="form-check-label" for="networkActive">Active</label>
+            <div class="mb-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="is_active" id="networkActive" 
+                           class="w-4 h-4 text-[#2d6a4f] rounded border-gray-300 focus:ring-[#2d6a4f]/20"
+                           {% if not form_data or form_data.is_active != false %}checked{% endif %}>
+                    <span class="text-sm font-medium text-gray-700">Active</span>
+                </label>
+                <p class="text-xs text-gray-500 mt-1 ml-6">Inactive networks won't be available for new routers</p>
             </div>
-            <div class="form-text" style="margin-top: -0.25rem; margin-bottom: 0.5rem;">Inactive networks won't be available for new routers</div>
 
             <!-- Advanced Settings -->
-            <div class="form-group">
-                <label class="form-label">Advanced Settings (JSON)</label>
-                <textarea name="settings" class="form-control" rows="3" 
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Advanced Settings (JSON)</label>
+                <textarea name="settings" id="networkSettings" rows="3" 
+                          class="w-full px-3 py-2 text-sm font-mono border border-gray-200 rounded-lg focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
                           placeholder='{
   "ip_pool": "192.168.1.0/24",
   "vlan_id": 100
 }'>{{ form_data.settings if form_data and form_data.settings else '' }}</textarea>
-                <div class="form-text">Optional custom settings in JSON format</div>
+                <p class="text-xs text-gray-500 mt-1">Optional custom settings in JSON format</p>
             </div>
 
             <!-- Form Actions -->
-            <div class="form-actions">
-                <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="btn-cancel">
+            <div class="flex justify-end gap-3 pt-4 mt-2 border-t border-gray-200">
+                <a href="{{ url_for('network_web.index', org_id=organization.id) }}" 
+                   class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
                     Cancel
                 </a>
-                <button type="submit" class="btn-submit" id="submitBtn">
-                    <i class="fas fa-save"></i> Create Network
+                <button type="submit" id="submitBtn" 
+                        class="px-4 py-2 bg-gradient-to-r from-[#2d6a4f] to-[#40916c] hover:from-[#1b4332] hover:to-[#2d6a4f] text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm hover:shadow-md">
+                    <i class="fas fa-save mr-2"></i> Create Network
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-{% block extra_js %}
 <script>
     // Type selection cards
     document.querySelectorAll('.type-card').forEach(card => {
         card.addEventListener('click', function() {
             const radio = this.querySelector('input[type="radio"]');
-            radio.checked = true;
-            
-            document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
-            this.classList.add('selected');
+            if (radio) {
+                radio.checked = true;
+                updateSelectedType(this);
+            }
         });
         
-        if (card.querySelector('input[type="radio"]').checked) {
-            card.classList.add('selected');
+        // Check if this card's radio is checked on load
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio && radio.checked) {
+            updateSelectedType(card);
         }
     });
-
+    
+    function updateSelectedType(selectedCard) {
+        // Remove selected styles from all cards
+        document.querySelectorAll('.type-card').forEach(card => {
+            card.classList.remove('border-[#2d6a4f]', 'bg-gradient-to-br', 'from-[#2d6a4f]/5', 'to-[#40916c]/5');
+            card.classList.add('border-gray-200');
+        });
+        
+        // Add selected styles to the clicked card
+        selectedCard.classList.remove('border-gray-200');
+        selectedCard.classList.add('border-[#2d6a4f]', 'bg-gradient-to-br', 'from-[#2d6a4f]/5', 'to-[#40916c]/5');
+    }
+    
     // Auto-generate slug from name
     const nameInput = document.getElementById('networkName');
     const slugInput = document.getElementById('networkSlug');
     const slugPreview = document.getElementById('slugPreview');
     const slugPreviewUrl = document.getElementById('slugPreviewUrl');
-
+    
     function generateSlug(name) {
         return name
             .toLowerCase()
             .replace(/[^a-z0-9\s-]/g, '')
             .trim()
             .replace(/\s+/g, '-')
-            .replace(/-+/g, '-');
+            .replace(/-+/g, '-')
+            .substring(0, 100);
     }
-
+    
     function updateSlugPreview() {
         let slug = slugInput.value.trim();
         const name = nameInput.value.trim();
@@ -551,47 +188,80 @@
         if (slug) {
             const previewUrl = `/organization/{{ organization.id }}/networks/by-slug/${slug}`;
             slugPreviewUrl.textContent = previewUrl;
-            slugPreview.classList.add('active');
+            slugPreview.classList.remove('hidden');
+            slugPreview.classList.add('block');
         } else {
-            slugPreview.classList.remove('active');
+            slugPreview.classList.add('hidden');
+            slugPreview.classList.remove('block');
         }
     }
-
-    nameInput.addEventListener('input', function() {
-        if (!slugInput.value || slugInput.value === generateSlug(this.value)) {
-            slugInput.value = generateSlug(this.value);
-        }
-        updateSlugPreview();
-    });
-
-    slugInput.addEventListener('input', updateSlugPreview);
-
-    if (nameInput.value) {
-        slugInput.value = generateSlug(nameInput.value);
-        updateSlugPreview();
+    
+    if (nameInput) {
+        nameInput.addEventListener('input', function() {
+            const autoSlug = generateSlug(this.value);
+            if (!slugInput.value || slugInput.value === autoSlug || slugInput.value === '') {
+                slugInput.value = autoSlug;
+            }
+            updateSlugPreview();
+        });
     }
-
+    
+    if (slugInput) {
+        slugInput.addEventListener('input', updateSlugPreview);
+    }
+    
     // Validate JSON settings before submit
     const form = document.getElementById('createNetworkForm');
     const submitBtn = document.getElementById('submitBtn');
-
-    form.addEventListener('submit', function(e) {
-        const settingsText = document.getElementById('networkSettings').value.trim();
-        
-        if (settingsText) {
-            try {
-                JSON.parse(settingsText);
-            } catch (e) {
-                e.preventDefault();
-                alert('Invalid JSON in Settings field. Please check the format.');
-                return false;
+    const settingsTextarea = document.getElementById('networkSettings');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const settingsText = settingsTextarea ? settingsTextarea.value.trim() : '';
+            
+            if (settingsText) {
+                try {
+                    JSON.parse(settingsText);
+                } catch (parseError) {
+                    e.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('Invalid JSON format in Settings field', 'error');
+                    } else {
+                        alert('Invalid JSON in Settings field. Please check the format.');
+                    }
+                    return false;
+                }
+            }
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating...';
+            }
+            return true;
+        });
+    }
+    
+    // Initialize slug preview on load
+    if (nameInput && nameInput.value) {
+        if (slugInput && !slugInput.value) {
+            slugInput.value = generateSlug(nameInput.value);
+        }
+        updateSlugPreview();
+    }
+    
+    // Set default type if none selected
+    setTimeout(() => {
+        const selectedRadio = document.querySelector('input[name="type"]:checked');
+        if (!selectedRadio) {
+            const hybridCard = document.querySelector('.type-card[data-type="hybrid"]');
+            if (hybridCard) {
+                const hybridRadio = hybridCard.querySelector('input[type="radio"]');
+                if (hybridRadio) {
+                    hybridRadio.checked = true;
+                    updateSelectedType(hybridCard);
+                }
             }
         }
-        
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-        return true;
-    });
+    }, 100);
 </script>
-{% endblock %}
 {% endblock %}

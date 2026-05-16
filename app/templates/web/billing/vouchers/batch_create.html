@@ -2,327 +2,336 @@
 
 {% block title %}{{ organization.name }} - Create Voucher Batch{% endblock %}
 
-{% block extra_css %}
-<style>
-    :root {
-        --primary: #1a56db;
-        --primary-dark: #1e40af;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
-    }
-
-    .batch-container {
-        padding: 1rem;
-    }
-    
-    @media (min-width: 768px) {
-        .batch-container {
-            padding: 1.5rem;
-        }
-    }
-
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .page-title h1 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--gray-900);
-        margin-bottom: 0.25rem;
-    }
-    
-    .page-title p {
-        font-size: 0.875rem;
-        color: var(--gray-500);
-        margin: 0;
-    }
-
-    .btn-back {
-        background: var(--gray-100);
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-        color: var(--gray-600);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        text-decoration: none;
-    }
-    
-    .btn-back:hover {
-        background: var(--gray-200);
-        color: var(--gray-700);
-    }
-
-    .form-card {
-        background: white;
-        border-radius: 1rem;
-        border: 1px solid var(--gray-200);
-        overflow: hidden;
-    }
-    
-    .form-header {
-        padding: 1.25rem 1.5rem;
-        background: var(--gray-50);
-        border-bottom: 1px solid var(--gray-200);
-    }
-    
-    .form-header h3 {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--gray-800);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .form-body {
-        padding: 1.5rem;
-    }
-
-    .form-group {
-        margin-bottom: 1.25rem;
-    }
-    
-    .form-label {
-        display: block;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--gray-700);
-        margin-bottom: 0.5rem;
-    }
-    
-    .form-label .required {
-        color: #dc2626;
-        margin-left: 0.25rem;
-    }
-    
-    .form-select, .form-input {
-        width: 100%;
-        padding: 0.625rem 0.75rem;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-    }
-    
-    .form-select:focus, .form-input:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
-    }
-    
-    textarea.form-input {
-        resize: vertical;
-        min-height: 80px;
-    }
-    
-    .help-text {
-        font-size: 0.7rem;
-        color: var(--gray-500);
-        margin-top: 0.375rem;
-    }
-
-    .form-row {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-    }
-    
-    .section-title {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        margin: 1rem 0 1rem 0;
-        padding-top: 0.5rem;
-        border-top: 1px solid var(--gray-200);
-    }
-    
-    .info-alert {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        border-radius: 0.5rem;
-        padding: 0.75rem 1rem;
-        margin-bottom: 1.25rem;
-        font-size: 0.75rem;
-        color: #1e40af;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .form-divider {
-        margin: 1.5rem 0 1rem;
-        border-top: 1px solid var(--gray-200);
-    }
-
-    .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.75rem;
-        margin-top: 1rem;
-    }
-    
-    .btn-secondary {
-        background: var(--gray-100);
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-        color: var(--gray-600);
-        text-decoration: none;
-    }
-    
-    .btn-secondary:hover {
-        background: var(--gray-200);
-        color: var(--gray-700);
-    }
-    
-    .btn-primary {
-        background: var(--primary);
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: white;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-    }
-    
-    .btn-primary:hover {
-        background: var(--primary-dark);
-    }
-
-    @media (max-width: 640px) {
-        .form-row {
-            grid-template-columns: 1fr;
-        }
-        .form-header, .form-body {
-            padding: 1rem;
-        }
-        .page-title h1 {
-            font-size: 1.25rem;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="batch-container">
-    <div class="page-header">
-        <div class="page-title">
-            <h1>Create Voucher Batch</h1>
-            <p>Generate multiple prepaid vouchers at once</p>
+<div class="p-2 sm:p-3 md:p-4 lg:p-5 space-y-3 sm:space-y-4">
+    
+    <!-- Header -->
+    <div class="flex flex-wrap justify-between items-center gap-2">
+        <div>
+            <h1 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Create Voucher Batch</h1>
+            <p class="text-xs text-gray-500 mt-0.5">Generate multiple prepaid vouchers at once</p>
         </div>
-        <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Vouchers
+        <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" 
+           class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs sm:text-sm rounded-lg transition-colors duration-150">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Vouchers
         </a>
     </div>
 
-    <div class="form-card">
-        <div class="form-header">
-            <h3>
-                <i class="fas fa-layer-group" style="color: var(--primary);"></i>
+    <!-- Form Card -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        
+        <!-- Form Header -->
+        <div class="px-3 py-3 sm:px-4 sm:py-3.5 md:px-5 md:py-4 bg-gray-50 border-b border-gray-200">
+            <h3 class="text-sm sm:text-base font-semibold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-layer-group text-blue-500"></i>
                 Batch Configuration
             </h3>
         </div>
         
-        <div class="form-body">
-            <form method="POST">
-                <div class="form-group">
-                    <label class="form-label">Batch Name <span class="required">*</span></label>
-                    <input type="text" name="batch_name" class="form-input" required 
-                           value="{{ form_data.batch_name if form_data else '' }}" 
-                           placeholder="e.g., December Promo 2024">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Select Plan <span class="required">*</span></label>
-                    <select name="plan_id" class="form-select" required>
-                        <option value="">Choose a plan...</option>
-                        {% for plan in plans %}
-                        <option value="{{ plan.id }}" {% if form_data and form_data.plan_id == plan.id|string %}selected{% endif %}>
-                            {{ plan.name }} - KES {{ "%.2f"|format(plan.price) }} 
-                            {% if plan.validity_display %}({{ plan.validity_display }}){% endif %}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Quantity <span class="required">*</span></label>
-                    <input type="number" name="quantity" class="form-input" required 
-                           value="{{ form_data.quantity if form_data else '' }}" 
-                           placeholder="e.g., 100" min="1" max="1000">
-                    <div class="help-text">Maximum 1,000 vouchers per batch</div>
-                </div>
-
-                <div class="section-title">
-                    <i class="fas fa-clock me-2"></i> Validity Settings (Optional)
-                </div>
+        <!-- Form Body -->
+        <div class="p-3 sm:p-4 md:p-5">
+            <form method="POST" id="batchForm">
                 
-                <div class="info-alert">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Leave these fields empty to use the plan's default validity period</span>
+                <!-- Batch Name -->
+                <div class="mb-4">
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
+                        Batch Name <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                            <i class="fas fa-tag text-sm"></i>
+                        </span>
+                        <input type="text" name="batch_name" 
+                               class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                               required value="{{ form_data.batch_name if form_data else '' }}" 
+                               placeholder="e.g., December Promo 2024">
+                    </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Validity Value</label>
-                        <input type="number" name="validity_value" class="form-input" 
-                               value="{{ form_data.validity_value if form_data else '' }}" 
-                               placeholder="e.g., 30, 2, 1" min="1">
-                        <div class="help-text">Override plan's validity value</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Validity Unit</label>
-                        <select name="validity_unit" class="form-select">
-                            <option value="">Use Plan Default</option>
-                            <option value="minutes" {% if form_data and form_data.validity_unit == 'minutes' %}selected{% endif %}>Minutes</option>
-                            <option value="hours" {% if form_data and form_data.validity_unit == 'hours' %}selected{% endif %}>Hours</option>
-                            <option value="days" {% if form_data and form_data.validity_unit == 'days' %}selected{% endif %}>Days</option>
-                            <option value="months" {% if form_data and form_data.validity_unit == 'months' %}selected{% endif %}>Months</option>
-                            <option value="years" {% if form_data and form_data.validity_unit == 'years' %}selected{% endif %}>Years</option>
+                <!-- Select Plan -->
+                <div class="mb-4">
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
+                        Select Plan <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                            <i class="fas fa-ticket-alt text-sm"></i>
+                        </span>
+                        <select name="plan_id" id="planSelect" 
+                                class="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none bg-white"
+                                required>
+                            <option value="">Choose a plan...</option>
+                            {% for plan in plans %}
+                            <option value="{{ plan.id }}" 
+                                    data-price="{{ plan.price }}"
+                                    data-validity="{{ plan.validity_display }}"
+                                    {% if form_data and form_data.plan_id == plan.id|string %}selected{% endif %}>
+                                {{ plan.name }} - KES {{ "%.2f"|format(plan.price) }} 
+                                {% if plan.validity_display %}({{ plan.validity_display }}){% endif %}
+                            </option>
+                            {% endfor %}
                         </select>
-                        <div class="help-text">Override plan's validity unit</div>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                        </div>
+                    </div>
+                    <div id="planInfo" class="hidden mt-2 p-2 bg-blue-50 rounded-lg text-xs text-blue-700">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <span id="planInfoText"></span>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Notes (Optional)</label>
-                    <textarea name="notes" class="form-input" rows="3" 
-                              placeholder="Internal notes about this voucher batch...">{{ form_data.notes if form_data else '' }}</textarea>
-                    <div class="help-text">These notes are only visible to administrators</div>
+                <!-- Quantity -->
+                <div class="mb-4">
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
+                        Quantity <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                            <i class="fas fa-hashtag text-sm"></i>
+                        </span>
+                        <input type="number" name="quantity" id="quantity" 
+                               class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                               required value="{{ form_data.quantity if form_data else '' }}" 
+                               placeholder="e.g., 100" min="1" max="1000">
+                    </div>
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <i class="fas fa-info-circle text-gray-400 text-[10px]"></i>
+                        <p class="text-xs text-gray-500">Maximum 1,000 vouchers per batch</p>
+                    </div>
                 </div>
 
-                <div class="form-divider"></div>
+                <!-- Validity Settings Section -->
+                <div class="mt-5 pt-2 border-t border-gray-200">
+                    <h4 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-clock text-blue-500 text-xs"></i>
+                        Validity Settings <span class="text-xs font-normal text-gray-400">(Optional)</span>
+                    </h4>
+                    
+                    <div class="mb-3 p-2.5 bg-blue-50 rounded-lg border border-blue-100 text-xs text-blue-700 flex items-start gap-2">
+                        <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                        <span>Leave these fields empty to use the plan's default validity period</span>
+                    </div>
 
-                <div class="form-actions">
-                    <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="btn-secondary">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Validity Value</label>
+                            <input type="number" name="validity_value" 
+                                   class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                   value="{{ form_data.validity_value if form_data else '' }}" 
+                                   placeholder="e.g., 30, 2, 1" min="1">
+                            <p class="text-xs text-gray-500 mt-1">Override plan's validity value</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Validity Unit</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <i class="fas fa-hourglass-half text-sm"></i>
+                                </span>
+                                <select name="validity_unit" 
+                                        class="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none bg-white">
+                                    <option value="">Use Plan Default</option>
+                                    <option value="minutes" {% if form_data and form_data.validity_unit == 'minutes' %}selected{% endif %}>Minutes</option>
+                                    <option value="hours" {% if form_data and form_data.validity_unit == 'hours' %}selected{% endif %}>Hours</option>
+                                    <option value="days" {% if form_data and form_data.validity_unit == 'days' %}selected{% endif %}>Days</option>
+                                    <option value="months" {% if form_data and form_data.validity_unit == 'months' %}selected{% endif %}>Months</option>
+                                    <option value="years" {% if form_data and form_data.validity_unit == 'years' %}selected{% endif %}>Years</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Override plan's validity unit</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="mt-5 pt-2 border-t border-gray-200">
+                    <h4 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-pencil-alt text-blue-500 text-xs"></i>
+                        Notes <span class="text-xs font-normal text-gray-400">(Optional)</span>
+                    </h4>
+                    <div>
+                        <textarea name="notes" rows="3" 
+                                  class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-y"
+                                  placeholder="Internal notes about this voucher batch...">{{ form_data.notes if form_data else '' }}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">These notes are only visible to administrators</p>
+                    </div>
+                </div>
+
+                <!-- Summary Preview -->
+                <div class="mt-5 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <h5 class="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+                        <i class="fas fa-chart-simple text-blue-500"></i>
+                        Batch Summary
+                    </h5>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Selected Plan:</span>
+                            <span class="font-medium text-gray-800" id="summaryPlan">—</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Quantity:</span>
+                            <span class="font-medium text-gray-800" id="summaryQuantity">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Price per Voucher:</span>
+                            <span class="font-medium text-gray-800" id="summaryPrice">KES 0.00</span>
+                        </div>
+                        <div class="flex justify-between pt-1 border-t border-gray-200">
+                            <span class="text-gray-700 font-semibold">Total Value:</span>
+                            <span class="font-bold text-blue-600" id="summaryTotal">KES 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 mt-4 border-t border-gray-200">
+                    <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" 
+                       class="w-full sm:w-auto px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150 text-center">
                         Cancel
                     </a>
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-save"></i> Create Batch
+                    <button type="submit" id="submitBtn"
+                            class="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+                        <i class="fas fa-save text-sm"></i>
+                        <span>Create Batch</span>
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    const planSelect = document.getElementById('planSelect');
+    const quantityInput = document.getElementById('quantity');
+    const summaryPlan = document.getElementById('summaryPlan');
+    const summaryQuantity = document.getElementById('summaryQuantity');
+    const summaryPrice = document.getElementById('summaryPrice');
+    const summaryTotal = document.getElementById('summaryTotal');
+    const planInfo = document.getElementById('planInfo');
+    const planInfoText = document.getElementById('planInfoText');
+    const form = document.getElementById('batchForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Store plan data
+    const planData = {};
+    {% for plan in plans %}
+    planData['{{ plan.id }}'] = {
+        price: {{ plan.price }},
+        name: '{{ plan.name|escapejs }}',
+        validity: '{{ plan.validity_display|escapejs }}'
+    };
+    {% endfor %}
+    
+    function updateSummary() {
+        const planId = planSelect.value;
+        const quantity = parseInt(quantityInput.value) || 0;
+        
+        if (planId && planData[planId]) {
+            const price = planData[planId].price;
+            const total = price * quantity;
+            
+            summaryPlan.textContent = planData[planId].name;
+            summaryPrice.textContent = `KES ${price.toFixed(2)}`;
+            summaryTotal.textContent = `KES ${total.toFixed(2)}`;
+            
+            // Show plan info
+            if (planInfo && planInfoText) {
+                planInfoText.innerHTML = `<i class="fas fa-ticket-alt mr-1"></i> ${planData[planId].name} - Validity: ${planData[planId].validity}`;
+                planInfo.classList.remove('hidden');
+            }
+        } else {
+            summaryPlan.textContent = '—';
+            summaryPrice.textContent = 'KES 0.00';
+            summaryTotal.textContent = 'KES 0.00';
+            if (planInfo) planInfo.classList.add('hidden');
+        }
+        
+        summaryQuantity.textContent = quantity;
+    }
+    
+    // Validate quantity
+    function validateQuantity() {
+        const quantity = parseInt(quantityInput.value);
+        if (quantity > 1000) {
+            quantityInput.setCustomValidity('Maximum 1,000 vouchers per batch');
+            if (typeof showToast === 'function') {
+                showToast('Maximum 1,000 vouchers per batch', 'warning');
+            }
+        } else if (quantity < 1 && quantity !== 0) {
+            quantityInput.setCustomValidity('Quantity must be at least 1');
+        } else {
+            quantityInput.setCustomValidity('');
+        }
+    }
+    
+    if (planSelect) {
+        planSelect.addEventListener('change', updateSummary);
+    }
+    
+    if (quantityInput) {
+        quantityInput.addEventListener('input', () => {
+            validateQuantity();
+            updateSummary();
+        });
+    }
+    
+    // Initial update
+    updateSummary();
+    validateQuantity();
+    
+    // Form submission
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const planId = planSelect.value;
+            const quantity = parseInt(quantityInput.value);
+            
+            if (!planId) {
+                e.preventDefault();
+                if (typeof showToast === 'function') {
+                    showToast('Please select a plan', 'error');
+                } else {
+                    alert('Please select a plan');
+                }
+                return;
+            }
+            
+            if (!quantity || quantity < 1) {
+                e.preventDefault();
+                if (typeof showToast === 'function') {
+                    showToast('Please enter a valid quantity', 'error');
+                } else {
+                    alert('Please enter a valid quantity');
+                }
+                return;
+            }
+            
+            if (quantity > 1000) {
+                e.preventDefault();
+                if (typeof showToast === 'function') {
+                    showToast('Maximum 1,000 vouchers per batch', 'error');
+                } else {
+                    alert('Maximum 1,000 vouchers per batch');
+                }
+                return;
+            }
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm mr-2"></i>Creating...';
+            }
+        });
+    }
+</script>
+
+<style>
+    select, input[type="number"] {
+        cursor: pointer;
+    }
+    select option {
+        padding: 0.5rem;
+    }
+</style>
 {% endblock %}

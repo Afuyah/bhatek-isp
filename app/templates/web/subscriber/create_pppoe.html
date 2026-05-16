@@ -2,197 +2,173 @@
 
 {% block title %}{{ organization.name }} - Add PPPoE Subscriber{% endblock %}
 
-{% block extra_css %}
-<style>
-    .form-container {
-        max-width: 700px;
-        margin: 0 auto;
-    }
-    .form-card {
-        background: white;
-        border-radius: 0.75rem;
-        border: 1px solid #e5e7eb;
-        overflow: hidden;
-    }
-    .form-header {
-        padding: 1rem 1.25rem;
-        background: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    .form-header h3 {
-        font-size: 1rem;
-        font-weight: 600;
-        margin: 0;
-    }
-    .form-body {
-        padding: 1.25rem;
-    }
-    .form-row {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-    }
-    .form-group {
-        margin-bottom: 1rem;
-    }
-    .form-label {
-        display: block;
-        font-size: 0.8rem;
-        font-weight: 500;
-        margin-bottom: 0.375rem;
-        color: #374151;
-    }
-    .form-label .required {
-        color: #dc2626;
-        margin-left: 0.25rem;
-    }
-    .form-input, .form-select {
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.375rem;
-        transition: all 0.2s;
-    }
-    .form-input:focus, .form-select:focus {
-        outline: none;
-        border-color: #1a56db;
-        box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.1);
-    }
-    .help-text {
-        font-size: 0.7rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
-    }
-    .section-title {
-        font-size: 0.85rem;
-        font-weight: 600;
-        margin: 1rem 0 0.75rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.75rem;
-        margin-top: 1.5rem;
-        padding-top: 1rem;
-        border-top: 1px solid #e5e7eb;
-    }
-    .btn-cancel {
-        background: white;
-        border: 1px solid #e5e7eb;
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-        border-radius: 0.375rem;
-        color: #6b7280;
-        text-decoration: none;
-    }
-    .btn-cancel:hover {
-        background: #f9fafb;
-    }
-    .btn-submit {
-        background: #1a56db;
-        border: none;
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-        border-radius: 0.375rem;
-        color: white;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .btn-submit:hover {
-        background: #1e40af;
-    }
-    @media (max-width: 640px) {
-        .form-row {
-            grid-template-columns: 1fr;
-            gap: 0;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="p-3 md:p-4 lg:p-6">
+    
+    <!-- Header -->
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-4 md:mb-5">
         <div>
-            <h4 class="mb-1">Add PPPoE Subscriber</h4>
-            <p class="text-muted mb-0">Create a new PPPoE user with username/password authentication</p>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">Add PPPoE Subscriber</h1>
+            <p class="text-xs md:text-sm text-gray-500 mt-0.5">Create a new PPPoE user with username/password authentication</p>
         </div>
-        <a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back
+        <a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" 
+           class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-all duration-150">
+            <i class="fas fa-arrow-left text-xs"></i> Back
         </a>
     </div>
 
-    <div class="form-container">
-        <div class="form-card">
-            <div class="form-header">
-                <h3><i class="fas fa-network-wired me-2"></i>PPPoE Subscriber Details</h3>
+    <!-- Form Container - Centered -->
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+            
+            <!-- Form Header -->
+            <div class="px-4 py-3 md:px-5 md:py-4 bg-gray-50 border-b border-gray-200">
+                <h3 class="text-sm md:text-base font-semibold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-network-wired text-[#1a56db]"></i>
+                    PPPoE Subscriber Details
+                </h3>
             </div>
-            <div class="form-body">
-                <form method="POST">
-                    <!-- Account Credentials -->
-                    <div class="section-title">Login Credentials</div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Username <span class="required">*</span></label>
-                            <input type="text" name="username" class="form-input" required 
-                                   value="{{ form_data.username if form_data else '' }}" 
-                                   placeholder="john_doe">
-                            <div class="help-text">Unique username for PPPoE authentication</div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Password <span class="required">*</span></label>
-                            <input type="password" name="password" class="form-input" required 
-                                   value="{{ form_data.password if form_data else '' }}" 
-                                   placeholder="********">
-                            <div class="help-text">Minimum 6 characters</div>
+            
+            <!-- Form Body -->
+            <div class="p-4 md:p-5">
+                <form method="POST" id="pppoeForm">
+                    
+                    <!-- Login Credentials Section -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3 flex items-center gap-2">
+                            <i class="fas fa-key text-[#1a56db] text-xs"></i>
+                            Login Credentials
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                    Username <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </span>
+                                    <input type="text" name="username" id="username"
+                                           class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                                           required value="{{ form_data.username if form_data else '' }}" 
+                                           placeholder="john_doe">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1.5 ml-7">Unique username for PPPoE authentication</p>
+                                <div id="usernameError" class="text-xs text-red-500 mt-1 hidden"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                    Password <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <i class="fas fa-lock text-sm"></i>
+                                    </span>
+                                    <input type="password" name="password" id="password"
+                                           class="w-full pl-9 pr-10 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                                           required value="{{ form_data.password if form_data else '' }}" 
+                                           placeholder="********">
+                                    <button type="button" id="togglePassword"
+                                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                        <i class="fas fa-eye text-sm"></i>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1.5 ml-7">Minimum 6 characters</p>
+                                <div id="passwordStrength" class="mt-2">
+                                    <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                                        <div id="strengthBar" class="h-full w-0 transition-all duration-300 rounded-full"></div>
+                                    </div>
+                                    <p id="strengthText" class="text-xs text-gray-500 mt-1"></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Personal Information -->
-                    <div class="section-title">Personal Information</div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">First Name</label>
-                            <input type="text" name="first_name" class="form-input" 
-                                   value="{{ form_data.first_name if form_data else '' }}" 
-                                   placeholder="John">
+                    <!-- Personal Information Section -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3 flex items-center gap-2">
+                            <i class="fas fa-id-card text-[#1a56db] text-xs"></i>
+                            Personal Information
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">First Name</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </span>
+                                    <input type="text" name="first_name" 
+                                           class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                                           value="{{ form_data.first_name if form_data else '' }}" 
+                                           placeholder="John">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Last Name</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </span>
+                                    <input type="text" name="last_name" 
+                                           class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                                           value="{{ form_data.last_name if form_data else '' }}" 
+                                           placeholder="Doe">
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" name="last_name" class="form-input" 
-                                   value="{{ form_data.last_name if form_data else '' }}" 
-                                   placeholder="Doe">
+                        <div class="mt-4">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Phone Number</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <i class="fas fa-phone text-sm"></i>
+                                </span>
+                                <input type="tel" name="phone" id="phoneNumber"
+                                       class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                                       value="{{ form_data.phone if form_data else '' }}" 
+                                       placeholder="254712345678 or 0712345678">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1.5 ml-7">Optional: For notifications and support</p>
+                            <div id="phoneError" class="text-xs text-red-500 mt-1 hidden"></div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Phone Number</label>
-                        <input type="tel" name="phone" class="form-input" 
-                               value="{{ form_data.phone if form_data else '' }}" 
-                               placeholder="254712345678 or 0712345678">
-                        <div class="help-text">Optional: For notifications and support</div>
                     </div>
 
-                    <!-- Plan Selection -->
-                    <div class="section-title">Subscription Plan</div>
-                    <div class="form-group">
-                        <label class="form-label">Select Plan <span class="required">*</span></label>
-                        <select name="plan_id" class="form-select" required>
-                            <option value="">Select a plan...</option>
-                            {% for plan in plans %}
-                            <option value="{{ plan.id }}" {% if form_data and form_data.plan_id == plan.id|string %}selected{% endif %}>
-                                {{ plan.name }} - KES {{ "%.2f"|format(plan.price) }} ({{ plan.validity_display }})
-                            </option>
-                            {% endfor %}
-                        </select>
+                    <!-- Subscription Plan Section -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3 flex items-center gap-2">
+                            <i class="fas fa-tag text-[#1a56db] text-xs"></i>
+                            Subscription Plan
+                        </h4>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Select Plan <span class="text-red-500">*</span>
+                            </label>
+                            <select name="plan_id" id="planSelect" 
+                                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all bg-white"
+                                    required>
+                                <option value="">Select a plan...</option>
+                                {% for plan in plans %}
+                                <option value="{{ plan.id }}" 
+                                        data-price="{{ plan.price }}"
+                                        data-name="{{ plan.name }}"
+                                        {% if form_data and form_data.plan_id == plan.id|string %}selected{% endif %}>
+                                    {{ plan.name }} - KES {{ "%.2f"|format(plan.price) }} ({{ plan.validity_display }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div id="planError" class="text-xs text-red-500 mt-1 hidden"></div>
+                        </div>
                     </div>
 
-                    <div class="form-actions">
-                        <a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" class="btn-cancel">Cancel</a>
-                        <button type="submit" class="btn-submit">
-                            <i class="fas fa-save me-2"></i>Create PPPoE Subscriber
+                    <!-- Form Actions -->
+                    <div class="flex justify-end gap-3 pt-4 mt-4 border-t border-gray-200">
+                        <a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" 
+                           class="px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                            Cancel
+                        </a>
+                        <button type="submit" id="submitBtn"
+                                class="px-4 py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm hover:shadow-md flex items-center gap-2">
+                            <i class="fas fa-save text-xs"></i>
+                            <span>Create PPPoE Subscriber</span>
                         </button>
                     </div>
                 </form>
@@ -200,4 +176,229 @@
         </div>
     </div>
 </div>
+
+<script>
+    const form = document.getElementById('pppoeForm');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const phoneInput = document.getElementById('phoneNumber');
+    const planSelect = document.getElementById('planSelect');
+    const submitBtn = document.getElementById('submitBtn');
+    const usernameError = document.getElementById('usernameError');
+    const phoneError = document.getElementById('phoneError');
+    const planError = document.getElementById('planError');
+    
+    // Password visibility toggle
+    const togglePassword = document.getElementById('togglePassword');
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    // Password strength indicator
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        let color = '';
+        let text = '';
+        
+        if (password.length >= 6) strength++;
+        if (password.length >= 10) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[!@#$%^&*]/.test(password)) strength++;
+        
+        switch(strength) {
+            case 0:
+            case 1:
+                color = '#ef4444';
+                text = 'Weak - Minimum 6 characters';
+                break;
+            case 2:
+                color = '#f59e0b';
+                text = 'Fair - Add uppercase & numbers';
+                break;
+            case 3:
+                color = '#10b981';
+                text = 'Good - Add special characters';
+                break;
+            case 4:
+                color = '#10b981';
+                text = 'Strong - Excellent password';
+                break;
+            case 5:
+                color = '#10b981';
+                text = 'Very Strong - Perfect!';
+                break;
+        }
+        
+        const width = (strength / 5) * 100;
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+        
+        if (strengthBar) {
+            strengthBar.style.width = width + '%';
+            strengthBar.style.backgroundColor = color;
+        }
+        if (strengthText && password.length > 0) {
+            strengthText.textContent = text;
+            strengthText.style.color = color;
+        } else if (strengthText) {
+            strengthText.textContent = '';
+        }
+    }
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
+    }
+    
+    // Username validation (no spaces, alphanumeric + underscore)
+    function validateUsername(username) {
+        if (!username) return { valid: false, message: 'Username is required' };
+        if (username.length < 3) return { valid: false, message: 'Username must be at least 3 characters' };
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            return { valid: false, message: 'Username can only contain letters, numbers, and underscores' };
+        }
+        return { valid: true, message: '' };
+    }
+    
+    // Phone validation (optional)
+    function validatePhoneNumber(phone) {
+        if (!phone || phone.trim() === '') return { valid: true, normalized: null, message: '' };
+        
+        const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+        const kenyaPattern = /^(254|07|01)\d{8}$/;
+        
+        if (!kenyaPattern.test(cleaned)) {
+            return { valid: false, normalized: null, message: 'Enter a valid Kenyan phone number (2547XXXXXXXX, 07XXXXXXXX, or 01XXXXXXXX)' };
+        }
+        
+        let normalized = cleaned;
+        if (cleaned.startsWith('07') || cleaned.startsWith('01')) {
+            normalized = '254' + cleaned.substring(1);
+        }
+        
+        return { valid: true, normalized: normalized, message: '' };
+    }
+    
+    // Real-time username validation
+    if (usernameInput) {
+        usernameInput.addEventListener('input', function() {
+            const result = validateUsername(this.value);
+            if (!result.valid && this.value.trim() !== '') {
+                usernameError.textContent = result.message;
+                usernameError.classList.remove('hidden');
+                this.classList.add('border-red-500', 'focus:border-red-500');
+                this.classList.remove('border-gray-200');
+            } else {
+                usernameError.classList.add('hidden');
+                this.classList.remove('border-red-500', 'focus:border-red-500');
+                this.classList.add('border-gray-200');
+            }
+        });
+    }
+    
+    // Real-time phone validation
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            if (this.value.trim() === '') {
+                phoneError.classList.add('hidden');
+                this.classList.remove('border-red-500');
+                return;
+            }
+            const result = validatePhoneNumber(this.value);
+            if (!result.valid) {
+                phoneError.textContent = result.message;
+                phoneError.classList.remove('hidden');
+                this.classList.add('border-red-500', 'focus:border-red-500');
+                this.classList.remove('border-gray-200');
+            } else {
+                phoneError.classList.add('hidden');
+                this.classList.remove('border-red-500', 'focus:border-red-500');
+                this.classList.add('border-gray-200');
+            }
+        });
+    }
+    
+    // Form submission validation
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let hasError = false;
+            
+            // Validate username
+            const username = usernameInput ? usernameInput.value.trim() : '';
+            const usernameResult = validateUsername(username);
+            if (!usernameResult.valid) {
+                hasError = true;
+                if (usernameError) {
+                    usernameError.textContent = usernameResult.message;
+                    usernameError.classList.remove('hidden');
+                }
+                if (usernameInput) {
+                    usernameInput.classList.add('border-red-500');
+                    usernameInput.focus();
+                }
+            }
+            
+            // Validate plan
+            const planId = planSelect ? planSelect.value : '';
+            if (!planId) {
+                hasError = true;
+                if (planError) {
+                    planError.textContent = 'Please select a plan';
+                    planError.classList.remove('hidden');
+                }
+                if (planSelect) {
+                    planSelect.classList.add('border-red-500');
+                }
+            } else if (planError) {
+                planError.classList.add('hidden');
+                if (planSelect) planSelect.classList.remove('border-red-500');
+            }
+            
+            // Validate phone (if provided)
+            const phone = phoneInput ? phoneInput.value.trim() : '';
+            if (phone) {
+                const phoneResult = validatePhoneNumber(phone);
+                if (!phoneResult.valid) {
+                    hasError = true;
+                    if (phoneError) {
+                        phoneError.textContent = phoneResult.message;
+                        phoneError.classList.remove('hidden');
+                    }
+                    if (phoneInput) {
+                        phoneInput.classList.add('border-red-500');
+                    }
+                }
+            }
+            
+            if (hasError) {
+                e.preventDefault();
+                if (typeof showToast === 'function') {
+                    showToast('Please fix the errors above', 'error');
+                }
+                return;
+            }
+            
+            // Show loading state
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs mr-2"></i>Creating...';
+            }
+        });
+    }
+    
+    // Remove error styling on focus
+    if (planSelect) {
+        planSelect.addEventListener('focus', function() {
+            this.classList.remove('border-red-500');
+            if (planError) planError.classList.add('hidden');
+        });
+    }
+</script>
 {% endblock %}

@@ -2,162 +2,51 @@
 
 {% block title %}{{ organization.name }} - {{ subscriber.display_name }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    .profile-header {
-        background: white;
-        border-radius: 0.75rem;
-        border: 1px solid #e5e7eb;
-        padding: 1.25rem;
-        margin-bottom: 1.25rem;
-    }
-    .profile-avatar {
-        width: 64px;
-        height: 64px;
-        background: linear-gradient(135deg, #1a56db, #1e40af);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.5rem;
-        font-weight: 600;
-    }
-    .stats-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.75rem;
-        margin-bottom: 1.25rem;
-    }
-    .stat-box {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.5rem;
-        padding: 0.75rem;
-        text-align: center;
-    }
-    .stat-number {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #1f2937;
-    }
-    .stat-label {
-        font-size: 0.65rem;
-        color: #6b7280;
-    }
-    .info-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.75rem;
-        overflow: hidden;
-        margin-bottom: 1.25rem;
-    }
-    .info-header {
-        padding: 0.875rem 1rem;
-        background: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .info-header h5 {
-        font-size: 0.875rem;
-        font-weight: 600;
-        margin: 0;
-    }
-    .info-body {
-        padding: 1rem;
-    }
-    .info-row {
-        display: flex;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #f3f4f6;
-    }
-    .info-label {
-        width: 120px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: #6b7280;
-    }
-    .info-value {
-        flex: 1;
-        font-size: 0.75rem;
-        color: #1f2937;
-    }
-    .subscription-item {
-        background: #f9fafb;
-        border-radius: 0.5rem;
-        padding: 0.75rem;
-        margin-bottom: 0.5rem;
-    }
-    .device-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #f3f4f6;
-    }
-    .expiry-warning {
-        background: #fff3cd;
-        border-left: 4px solid #ffc107;
-        padding: 0.5rem;
-        margin-top: 0.5rem;
-        font-size: 0.75rem;
-    }
-    .expiry-danger {
-        background: #f8d7da;
-        border-left: 4px solid #dc3545;
-        padding: 0.5rem;
-        margin-top: 0.5rem;
-        font-size: 0.75rem;
-    }
-    @media (max-width: 768px) {
-        .stats-row {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        .info-row {
-            flex-direction: column;
-        }
-        .info-label {
-            width: 100%;
-            margin-bottom: 0.25rem;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}">Subscribers</a></li>
-                    <li class="breadcrumb-item active">{{ subscriber.display_name }}</li>
-                </ol>
-            </nav>
-        </div>
-        <div>
-            <a href="{{ url_for('subscriber_web.edit', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-outline-primary btn-sm">
-                <i class="fas fa-edit me-1"></i>Edit
+<div class="p-3 md:p-4 lg:p-6 space-y-4 md:space-y-5">
+    
+    <!-- Breadcrumb & Actions -->
+    <div class="flex flex-wrap justify-between items-center gap-3">
+        <nav class="text-xs md:text-sm">
+            <ol class="flex items-center gap-1 text-gray-500">
+                <li><a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" class="hover:text-blue-600 transition-colors">Subscribers</a></li>
+                <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                <li class="text-gray-700 font-medium truncate max-w-[150px] md:max-w-none">{{ subscriber.display_name }}</li>
+            </ol>
+        </nav>
+        <div class="flex gap-2">
+            <a href="{{ url_for('subscriber_web.edit', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-all duration-150">
+                <i class="fas fa-edit text-xs"></i> Edit
             </a>
-            <button class="btn btn-outline-danger btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                <i class="fas fa-trash me-1"></i>Delete
+            <button onclick="openDeleteModal()" 
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-sm rounded-lg transition-all duration-150">
+                <i class="fas fa-trash text-xs"></i> Delete
             </button>
         </div>
     </div>
 
     <!-- Profile Header -->
-    <div class="profile-header">
-        <div class="d-flex align-items-center gap-3">
-            <div class="profile-avatar">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div class="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center text-white text-2xl md:text-3xl font-bold shadow-md">
                 {{ subscriber.display_name[0]|upper if subscriber.display_name else 'U' }}
             </div>
-            <div>
-                <h3 class="mb-1">{{ subscriber.get_full_name() or subscriber.display_name }}</h3>
-                <div class="d-flex flex-wrap gap-2">
-                    <span class="badge bg-primary">{{ subscriber.subscriber_type|upper }}</span>
-                    <span class="badge {% if subscriber.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+            <div class="flex-1">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">{{ subscriber.get_full_name() or subscriber.display_name }}</h2>
+                <div class="flex flex-wrap gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700">
+                        <i class="fas {% if subscriber.subscriber_type == 'hotspot' %}fa-wifi{% else %}fa-network-wired{% endif %} text-[10px]"></i>
+                        {{ subscriber.subscriber_type|upper }}
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium
+                        {% if subscriber.status == 'active' %}bg-emerald-100 text-emerald-700
+                        {% elif subscriber.status == 'suspended' %}bg-amber-100 text-amber-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        <span class="w-1.5 h-1.5 rounded-full 
+                            {% if subscriber.status == 'active' %}bg-emerald-500
+                            {% elif subscriber.status == 'suspended' %}bg-amber-500
+                            {% else %}bg-red-500{% endif %}"></span>
                         {{ subscriber.status|capitalize }}
                     </span>
                 </div>
@@ -165,178 +54,218 @@
         </div>
     </div>
 
-    <!-- Stats Row -->
-    <div class="stats-row">
-        <div class="stat-box">
-            <div class="stat-number">{{ stats.active_sessions_count|default(0) }}</div>
-            <div class="stat-label">Active Sessions</div>
+    <!-- Stats Grid - 2x2 on mobile, 4 on desktop -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-white rounded-xl border border-gray-200 p-3 text-center">
+            <div class="text-xl md:text-2xl font-bold text-gray-800">{{ stats.active_sessions_count|default(0) }}</div>
+            <div class="text-xs text-gray-500">Active Sessions</div>
         </div>
-        <div class="stat-box">
-            <div class="stat-number">{{ devices|length }}</div>
-            <div class="stat-label">Devices</div>
+        <div class="bg-white rounded-xl border border-gray-200 p-3 text-center">
+            <div class="text-xl md:text-2xl font-bold text-gray-800">{{ devices|length }}</div>
+            <div class="text-xs text-gray-500">Devices</div>
         </div>
-        <div class="stat-box">
-            <div class="stat-number">{{ "%.0f"|format(stats.total_usage_gb|default(0)) }}</div>
-            <div class="stat-label">Data Used (GB)</div>
+        <div class="bg-white rounded-xl border border-gray-200 p-3 text-center">
+            <div class="text-xl md:text-2xl font-bold text-gray-800">{{ "%.0f"|format(stats.total_usage_gb|default(0)) }}</div>
+            <div class="text-xs text-gray-500">Data Used (GB)</div>
         </div>
-        <div class="stat-box">
-            <div class="stat-number">KES {{ "%.0f"|format(subscriber.total_spent|default(0)) }}</div>
-            <div class="stat-label">Total Spent</div>
+        <div class="bg-white rounded-xl border border-gray-200 p-3 text-center">
+            <div class="text-base md:text-xl font-bold text-gray-800">KES {{ "%.0f"|format(subscriber.total_spent|default(0)) }}</div>
+            <div class="text-xs text-gray-500">Total Spent</div>
         </div>
     </div>
 
-    <div class="row">
+    <!-- Two Column Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
+        
         <!-- Left Column -->
-        <div class="col-lg-4">
-            <!-- Basic Info -->
-            <div class="info-card">
-                <div class="info-header">
-                    <h5><i class="fas fa-user-circle me-2"></i>Basic Information</h5>
+        <div class="space-y-4">
+            
+            <!-- Basic Information Card -->
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                    <h5 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-user-circle text-blue-500"></i> Basic Information
+                    </h5>
                 </div>
-                <div class="info-body">
-                    <div class="info-row">
-                        <div class="info-label">Full Name</div>
-                        <div class="info-value">{{ subscriber.get_full_name() or 'Not set' }}</div>
+                <div class="p-4 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:justify-between">
+                        <span class="text-xs font-medium text-gray-500 w-24">Full Name</span>
+                        <span class="text-sm text-gray-800">{{ subscriber.get_full_name() or 'Not set' }}</span>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Phone</div>
-                        <div class="info-value">{{ subscriber.phone or 'Not set' }}</div>
+                    <div class="flex flex-col sm:flex-row sm:justify-between">
+                        <span class="text-xs font-medium text-gray-500 w-24">Phone</span>
+                        <span class="text-sm text-gray-800">{{ subscriber.phone or 'Not set' }}</span>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Email</div>
-                        <div class="info-value">{{ subscriber.email or 'Not set' }}</div>
+                    <div class="flex flex-col sm:flex-row sm:justify-between">
+                        <span class="text-xs font-medium text-gray-500 w-24">Email</span>
+                        <span class="text-sm text-gray-800">{{ subscriber.email or 'Not set' }}</span>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">National ID</div>
-                        <div class="info-value">{{ subscriber.national_id or 'Not set' }}</div>
+                    <div class="flex flex-col sm:flex-row sm:justify-between">
+                        <span class="text-xs font-medium text-gray-500 w-24">National ID</span>
+                        <span class="text-sm text-gray-800">{{ subscriber.national_id or 'Not set' }}</span>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Joined</div>
-                        <div class="info-value">{{ subscriber.created_at.strftime('%Y-%m-%d') if subscriber.created_at else 'N/A' }}</div>
+                    <div class="flex flex-col sm:flex-row sm:justify-between">
+                        <span class="text-xs font-medium text-gray-500 w-24">Joined</span>
+                        <span class="text-sm text-gray-800">{{ subscriber.created_at.strftime('%Y-%m-%d') if subscriber.created_at else 'N/A' }}</span>
                     </div>
                     {% if subscriber.subscriber_type == 'pppoe' %}
-                    <div class="info-row">
-                        <div class="info-label">PPPoE Username</div>
-                        <div class="info-value">{{ subscriber.username }}</div>
+                    <div class="flex flex-col sm:flex-row sm:justify-between">
+                        <span class="text-xs font-medium text-gray-500 w-24">PPPoE Username</span>
+                        <span class="text-sm font-mono text-gray-800">{{ subscriber.username }}</span>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Active Subscription -->
-            <div class="info-card">
-                <div class="info-header">
-                    <h5><i class="fas fa-tag me-2"></i>Active Subscription</h5>
-                    <a href="{{ url_for('subscriber_web.create_subscription', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-sm btn-primary">Assign Plan</a>
+            <!-- Active Subscription Card -->
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                    <h5 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-tag text-blue-500"></i> Active Subscription
+                    </h5>
+                    <a href="{{ url_for('subscriber_web.create_subscription', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+                       class="text-xs text-blue-600 hover:text-blue-700 font-medium">Assign Plan</a>
                 </div>
-                <div class="info-body">
+                <div class="p-4">
                     {% if active_subscription %}
-                        <div class="subscription-item">
-                            <div class="fw-bold">{{ active_subscription.plan.name }}</div>
-                            <div class="small text-muted">Started: {{ active_subscription.start_time.strftime('%Y-%m-%d') }}</div>
-                            <div class="small text-muted">Expires: {{ active_subscription.expiry_time.strftime('%Y-%m-%d') }}</div>
+                        <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                            <div class="font-semibold text-gray-800">{{ active_subscription.plan.name }}</div>
+                            <div class="text-xs text-gray-500 mt-1">
+                                <div>Started: {{ active_subscription.start_time.strftime('%Y-%m-%d') }}</div>
+                                <div>Expires: {{ active_subscription.expiry_time.strftime('%Y-%m-%d') }}</div>
+                            </div>
                             {% if active_subscription.expiry_time < now %}
-                            <div class="expiry-danger">
-                                <i class="fas fa-exclamation-triangle me-1"></i> Subscription has expired!
+                            <div class="mt-2 p-2 bg-red-50 border-l-4 border-red-500 text-xs text-red-700 rounded">
+                                <i class="fas fa-exclamation-triangle mr-1"></i> Subscription has expired!
                             </div>
                             {% elif (active_subscription.expiry_time - now).days <= 3 %}
-                            <div class="expiry-warning">
-                                <i class="fas fa-clock me-1"></i> Expires in {{ (active_subscription.expiry_time - now).days }} days!
+                            <div class="mt-2 p-2 bg-amber-50 border-l-4 border-amber-500 text-xs text-amber-700 rounded">
+                                <i class="fas fa-clock mr-1"></i> Expires in {{ (active_subscription.expiry_time - now).days }} days!
                             </div>
                             {% endif %}
-                            <div class="mt-2">
-                                <span class="badge bg-success">Active</span>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
+                                    <i class="fas fa-check-circle text-[8px]"></i> Active
+                                </span>
                                 {% if active_subscription.auto_renew %}
-                                <span class="badge bg-info">Auto-renew</span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700">
+                                    <i class="fas fa-sync-alt text-[8px]"></i> Auto-renew
+                                </span>
                                 {% endif %}
                             </div>
-                            <div class="mt-2">
-                                <div class="small">Bandwidth: ↓{{ active_subscription.get_bandwidth_down() }}/↑{{ active_subscription.get_bandwidth_up() }} Mbps</div>
-                                <div class="small">Device Limit: {{ active_subscription.get_device_limit() }}</div>
+                            <div class="mt-2 text-xs text-gray-600">
+                                <div>Bandwidth: ↓{{ active_subscription.get_bandwidth_down() }}/↑{{ active_subscription.get_bandwidth_up() }} Mbps</div>
+                                <div>Device Limit: {{ active_subscription.get_device_limit() }}</div>
                             </div>
                         </div>
-                        <div class="mt-2">
-                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#renewModal">
-                                <i class="fas fa-sync-alt me-1"></i> Renew
+                        <div class="flex gap-2">
+                            <button onclick="openRenewModal()" 
+                                    class="flex-1 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                                <i class="fas fa-sync-alt mr-1"></i> Renew
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelSubModal">
-                                <i class="fas fa-ban me-1"></i> Cancel
+                            <button onclick="openCancelSubModal()" 
+                                    class="flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                                <i class="fas fa-ban mr-1"></i> Cancel
                             </button>
                         </div>
                     {% else %}
-                        <p class="text-muted text-center mb-0">No active subscription</p>
+                        <p class="text-center text-gray-500 text-sm py-4">No active subscription</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
         <!-- Right Column -->
-        <div class="col-lg-8">
-            <!-- Devices -->
-            <div class="info-card">
-                <div class="info-header">
-                    <h5><i class="fas fa-microchip me-2"></i>Devices</h5>
-                    <a href="{{ url_for('subscriber_web.add_device', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-sm btn-primary">Add Device</a>
+        <div class="lg:col-span-2 space-y-4">
+            
+            <!-- Devices Card -->
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                    <h5 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-microchip text-blue-500"></i> Devices
+                    </h5>
+                    <a href="{{ url_for('subscriber_web.add_device', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+                       class="text-xs text-blue-600 hover:text-blue-700 font-medium">Add Device</a>
                 </div>
-                <div class="info-body">
+                <div class="divide-y divide-gray-100">
                     {% if devices %}
                         {% for device in devices %}
-                        <div class="device-item">
-                            <div>
-                                <div class="fw-bold">{{ device.device_name or 'Unnamed Device' }}</div>
-                                <div class="small text-muted">{{ device.mac_address }}</div>
-                                <div class="small text-muted">{{ device.device_type|capitalize }}</div>
-                            </div>
-                            <div class="text-end">
-                                {% if device.is_primary %}
-                                <span class="badge bg-primary">Primary</span>
-                                {% endif %}
-                                {% if device.last_seen_at %}
-                                <div class="small text-muted">Last seen: {{ device.last_seen_at if device.last_seen_at else 'Never' }}</div>
-                                {% endif %}
-                                <form method="POST" action="{{ url_for('subscriber_web.remove_device', org_id=organization.id, device_id=device.id) }}" style="display: inline;">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger mt-1" onclick="return confirm('Remove this device?')">
-                                        <i class="fas fa-trash"></i> Remove
-                                    </button>
-                                </form>
+                        <div class="p-4 hover:bg-gray-50 transition-colors duration-150">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                                <div>
+                                    <div class="font-medium text-gray-800">{{ device.device_name or 'Unnamed Device' }}</div>
+                                    <div class="text-xs font-mono text-gray-500 mt-0.5">{{ device.mac_address }}</div>
+                                    <div class="text-xs text-gray-400 mt-0.5">{{ device.device_type|capitalize }}</div>
+                                    {% if device.last_seen_at %}
+                                    <div class="text-xs text-gray-400 mt-1">Last seen: {{ device.last_seen_at.strftime('%Y-%m-%d %H:%M') if device.last_seen_at else 'Never' }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    {% if device.is_primary %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700">
+                                        Primary
+                                    </span>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('subscriber_web.remove_device', org_id=organization.id, device_id=device.id) }}" class="inline">
+                                        <button type="submit" onclick="return confirm('Remove this device?')" 
+                                                class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors duration-150">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
                     {% else %}
-                        <p class="text-muted text-center mb-0">No registered devices</p>
+                        <div class="text-center py-8 text-gray-400">
+                            <i class="fas fa-microchip text-3xl mb-2 block opacity-50"></i>
+                            <p class="text-sm">No registered devices</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Subscription History -->
-            <div class="info-card">
-                <div class="info-header">
-                    <h5><i class="fas fa-history me-2"></i>Subscription History</h5>
+            <!-- Subscription History Card -->
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                    <h5 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-history text-blue-500"></i> Subscription History
+                    </h5>
                 </div>
-                <div class="info-body">
+                <div class="overflow-x-auto">
                     {% if subscription_history %}
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Plan</th>
-                                        <th>Period</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for sub in subscription_history %}
-                                    <tr>
-                                        <td>{{ sub.plan.name }}</td>
-                                        <td>{{ sub.start_time.strftime('%Y-%m-%d') }} - {{ sub.expiry_time.strftime('%Y-%m-%d') }}</td>
-                                        <td><span class="badge {% if sub.status == 'active' %}bg-success{% elif sub.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">{{ sub.status }}</span></td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600">Plan</th>
+                                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600">Period</th>
+                                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                {% for sub in subscription_history %}
+                                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                    <td class="px-4 py-3 text-sm text-gray-800">{{ sub.plan.name }}</td>
+                                    <td class="px-4 py-3 text-xs text-gray-500">
+                                        {{ sub.start_time.strftime('%Y-%m-%d') }} - {{ sub.expiry_time.strftime('%Y-%m-%d') }}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium
+                                            {% if sub.status == 'active' %}bg-emerald-100 text-emerald-700
+                                            {% elif sub.status == 'cancelled' %}bg-red-100 text-red-700
+                                            {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                            {{ sub.status|capitalize }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     {% else %}
-                        <p class="text-muted text-center mb-0">No subscription history</p>
+                        <div class="text-center py-8 text-gray-400">
+                            <i class="fas fa-history text-3xl mb-2 block opacity-50"></i>
+                            <p class="text-sm">No subscription history</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -345,118 +274,173 @@
 </div>
 
 <!-- Renew Modal -->
-<div class="modal fade" id="renewModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title text-dark">
-                    <i class="fas fa-sync-alt me-2"></i>Renew Subscription
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="GET" action="{{ url_for('subscriber_web.renew_subscription_form', org_id=organization.id, subscriber_id=subscriber.id) }}">
-                <div class="modal-body">
-                    <p>Renew subscription for <strong>{{ subscriber.display_name }}</strong>?</p>
-                    <p class="text-muted small">You will be redirected to the renewal page where you can choose renewal options.</p>
-                    <div class="alert alert-info small">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Current plan: <strong>{{ active_subscription.plan.name }}</strong><br>
-                        Expires: <strong>{{ active_subscription.expiry_time.strftime('%Y-%m-%d') }}</strong>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="fas fa-sync-alt me-1"></i> Proceed to Renew
-                    </button>
-                </div>
-            </form>
+<div id="renewModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeRenewModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="fas fa-sync-alt text-amber-500"></i> Renew Subscription
+            </h3>
+            <button onclick="closeRenewModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
+        <form method="GET" action="{{ url_for('subscriber_web.renew_subscription_form', org_id=organization.id, subscriber_id=subscriber.id) }}">
+            <div class="p-4">
+                <p class="text-gray-700">Renew subscription for <strong>{{ subscriber.display_name }}</strong>?</p>
+                <div class="mt-3 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Current plan: <strong>{{ active_subscription.plan.name }}</strong><br>
+                    Expires: <strong>{{ active_subscription.expiry_time.strftime('%Y-%m-%d') }}</strong>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 p-4 border-t border-gray-200">
+                <button type="button" onclick="closeRenewModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                    <i class="fas fa-sync-alt mr-1"></i> Proceed to Renew
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 <!-- Cancel Subscription Modal -->
-<div class="modal fade" id="cancelSubModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title text-white">
-                    <i class="fas fa-ban me-2"></i>Cancel Subscription
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<div id="cancelSubModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeCancelSubModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-red-50">
+            <h3 class="text-lg font-semibold text-red-700 flex items-center gap-2">
+                <i class="fas fa-ban"></i> Cancel Subscription
+            </h3>
+            <button onclick="closeCancelSubModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('subscriber_web.cancel_subscription', org_id=organization.id, subscription_id=active_subscription.id) }}">
+            <div class="p-4">
+                <p class="text-gray-700">Cancel subscription for <strong>{{ subscriber.display_name }}</strong>?</p>
+                <div class="mt-3">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Reason for cancellation (optional)</label>
+                    <select name="reason" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <option value="">Select a reason...</option>
+                        <option value="user_request">Customer requested</option>
+                        <option value="non_payment">Non-payment</option>
+                        <option value="migration">Migrated to other plan</option>
+                        <option value="service_discontinued">Service discontinued</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="mt-3 p-3 bg-red-50 rounded-lg text-xs text-red-700">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    <strong>Warning:</strong> This action cannot be undone. The subscriber will lose all active sessions.
+                </div>
             </div>
-            <form method="POST" action="{{ url_for('subscriber_web.cancel_subscription', org_id=organization.id, subscription_id=active_subscription.id) }}">
-                <div class="modal-body">
-                    <p>Cancel subscription for <strong>{{ subscriber.display_name }}</strong>?</p>
-                    <p class="text-muted small">This will immediately terminate the subscription. The subscriber will lose internet access.</p>
-                    
-                    <div class="mb-3">
-                        <label for="reason" class="form-label">Reason for cancellation (optional)</label>
-                        <select class="form-select" name="reason" id="reason">
-                            <option value="">Select a reason...</option>
-                            <option value="user_request">Customer requested</option>
-                            <option value="non_payment">Non-payment</option>
-                            <option value="migration">Migrated to other plan</option>
-                            <option value="service_discontinued">Service discontinued</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    
-                    <div class="alert alert-warning small">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
-                        <strong>Warning:</strong> This action cannot be undone. The subscriber will lose all active sessions.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Subscription</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-ban me-1"></i> Cancel Subscription
-                    </button>
-                </div>
+            <div class="flex justify-end gap-2 p-4 border-t border-gray-200">
+                <button type="button" onclick="closeCancelSubModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                    Keep Subscription
+                </button>
+                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                    <i class="fas fa-ban mr-1"></i> Cancel Subscription
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Subscriber Modal -->
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeDeleteModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-red-50">
+            <h3 class="text-lg font-semibold text-red-700 flex items-center gap-2">
+                <i class="fas fa-trash"></i> Confirm Delete
+            </h3>
+            <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <p class="text-gray-700">Delete subscriber <strong>{{ subscriber.display_name }}</strong>?</p>
+            <div class="mt-3 p-3 bg-red-50 rounded-lg text-xs text-red-700">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                <strong>Warning:</strong> This will:
+                <ul class="list-disc list-inside mt-2 space-y-0.5">
+                    <li>Deactivate the subscriber account</li>
+                    <li>Terminate all active sessions</li>
+                    <li>Remove the subscriber from RADIUS</li>
+                    <li>Cancel all active subscriptions</li>
+                </ul>
+            </div>
+            <div class="flex items-center gap-2 mt-3">
+                <input type="checkbox" name="soft_delete" id="softDelete" value="true" checked class="w-4 h-4 text-blue-600 rounded border-gray-300">
+                <label for="softDelete" class="text-sm text-gray-700">Soft delete (deactivate only, keep data)</label>
+            </div>
+        </div>
+        <div class="flex justify-end gap-2 p-4 border-t border-gray-200">
+            <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                Cancel
+            </button>
+            <form method="POST" action="{{ url_for('subscriber_web.delete', org_id=organization.id, subscriber_id=subscriber.id) }}">
+                <input type="hidden" name="soft" id="softInput" value="true">
+                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                    <i class="fas fa-trash mr-1"></i> Delete Subscriber
+                </button>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Delete Subscriber Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title text-white">
-                    <i class="fas fa-trash me-2"></i>Confirm Delete
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Delete subscriber <strong>{{ subscriber.display_name }}</strong>?</p>
-                <div class="alert alert-danger small">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
-                    <strong>Warning:</strong> This will:
-                    <ul class="mb-0 mt-2">
-                        <li>Deactivate the subscriber account</li>
-                        <li>Terminate all active sessions</li>
-                        <li>Remove the subscriber from RADIUS</li>
-                        <li>Cancel all active subscriptions</li>
-                    </ul>
-                </div>
-                <div class="form-check mt-3">
-                    <input class="form-check-input" type="checkbox" name="soft_delete" id="soft_delete" value="true" checked>
-                    <label class="form-check-label" for="soft_delete">
-                        Soft delete (deactivate only, keep data)
-                    </label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form method="POST" action="{{ url_for('subscriber_web.delete', org_id=organization.id, subscriber_id=subscriber.id) }}">
-                    <input type="hidden" name="soft" value="true">
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i> Delete Subscriber
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<script>
+    // Modal management functions
+    function openRenewModal() {
+        document.getElementById('renewModal').classList.remove('hidden');
+        document.getElementById('renewModal').classList.add('flex');
+    }
+    
+    function closeRenewModal() {
+        document.getElementById('renewModal').classList.remove('flex');
+        document.getElementById('renewModal').classList.add('hidden');
+    }
+    
+    function openCancelSubModal() {
+        document.getElementById('cancelSubModal').classList.remove('hidden');
+        document.getElementById('cancelSubModal').classList.add('flex');
+    }
+    
+    function closeCancelSubModal() {
+        document.getElementById('cancelSubModal').classList.remove('flex');
+        document.getElementById('cancelSubModal').classList.add('hidden');
+    }
+    
+    function openDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('hidden');
+        document.getElementById('deleteModal').classList.add('flex');
+    }
+    
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('flex');
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+    
+    // Soft delete checkbox handler
+    const softDeleteCheckbox = document.getElementById('softDelete');
+    const softInput = document.getElementById('softInput');
+    
+    if (softDeleteCheckbox) {
+        softDeleteCheckbox.addEventListener('change', function() {
+            softInput.value = this.checked ? 'true' : 'false';
+        });
+    }
+    
+    // Close modals on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeRenewModal();
+            closeCancelSubModal();
+            closeDeleteModal();
+        }
+    });
+</script>
 {% endblock %}

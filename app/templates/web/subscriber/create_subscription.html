@@ -2,244 +2,274 @@
 
 {% block title %}Assign Plan - {{ organization.name }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    .plan-card {
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    .plan-card:hover {
-        border-color: #0d6efd;
-        background-color: #f8f9fa;
-    }
-    .plan-card.selected {
-        border-color: #0d6efd;
-        background-color: #e7f1ff;
-        border-width: 2px;
-    }
-    .plan-price {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #0d6efd;
-    }
-    .plan-features {
-        font-size: 0.875rem;
-        color: #6c757d;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container-fluid px-4">
+<div class="p-3 md:p-4 lg:p-6 space-y-4">
+    
     <!-- Breadcrumb -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}">Subscribers</a></li>
-                    <li class="breadcrumb-item"><a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}">{{ subscriber.display_name }}</a></li>
-                    <li class="breadcrumb-item active">Assign Plan</li>
-                </ol>
-            </nav>
-            <h4 class="mt-2">Assign Internet Plan to {{ subscriber.display_name }}</h4>
-        </div>
+    <div>
+        <nav class="text-xs md:text-sm">
+            <ol class="flex items-center gap-1 text-gray-500 flex-wrap">
+                <li><a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" class="hover:text-blue-600 transition-colors">Subscribers</a></li>
+                <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                <li><a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="hover:text-blue-600 transition-colors truncate max-w-[120px] md:max-w-none">{{ subscriber.display_name }}</a></li>
+                <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                <li class="text-gray-700 font-medium">Assign Plan</li>
+            </ol>
+        </nav>
+        <h1 class="text-xl md:text-2xl font-bold text-gray-900 mt-2">Assign Internet Plan</h1>
+        <p class="text-xs md:text-sm text-gray-500 mt-0.5">Select a plan to assign to {{ subscriber.display_name }}</p>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Select Internet Plan</h5>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
+        
+        <!-- Plan Selection - Main Content (2/3 width on desktop) -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <div class="px-4 py-3 md:px-5 md:py-4 bg-gray-50 border-b border-gray-200">
+                    <h5 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-tag text-blue-500"></i> Select Internet Plan
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="p-4 md:p-5">
                     {% if plans %}
-                    <form method="POST" action="{{ url_for('subscriber_web.create_subscription', org_id=organization.id, subscriber_id=subscriber.id) }}">
+                    <form method="POST" action="{{ url_for('subscriber_web.create_subscription', org_id=organization.id, subscriber_id=subscriber.id) }}" id="assignPlanForm">
                         <input type="hidden" name="subscriber_id" value="{{ subscriber.id }}">
                         
-                        <div class="row">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {% for plan in plans %}
-                            <div class="col-md-6 mb-3">
-                                <div class="card plan-card h-100" data-plan-id="{{ plan.id }}" onclick="selectPlan('{{ plan.id }}')">
-                                    <div class="card-body">
-                                        <div class="form-check">
-                                            <input class="form-check-input plan-radio" type="radio" name="plan_id" id="plan_{{ plan.id }}" value="{{ plan.id }}" {% if loop.first %}checked{% endif %}>
-                                            <label class="form-check-label fw-bold fs-5" for="plan_{{ plan.id }}">
-                                                {{ plan.name }}
-                                            </label>
+                            <div class="plan-card border-2 border-gray-200 rounded-xl transition-all duration-200 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30"
+                                 data-plan-id="{{ plan.id }}" 
+                                 onclick="selectPlan('{{ plan.id }}')">
+                                <div class="p-4">
+                                    <div class="flex items-start gap-2">
+                                        <input type="radio" name="plan_id" id="plan_{{ plan.id }}" 
+                                               value="{{ plan.id }}" class="plan-radio w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5"
+                                               {% if loop.first %}checked{% endif %}>
+                                        <label class="flex-1 cursor-pointer" for="plan_{{ plan.id }}">
+                                            <div class="font-bold text-gray-800 text-base">{{ plan.name }}</div>
+                                            <div class="mt-2">
+                                                <span class="text-2xl font-bold text-blue-600">KES {{ "%.2f"|format(plan.price) }}</span>
+                                                {% if plan.setup_fee > 0 %}
+                                                <span class="text-xs text-gray-500">+ KES {{ "%.2f"|format(plan.setup_fee) }} setup</span>
+                                                {% endif %}
+                                            </div>
+                                        </label>
+                                    </div>
+                                    
+                                    <hr class="my-3 border-gray-100">
+                                    
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-clock w-4 text-gray-400"></i>
+                                            <span><strong>Validity:</strong> {{ plan.validity_display }}</span>
                                         </div>
-                                        
-                                        <div class="plan-price mt-2">
-                                            KES {{ "%.2f"|format(plan.price) }}
-                                            {% if plan.setup_fee > 0 %}
-                                            <span class="small text-muted">+ KES {{ "%.2f"|format(plan.setup_fee) }} setup</span>
-                                            {% endif %}
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-tachometer-alt w-4 text-gray-400"></i>
+                                            <span><strong>Bandwidth:</strong> ↓{{ plan.bandwidth_down_mbps }}/↑{{ plan.bandwidth_up_mbps }} Mbps</span>
                                         </div>
-                                        
-                                        <hr>
-                                        
-                                        <div class="plan-features">
-                                            <div class="mb-2">
-                                                <i class="fas fa-clock me-2"></i>
-                                                <strong>Validity:</strong> {{ plan.validity_display }}
-                                            </div>
-                                            <div class="mb-2">
-                                                <i class="fas fa-tachometer-alt me-2"></i>
-                                                <strong>Bandwidth:</strong> ↓{{ plan.bandwidth_down_mbps }}/↑{{ plan.bandwidth_up_mbps }} Mbps
-                                            </div>
-                                            <div class="mb-2">
-                                                <i class="fas fa-mobile-alt me-2"></i>
-                                                <strong>Concurrent Logins:</strong> {{ plan.concurrent_logins }}
-                                            </div>
-                                            <div class="mb-2">
-                                                <i class="fas fa-microchip me-2"></i>
-                                                <strong>Device Limit:</strong> {{ plan.device_limit }}
-                                            </div>
-                                            {% if plan.session_timeout_seconds %}
-                                            <div class="mb-2">
-                                                <i class="fas fa-hourglass-half me-2"></i>
-                                                <strong>Session Timeout:</strong> {{ (plan.session_timeout_seconds / 3600)|int }} hours
-                                            </div>
-                                            {% endif %}
-                                            {% if plan.idle_timeout_seconds %}
-                                            <div class="mb-2">
-                                                <i class="fas fa-bed me-2"></i>
-                                                <strong>Idle Timeout:</strong> {{ (plan.idle_timeout_seconds / 60)|int }} minutes
-                                            </div>
-                                            {% endif %}
-                                            {% if plan.validity_type == 'data_based' and plan.data_limit_mb %}
-                                            <div class="mb-2">
-                                                <i class="fas fa-database me-2"></i>
-                                                <strong>Data Limit:</strong> 
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-mobile-alt w-4 text-gray-400"></i>
+                                            <span><strong>Concurrent Logins:</strong> {{ plan.concurrent_logins }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-microchip w-4 text-gray-400"></i>
+                                            <span><strong>Device Limit:</strong> {{ plan.device_limit }}</span>
+                                        </div>
+                                        {% if plan.session_timeout_seconds %}
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-hourglass-half w-4 text-gray-400"></i>
+                                            <span><strong>Session Timeout:</strong> {{ (plan.session_timeout_seconds / 3600)|int }} hours</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if plan.idle_timeout_seconds %}
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-bed w-4 text-gray-400"></i>
+                                            <span><strong>Idle Timeout:</strong> {{ (plan.idle_timeout_seconds / 60)|int }} minutes</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if plan.validity_type == 'data_based' and plan.data_limit_mb %}
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-database w-4 text-gray-400"></i>
+                                            <span><strong>Data Limit:</strong> 
                                                 {% if plan.data_limit_mb >= 1024 %}
                                                     {{ (plan.data_limit_mb / 1024)|int }} GB
                                                 {% else %}
                                                     {{ plan.data_limit_mb }} MB
                                                 {% endif %}
-                                            </div>
-                                            {% endif %}
-                                            {% if plan.auto_renew %}
-                                            <div class="mb-2">
-                                                <i class="fas fa-sync-alt me-2 text-success"></i>
-                                                <span class="text-success">Auto-renew available</span>
-                                            </div>
-                                            {% endif %}
+                                            </span>
                                         </div>
-                                        
-                                        {% if plan.description %}
-                                        <div class="mt-2 small text-muted">
-                                            <i class="fas fa-info-circle me-1"></i> {{ plan.description|truncate(100) }}
+                                        {% endif %}
+                                        {% if plan.auto_renew %}
+                                        <div class="flex items-center gap-2 text-emerald-600">
+                                            <i class="fas fa-sync-alt w-4"></i>
+                                            <span>Auto-renew available</span>
                                         </div>
                                         {% endif %}
                                     </div>
+                                    
+                                    {% if plan.description %}
+                                    <div class="mt-3 p-2 bg-gray-50 rounded-lg text-xs text-gray-500">
+                                        <i class="fas fa-info-circle mr-1"></i> {{ plan.description|truncate(100) }}
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% endfor %}
                         </div>
                         
-                        <div class="mt-4">
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" name="auto_renew" id="auto_renew" value="true">
-                                <label class="form-check-label" for="auto_renew">
-                                    <i class="fas fa-sync-alt me-1"></i> Auto-renew subscription
-                                </label>
-                                <div class="small text-muted">Subscription will automatically renew on expiry date</div>
-                            </div>
+                        <!-- Auto-renew Option -->
+                        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" name="auto_renew" id="auto_renew" value="true" 
+                                       class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5">
+                                <div>
+                                    <span class="text-sm font-medium text-gray-700">
+                                        <i class="fas fa-sync-alt mr-1 text-emerald-600"></i> Auto-renew subscription
+                                    </span>
+                                    <p class="text-xs text-gray-500 mt-0.5">Subscription will automatically renew on expiry date</p>
+                                </div>
+                            </label>
                         </div>
                         
-                        <div class="d-flex gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-check me-1"></i> Assign Plan
-                            </button>
-                            <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-secondary">
-                                <i class="fas fa-times me-1"></i> Cancel
+                        <!-- Form Actions -->
+                        <div class="flex flex-col-reverse sm:flex-row gap-3 mt-6 pt-4 border-t border-gray-200">
+                            <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+                               class="w-full sm:w-auto px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-all duration-150 text-center">
+                                <i class="fas fa-times mr-1"></i> Cancel
                             </a>
+                            <button type="submit" id="submitBtn"
+                                    class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-xl transition-all duration-150 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                                <i class="fas fa-check text-sm"></i>
+                                <span>Assign Plan</span>
+                            </button>
                         </div>
                     </form>
                     {% else %}
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        No active plans available. Please <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="alert-link">create a plan</a> first.
+                    <!-- No Plans Available -->
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-exclamation-triangle text-amber-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">No Plans Available</h3>
+                        <p class="text-sm text-gray-500 mb-4">No active plans found. Please create a plan first.</p>
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                            <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" 
+                               class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                                <i class="fas fa-plus"></i> Create Plan
+                            </a>
+                            <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+                               class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                                <i class="fas fa-arrow-left"></i> Back to Subscriber
+                            </a>
+                        </div>
                     </div>
-                    <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Subscriber
-                    </a>
                     {% endif %}
                 </div>
             </div>
         </div>
         
-        <div class="col-lg-4">
-            <!-- Subscriber Info Card -->
-            <div class="card mb-3">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0"><i class="fas fa-user me-2"></i>Subscriber Information</h6>
+        <!-- Sidebar - Right Column (1/3 width on desktop) -->
+        <div class="space-y-4">
+            
+            <!-- Subscriber Information Card -->
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <div class="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                    <h6 class="text-sm font-semibold flex items-center gap-2">
+                        <i class="fas fa-user"></i> Subscriber Information
+                    </h6>
                 </div>
-                <div class="card-body">
-                    <div class="mb-2">
-                        <div class="small text-muted">Name</div>
-                        <div class="fw-bold">{{ subscriber.get_full_name() or subscriber.display_name }}</div>
+                <div class="p-4 space-y-3">
+                    <div>
+                        <p class="text-xs text-gray-500 mb-0.5">Name</p>
+                        <p class="text-sm font-semibold text-gray-800">{{ subscriber.get_full_name() or subscriber.display_name }}</p>
                     </div>
-                    <div class="mb-2">
-                        <div class="small text-muted">Phone</div>
-                        <div>{{ subscriber.phone or 'Not set' }}</div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-0.5">Phone</p>
+                        <p class="text-sm text-gray-700">{{ subscriber.phone or 'Not set' }}</p>
                     </div>
-                    <div class="mb-2">
-                        <div class="small text-muted">Email</div>
-                        <div>{{ subscriber.email or 'Not set' }}</div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-0.5">Email</p>
+                        <p class="text-sm text-gray-700 break-all">{{ subscriber.email or 'Not set' }}</p>
                     </div>
-                    <div class="mb-2">
-                        <div class="small text-muted">Type</div>
-                        <div><span class="badge bg-primary">{{ subscriber.subscriber_type|upper }}</span></div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-0.5">Type</p>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-700">
+                            <i class="fas {% if subscriber.subscriber_type == 'hotspot' %}fa-wifi{% else %}fa-network-wired{% endif %} text-[10px]"></i>
+                            {{ subscriber.subscriber_type|upper }}
+                        </span>
                     </div>
                     {% if subscriber.subscriber_type == 'pppoe' %}
-                    <div class="mb-2">
-                        <div class="small text-muted">PPPoE Username</div>
-                        <div><code>{{ subscriber.username }}</code></div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-0.5">PPPoE Username</p>
+                        <code class="text-xs bg-gray-100 px-2 py-1 rounded block break-all">{{ subscriber.username }}</code>
                     </div>
                     {% endif %}
-                    <div class="mb-2">
-                        <div class="small text-muted">Status</div>
-                        <div><span class="badge {% if subscriber.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">{{ subscriber.status|capitalize }}</span></div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-0.5">Status</p>
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium
+                            {% if subscriber.status == 'active' %}bg-emerald-100 text-emerald-700
+                            {% else %}bg-red-100 text-red-700{% endif %}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ 'bg-emerald-500' if subscriber.status == 'active' else 'bg-red-500' }}"></span>
+                            {{ subscriber.status|capitalize }}
+                        </span>
                     </div>
-                    <div class="mb-2">
-                        <div class="small text-muted">Registered On</div>
-                        <div>{{ subscriber.created_at.strftime('%Y-%m-%d') if subscriber.created_at else 'N/A' }}</div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-0.5">Registered On</p>
+                        <p class="text-sm text-gray-700">{{ subscriber.created_at.strftime('%Y-%m-%d') if subscriber.created_at else 'N/A' }}</p>
                     </div>
                 </div>
             </div>
             
             <!-- Current Subscription Info (if exists) -->
             {% if active_subscription %}
-            <div class="card mb-3">
-                <div class="card-header bg-warning text-dark">
-                    <h6 class="mb-0"><i class="fas fa-tag me-2"></i>Current Active Plan</h6>
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <div class="px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+                    <h6 class="text-sm font-semibold flex items-center gap-2">
+                        <i class="fas fa-tag"></i> Current Active Plan
+                    </h6>
                 </div>
-                <div class="card-body">
-                    <div class="fw-bold">{{ active_subscription.plan.name }}</div>
-                    <div class="small text-muted mt-1">
-                        <i class="fas fa-calendar me-1"></i> Expires: {{ active_subscription.expiry_time.strftime('%Y-%m-%d') }}
+                <div class="p-4">
+                    <div class="font-semibold text-gray-800">{{ active_subscription.plan.name }}</div>
+                    <div class="text-xs text-gray-500 mt-2 space-y-1">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-calendar w-3 text-gray-400"></i>
+                            <span>Expires: {{ active_subscription.expiry_time.strftime('%Y-%m-%d') }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-tachometer-alt w-3 text-gray-400"></i>
+                            <span>↓{{ active_subscription.get_bandwidth_down() }}/↑{{ active_subscription.get_bandwidth_up() }} Mbps</span>
+                        </div>
                     </div>
-                    <div class="small text-muted">
-                        <i class="fas fa-tachometer-alt me-1"></i> ↓{{ active_subscription.get_bandwidth_down() }}/↑{{ active_subscription.get_bandwidth_up() }} Mbps
-                    </div>
-                    <div class="alert alert-info mt-2 mb-0 small">
-                        <i class="fas fa-info-circle me-1"></i> Assigning a new plan will replace the current subscription.
+                    <div class="mt-3 p-2 bg-blue-50 rounded-lg text-xs text-blue-700">
+                        <i class="fas fa-info-circle mr-1"></i> Assigning a new plan will replace the current subscription.
                     </div>
                 </div>
             </div>
             {% endif %}
             
             <!-- Help Card -->
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h6 class="mb-0"><i class="fas fa-question-circle me-2"></i>Need Help?</h6>
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <div class="px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white">
+                    <h6 class="text-sm font-semibold flex items-center gap-2">
+                        <i class="fas fa-question-circle"></i> Need Help?
+                    </h6>
                 </div>
-                <div class="card-body">
-                    <div class="small">
-                        <i class="fas fa-check-circle text-success me-2"></i> The subscriber will have immediate access after plan assignment.<br><br>
-                        <i class="fas fa-clock text-info me-2"></i> Time-based plans expire after the validity period.<br><br>
-                        <i class="fas fa-database text-primary me-2"></i> Data-based plans expire when data limit is reached.<br><br>
-                        <i class="fas fa-sync-alt text-warning me-2"></i> Enable auto-renew for automatic billing.
+                <div class="p-4 space-y-3 text-xs text-gray-600">
+                    <div class="flex gap-2">
+                        <i class="fas fa-check-circle text-emerald-500 mt-0.5"></i>
+                        <span>The subscriber will have immediate access after plan assignment.</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <i class="fas fa-clock text-blue-500 mt-0.5"></i>
+                        <span>Time-based plans expire after the validity period.</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <i class="fas fa-database text-purple-500 mt-0.5"></i>
+                        <span>Data-based plans expire when data limit is reached.</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <i class="fas fa-sync-alt text-amber-500 mt-0.5"></i>
+                        <span>Enable auto-renew for automatic billing.</span>
                     </div>
                 </div>
             </div>
@@ -248,6 +278,9 @@
 </div>
 
 <script>
+    const form = document.getElementById('assignPlanForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
     function selectPlan(planId) {
         // Uncheck all radio buttons
         document.querySelectorAll('.plan-radio').forEach(radio => {
@@ -262,13 +295,15 @@
         
         // Remove selected class from all plan cards
         document.querySelectorAll('.plan-card').forEach(card => {
-            card.classList.remove('selected');
+            card.classList.remove('border-blue-500', 'bg-blue-50/50');
+            card.classList.add('border-gray-200');
         });
         
         // Add selected class to the clicked card
         const selectedCard = document.querySelector(`.plan-card[data-plan-id="${planId}"]`);
         if (selectedCard) {
-            selectedCard.classList.add('selected');
+            selectedCard.classList.remove('border-gray-200');
+            selectedCard.classList.add('border-blue-500', 'bg-blue-50/50');
         }
     }
     
@@ -278,7 +313,8 @@
         if (selectedRadio) {
             const parentCard = selectedRadio.closest('.plan-card');
             if (parentCard) {
-                parentCard.classList.add('selected');
+                parentCard.classList.remove('border-gray-200');
+                parentCard.classList.add('border-blue-500', 'bg-blue-50/50');
             }
         }
         
@@ -299,5 +335,36 @@
             });
         });
     });
+    
+    // Form submission handler
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const selectedPlan = document.querySelector('.plan-radio:checked');
+            if (!selectedPlan) {
+                e.preventDefault();
+                if (typeof showToast === 'function') {
+                    showToast('Please select a plan', 'error');
+                } else {
+                    alert('Please select a plan');
+                }
+                return;
+            }
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm mr-2"></i>Assigning...';
+            }
+        });
+    }
 </script>
+
+<style>
+    .plan-card {
+        transition: all 0.2s ease;
+    }
+    .plan-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+</style>
 {% endblock %}

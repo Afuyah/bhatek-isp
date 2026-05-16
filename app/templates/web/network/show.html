@@ -2,631 +2,167 @@
 
 {% block title %}{{ organization.name }} - {{ network.name }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ========================================
-       NETWORK DETAILS -  DESIGN
-       Clean, Modern, Mobile-First, Tabs
-       ========================================= */
-    
-    :root {
-        --primary: #1a56db;
-        --primary-dark: #1e40af;
-        --primary-light: #3b82f6;
-        --success: #059669;
-        --danger: #dc2626;
-        --warning: #d97706;
-        --info: #3b82f6;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
-    }
-
-    /* Container - Mobile First */
-    .network-detail {
-        padding: 0.75rem;
-    }
-    
-    @media (min-width: 640px) {
-        .network-detail {
-            padding: 1rem;
-        }
-    }
-    
-    @media (min-width: 1024px) {
-        .network-detail {
-            padding: 1.25rem;
-        }
-    }
-
-    /* Breadcrumb */
-    .breadcrumb-nav {
-        margin-bottom: 1rem;
-    }
-    
-    .breadcrumb-nav .breadcrumb {
-        background: transparent;
-        padding: 0;
-        margin: 0;
-    }
-    
-    .breadcrumb-nav .breadcrumb-item {
-        font-size: 0.7rem;
-    }
-    
-    .breadcrumb-nav .breadcrumb-item a {
-        color: var(--gray-500);
-        text-decoration: none;
-    }
-    
-    .breadcrumb-nav .breadcrumb-item a:hover {
-        color: var(--primary);
-    }
-    
-    .breadcrumb-nav .breadcrumb-item.active {
-        color: var(--gray-700);
-    }
-    
-    @media (min-width: 640px) {
-        .breadcrumb-nav .breadcrumb-item {
-            font-size: 0.75rem;
-        }
-    }
-
-    /* Header Card */
-    .header-card {
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.75rem;
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    @media (min-width: 640px) {
-        .header-card {
-            padding: 1.25rem;
-            border-radius: 1rem;
-            margin-bottom: 1.25rem;
-        }
-    }
-    
-    .network-name {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--gray-900);
-        margin: 0 0 0.5rem 0;
-    }
-    
-    @media (min-width: 640px) {
-        .network-name {
-            font-size: 1.5rem;
-        }
-    }
-    
-    .badge-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0.25rem 0.625rem;
-        border-radius: 0.375rem;
-        font-size: 0.7rem;
-        font-weight: 500;
-    }
-    
-    .badge-hotspot {
-        background: rgba(59, 130, 246, 0.1);
-        color: var(--info);
-    }
-    
-    .badge-pppoe {
-        background: rgba(5, 150, 105, 0.1);
-        color: var(--success);
-    }
-    
-    .badge-hybrid {
-        background: rgba(245, 158, 11, 0.1);
-        color: var(--warning);
-    }
-    
-    .badge-active {
-        background: rgba(5, 150, 105, 0.1);
-        color: var(--success);
-    }
-    
-    .badge-inactive {
-        background: rgba(220, 38, 38, 0.1);
-        color: var(--danger);
-    }
-    
-    .network-desc {
-        font-size: 0.75rem;
-        color: var(--gray-500);
-        margin-bottom: 0.75rem;
-        line-height: 1.4;
-    }
-    
-    @media (min-width: 640px) {
-        .network-desc {
-            font-size: 0.8rem;
-            margin-bottom: 1rem;
-        }
-    }
-    
-    .network-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
-    
-    .meta-item {
-        font-size: 0.65rem;
-        color: var(--gray-500);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-    
-    @media (min-width: 640px) {
-        .meta-item {
-            font-size: 0.7rem;
-        }
-    }
-    
-    /* Stats Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
-    
-    @media (min-width: 640px) {
-        .stats-grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-        }
-    }
-    
-    .stat-card {
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.5rem;
-        padding: 0.75rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-    
-    .stat-icon {
-        font-size: 1.25rem;
-        margin-bottom: 0.375rem;
-    }
-    
-    .stat-number {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--gray-800);
-    }
-    
-    .stat-label {
-        font-size: 0.6rem;
-        color: var(--gray-500);
-    }
-    
-    @media (min-width: 640px) {
-        .stat-card {
-            padding: 1rem;
-        }
-        .stat-icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .stat-number {
-            font-size: 1.25rem;
-        }
-        .stat-label {
-            font-size: 0.65rem;
-        }
-    }
-
-    /* Tabs */
-    .tabs {
-        display: flex;
-        gap: 0;
-        border-bottom: 1px solid var(--gray-200);
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
-    }
-    
-    .tab-btn {
-        background: none;
-        border: none;
-        padding: 0.6rem 1rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: var(--gray-500);
-        cursor: pointer;
-        transition: all 0.2s;
-        position: relative;
-    }
-    
-    .tab-btn:hover {
-        color: var(--primary);
-    }
-    
-    .tab-btn.active {
-        color: var(--primary);
-    }
-    
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: var(--primary);
-    }
-    
-    .tab-count {
-        display: inline-block;
-        margin-left: 0.25rem;
-        font-size: 0.65rem;
-        color: var(--gray-400);
-    }
-    
-    .tab-btn.active .tab-count {
-        color: var(--primary);
-    }
-    
-    @media (min-width: 640px) {
-        .tab-btn {
-            padding: 0.75rem 1.25rem;
-            font-size: 0.8rem;
-        }
-    }
-
-    /* Tab Content */
-    .tab-content {
-        display: none;
-    }
-    
-    .tab-content.active {
-        display: block;
-    }
-
-    /* Table Card */
-    .table-card {
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.5rem;
-        overflow: hidden;
-    }
-    
-    .table-header {
-        padding: 0.75rem;
-        background: var(--gray-50);
-        border-bottom: 1px solid var(--gray-200);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-    
-    .table-header h3 {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-    }
-    
-    .btn-sm {
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 0.3rem 0.7rem;
-        font-size: 0.7rem;
-        border-radius: 0.375rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .btn-sm:hover {
-        background: var(--primary-dark);
-    }
-    
-    @media (min-width: 640px) {
-        .table-header {
-            padding: 0.875rem 1rem;
-        }
-        .table-header h3 {
-            font-size: 0.85rem;
-        }
-    }
-
-    /* Table Styles */
-    .table-container {
-        overflow-x: auto;
-    }
-    
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.7rem;
-        min-width: 600px;
-    }
-    
-    .data-table thead th {
-        text-align: left;
-        padding: 0.6rem 0.75rem;
-        background: var(--gray-50);
-        font-weight: 600;
-        color: var(--gray-600);
-        border-bottom: 1px solid var(--gray-200);
-        font-size: 0.65rem;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-    }
-    
-    .data-table tbody td {
-        padding: 0.5rem 0.75rem;
-        border-bottom: 1px solid var(--gray-100);
-        color: var(--gray-700);
-        vertical-align: middle;
-    }
-    
-    .data-table tbody tr:hover {
-        background: var(--gray-50);
-    }
-    
-    @media (min-width: 640px) {
-        .data-table {
-            font-size: 0.75rem;
-        }
-        .data-table thead th {
-            padding: 0.7rem 1rem;
-            font-size: 0.7rem;
-        }
-        .data-table tbody td {
-            padding: 0.6rem 1rem;
-        }
-    }
-
-    /* Status Badge */
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-    }
-    
-    .status-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-    }
-    
-    .status-dot.online { background: var(--success); }
-    .status-dot.offline { background: var(--danger); }
-    .status-dot.unknown { background: var(--gray-400); }
-    
-    .status-text {
-        font-size: 0.7rem;
-        font-weight: 500;
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: 0.25rem;
-    }
-    
-    .btn-icon {
-        background: none;
-        border: none;
-        padding: 0.3rem 0.5rem;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 0.7rem;
-    }
-    
-    .btn-view {
-        color: var(--primary);
-    }
-    
-    .btn-view:hover {
-        background: rgba(26, 86, 219, 0.1);
-    }
-
-    /* Settings Card */
-    .settings-card {
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.5rem;
-        margin-top: 1rem;
-        overflow: hidden;
-    }
-    
-    .settings-pre {
-        background: var(--gray-50);
-        padding: 0.75rem;
-        margin: 0;
-        font-family: monospace;
-        font-size: 0.7rem;
-        overflow-x: auto;
-    }
-    
-    /* Empty State */
-    .empty-state-table {
-        text-align: center;
-        padding: 2rem 1rem;
-        color: var(--gray-400);
-    }
-    
-    .empty-state-table i {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-        opacity: 0.5;
-    }
-    
-    .empty-state-table p {
-        font-size: 0.7rem;
-        margin: 0;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="network-detail">
+<div class="p-3 md:p-4 lg:p-6 space-y-4">
+    
     <!-- Breadcrumb -->
-    <nav class="breadcrumb-nav">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('network_web.index', org_id=organization.id) }}">Networks</a></li>
-            <li class="breadcrumb-item active">{{ network.name }}</li>
+    <nav class="text-sm">
+        <ol class="flex items-center gap-2 text-gray-500">
+            <li><a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="hover:text-[#1a56db] transition-colors">Networks</a></li>
+            <li><i class="fas fa-chevron-right text-xs text-gray-400"></i></li>
+            <li class="text-gray-700 font-medium">{{ network.name }}</li>
         </ol>
     </nav>
 
     <!-- Header Card -->
-    <div class="header-card">
-        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
-            <div>
-                <h1 class="network-name">{{ network.name }}</h1>
-                <div class="badge-group">
-                    <span class="badge badge-{{ network.type }}">
-                        <i class="fas {% if network.type == 'hotspot' %}fa-wifi{% elif network.type == 'pppoe' %}fa-network-wired{% else %}fa-code-branch{% endif %}"></i>
+    <div class="bg-white rounded-lg border border-gray-200 p-4 md:p-5">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-3">
+            <div class="flex-1">
+                <h1 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">{{ network.name }}</h1>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <!-- Type Badge -->
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium
+                        {% if network.type == 'hotspot' %}bg-blue-50 text-blue-700
+                        {% elif network.type == 'pppoe' %}bg-emerald-50 text-emerald-700
+                        {% else %}bg-amber-50 text-amber-700{% endif %}">
+                        <i class="fas {% if network.type == 'hotspot' %}fa-wifi{% elif network.type == 'pppoe' %}fa-network-wired{% else %}fa-code-branch{% endif %} text-xs"></i>
                         {{ network.type|upper }}
                     </span>
-                    <span class="badge {% if network.is_active %}badge-active{% else %}badge-inactive{% endif %}">
-                        <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
+                    <!-- Status Badge -->
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium
+                        {% if network.is_active %}bg-emerald-50 text-emerald-700
+                        {% else %}bg-red-50 text-red-700{% endif %}">
+                        <span class="w-1.5 h-1.5 rounded-full {{ 'bg-emerald-500' if network.is_active else 'bg-red-500' }}"></span>
                         {{ 'Active' if network.is_active else 'Inactive' }}
                     </span>
                 </div>
-                <p class="network-desc">{{ network.description or 'No description provided' }}</p>
-                <div class="network-meta">
-                    <span class="meta-item"><i class="far fa-calendar-alt"></i> Created: {{ network.created_at[:10] if network.created_at else 'N/A' }}</span>
-                    <span class="meta-item"><i class="fas fa-link"></i> Slug: <code>{{ network.slug }}</code></span>
+                <p class="text-sm text-gray-500 mb-3 leading-relaxed">{{ network.description or 'No description provided' }}</p>
+                <div class="flex flex-wrap gap-3 text-xs text-gray-500">
+                    <span class="inline-flex items-center gap-1"><i class="far fa-calendar-alt"></i> Created: {{ network.created_at[:10] if network.created_at else 'N/A' }}</span>
+                    <span class="inline-flex items-center gap-1"><i class="fas fa-link"></i> Slug: <code class="bg-gray-100 px-1.5 py-0.5 rounded">{{ network.slug }}</code></span>
                 </div>
             </div>
-            <div class="d-flex gap-2">
-                <a href="{{ url_for('network_web.edit', org_id=organization.id, network_id=network.id) }}" class="btn-sm" style="background: var(--gray-100); color: var(--gray-700);">
+            <div>
+                <a href="{{ url_for('network_web.edit', org_id=organization.id, network_id=network.id) }}" 
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-colors duration-150">
                     <i class="fas fa-edit"></i> Edit
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-        <div class="stat-card" onclick="scrollToTab('routers')">
-            <div class="stat-icon">📡</div>
-            <div class="stat-number">{{ routers|length }}</div>
-            <div class="stat-label">Routers</div>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div onclick="scrollToTab('routers')" 
+             class="bg-white rounded-lg border border-gray-200 p-3 md:p-4 text-center cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <div class="text-2xl md:text-3xl mb-1">📡</div>
+            <div class="text-xl md:text-2xl font-bold text-gray-800">{{ routers|length }}</div>
+            <div class="text-xs text-gray-500">Routers</div>
         </div>
-        <div class="stat-card" onclick="scrollToTab('aps')">
-            <div class="stat-icon">📶</div>
-            <div class="stat-number">{{ access_points|length }}</div>
-            <div class="stat-label">Access Points</div>
+        <div onclick="scrollToTab('aps')" 
+             class="bg-white rounded-lg border border-gray-200 p-3 md:p-4 text-center cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <div class="text-2xl md:text-3xl mb-1">📶</div>
+            <div class="text-xl md:text-2xl font-bold text-gray-800">{{ access_points|length }}</div>
+            <div class="text-xs text-gray-500">Access Points</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">👥</div>
-            <div class="stat-number">{{ active_sessions }}</div>
-            <div class="stat-label">Active Sessions</div>
+        <div class="bg-white rounded-lg border border-gray-200 p-3 md:p-4 text-center">
+            <div class="text-2xl md:text-3xl mb-1">👥</div>
+            <div class="text-xl md:text-2xl font-bold text-gray-800">{{ active_sessions|default(0) }}</div>
+            <div class="text-xs text-gray-500">Active Sessions</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-number">{{ bandwidth_usage }}</div>
-            <div class="stat-label">Bandwidth (Gbps)</div>
+        <div class="bg-white rounded-lg border border-gray-200 p-3 md:p-4 text-center">
+            <div class="text-2xl md:text-3xl mb-1">📊</div>
+            <div class="text-xl md:text-2xl font-bold text-gray-800">{{ bandwidth_usage|default(0) }}</div>
+            <div class="text-xs text-gray-500">Bandwidth (Gbps)</div>
         </div>
     </div>
 
     <!-- Settings Card (if exists) -->
     {% if network.settings and network.settings != {} %}
-    <div class="settings-card">
-        <div class="table-header">
-            <h3><i class="fas fa-sliders-h"></i> Network Settings</h3>
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-700"><i class="fas fa-sliders-h mr-2"></i> Network Settings</h3>
         </div>
-        <pre class="settings-pre">{{ network.settings|tojson(indent=2) }}</pre>
+        <pre class="bg-gray-50 p-4 m-0 font-mono text-xs overflow-x-auto">{{ network.settings|tojson(indent=2) }}</pre>
     </div>
     {% endif %}
 
     <!-- Tabs -->
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="routers">
-            Routers <span class="tab-count">({{ routers|length }})</span>
-        </button>
-        <button class="tab-btn" data-tab="aps">
-            Access Points <span class="tab-count">({{ access_points|length }})</span>
-        </button>
+    <div class="border-b border-gray-200">
+        <div class="flex gap-0">
+            <button data-tab="routers" 
+                    class="tab-btn px-4 py-2.5 md:px-5 md:py-3 text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent active-tab">
+                Routers <span class="ml-1 text-xs text-gray-400">({{ routers|length }})</span>
+            </button>
+            <button data-tab="aps" 
+                    class="tab-btn px-4 py-2.5 md:px-5 md:py-3 text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
+                Access Points <span class="ml-1 text-xs text-gray-400">({{ access_points|length }})</span>
+            </button>
+        </div>
     </div>
 
-    <!-- Routers Tab -->
-    <div id="routers-tab" class="tab-content active">
-        <div class="table-card">
-            <div class="table-header">
-                <h3><i class="fas fa-server"></i> Routers</h3>
-                <a href="{{ url_for('router_web.create', org_id=organization.id) }}?network_id={{ network.id }}" class="btn-sm">
-                    <i class="fas fa-plus"></i> Add Router
+    <!-- Routers Tab Content -->
+    <div id="routers-tab" class="tab-content">
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="flex justify-between items-center px-4 py-3 bg-gray-50 border-b border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700"><i class="fas fa-server mr-2"></i> Routers</h3>
+                <a href="{{ url_for('router_web.create', org_id=organization.id) }}?network_id={{ network.id }}" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1a56db] hover:bg-[#1e40af] text-white text-xs rounded-lg transition-colors duration-150">
+                    <i class="fas fa-plus text-xs"></i> Add Router
                 </a>
             </div>
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th>Name</th>
-                            <th>IP Address</th>
-                            <th>Status</th>
-                            <th>Model</th>
-                            <th style="width: 50px;">Actions</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600">Name</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600">IP Address</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600">Status</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hidden md:table-cell">Model</th>
+                            <th class="text-center px-4 py-3 text-xs font-semibold text-gray-600 w-16">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-100">
                         {% if routers %}
                             {% for router in routers %}
-                            <tr>
-                                <td><strong>{{ router.name }}</strong>{% if not router.is_active %} <span style="color: var(--danger);">(Inactive)</span>{% endif %}</td>
-                                <td><code>{{ router.ip_address }}:{{ router.api_port }}</code></td>
-                                <td>
-                                    <span class="status-badge">
-                                        <span class="status-dot {{ router.status|default('unknown') }}"></span>
-                                        <span class="status-text">{{ (router.status|default('unknown'))|capitalize }}</span>
+                            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-4 py-3">
+                                    <div class="font-medium text-gray-800">{{ router.name }}</div>
+                                    {% if not router.is_active %}
+                                    <span class="text-xs text-red-600">(Inactive)</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 font-mono text-xs text-gray-600">{{ router.ip_address }}:{{ router.api_port }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full 
+                                            {% if router.status == 'online' %}bg-emerald-500
+                                            {% elif router.status == 'offline' %}bg-red-500
+                                            {% else %}bg-gray-400{% endif %}"></span>
+                                        <span class="text-xs font-medium 
+                                            {% if router.status == 'online' %}text-emerald-700
+                                            {% elif router.status == 'offline' %}text-red-700
+                                            {% else %}text-gray-500{% endif %}">
+                                            {{ (router.status|default('unknown'))|capitalize }}
+                                        </span>
                                     </span>
                                 </td>
-                                <td>{{ router.model or '—' }}</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn-icon btn-view" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </div>
+                                <td class="px-4 py-3 text-xs text-gray-500 hidden md:table-cell">{{ router.model or '—' }}</td>
+                                <td class="px-4 py-3 text-center">
+                                    <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" 
+                                       class="inline-block p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
                                 </td>
-                             </tr>
+                            </tr>
                             {% endfor %}
                         {% else %}
-                            <tr><td colspan="5" class="empty-state-table"><i class="fas fa-server"></i><p>No routers in this network</p></td></tr>
+                            <tr>
+                                <td colspan="5" class="text-center py-8 text-gray-400">
+                                    <i class="fas fa-server text-3xl mb-2 block opacity-50"></i>
+                                    <p class="text-sm">No routers in this network</p>
+                                </td>
+                            </tr>
                         {% endif %}
                     </tbody>
                 </table>
@@ -634,52 +170,70 @@
         </div>
     </div>
 
-    <!-- Access Points Tab -->
-    <div id="aps-tab" class="tab-content">
-        <div class="table-card">
-            <div class="table-header">
-                <h3><i class="fas fa-wifi"></i> Access Points</h3>
-                <a href="{{ url_for('ap_web.create', org_id=organization.id) }}?network_id={{ network.id }}" class="btn-sm">
-                    <i class="fas fa-plus"></i> Add AP
+    <!-- Access Points Tab Content -->
+    <div id="aps-tab" class="tab-content hidden">
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="flex justify-between items-center px-4 py-3 bg-gray-50 border-b border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700"><i class="fas fa-wifi mr-2"></i> Access Points</h3>
+                <a href="{{ url_for('ap_web.create', org_id=organization.id) }}?network_id={{ network.id }}" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1a56db] hover:bg-[#1e40af] text-white text-xs rounded-lg transition-colors duration-150">
+                    <i class="fas fa-plus text-xs"></i> Add AP
                 </a>
             </div>
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th>Name</th>
-                            <th>SSID</th>
-                            <th>MAC Address</th>
-                            <th>Location</th>
-                            <th>Status</th>
-                            <th style="width: 50px;">Actions</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600">Name</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600">SSID</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hidden md:table-cell">MAC Address</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hidden lg:table-cell">Location</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600">Status</th>
+                            <th class="text-center px-4 py-3 text-xs font-semibold text-gray-600 w-16">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-100">
                         {% if access_points %}
                             {% for ap in access_points %}
-                            <tr>
-                                <td><strong>{{ ap.name }}</strong>{% if not ap.is_active %} <span style="color: var(--danger);">(Inactive)</span>{% endif %}</td>
-                                <td>{{ ap.ssid }}—</td>
-                                <td><code>{{ ap.mac_address }}</code></td>
-                                <td>{{ ap.location or '—' }}</td>
-                                <td>
-                                    <span class="status-badge">
-                                        <span class="status-dot {{ ap.status|default('unknown') }}"></span>
-                                        <span class="status-text">{{ (ap.status|default('unknown'))|capitalize }}</span>
+                            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-4 py-3">
+                                    <div class="font-medium text-gray-800">{{ ap.name }}</div>
+                                    {% if not ap.is_active %}
+                                    <span class="text-xs text-red-600">(Inactive)</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-xs text-gray-600">{{ ap.ssid or '—' }}</td>
+                                <td class="px-4 py-3 font-mono text-xs text-gray-500 hidden md:table-cell">{{ ap.mac_address or '—' }}</td>
+                                <td class="px-4 py-3 text-xs text-gray-500 hidden lg:table-cell">{{ ap.location or '—' }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full 
+                                            {% if ap.status == 'online' %}bg-emerald-500
+                                            {% elif ap.status == 'offline' %}bg-red-500
+                                            {% else %}bg-gray-400{% endif %}"></span>
+                                        <span class="text-xs font-medium 
+                                            {% if ap.status == 'online' %}text-emerald-700
+                                            {% elif ap.status == 'offline' %}text-red-700
+                                            {% else %}text-gray-500{% endif %}">
+                                            {{ (ap.status|default('unknown'))|capitalize }}
+                                        </span>
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a href="{{ url_for('ap_web.show', org_id=organization.id, ap_id=ap.id) }}" class="btn-icon btn-view" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </div>
+                                <td class="px-4 py-3 text-center">
+                                    <a href="{{ url_for('ap_web.show', org_id=organization.id, ap_id=ap.id) }}" 
+                                       class="inline-block p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
                                 </td>
-                             </tr>
+                            </tr>
                             {% endfor %}
                         {% else %}
-                            <td><td colspan="6" class="empty-state-table"><i class="fas fa-wifi"></i><p>No access points in this network</p></td>\)97
+                            <tr>
+                                <td colspan="6" class="text-center py-8 text-gray-400">
+                                    <i class="fas fa-wifi text-3xl mb-2 block opacity-50"></i>
+                                    <p class="text-sm">No access points in this network</p>
+                                </td>
+                            </tr>
                         {% endif %}
                     </tbody>
                 </table>
@@ -689,25 +243,77 @@
 </div>
 
 <script>
-    // Tab switching
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    // Tab switching functionality
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = {
+        routers: document.getElementById('routers-tab'),
+        aps: document.getElementById('aps-tab')
+    };
+    
+    function switchTab(tabId) {
+        // Hide all tabs
+        Object.values(tabContents).forEach(content => {
+            if (content) content.classList.add('hidden');
+        });
+        
+        // Show selected tab
+        if (tabContents[tabId]) {
+            tabContents[tabId].classList.remove('hidden');
+        }
+        
+        // Update button styles
+        tabBtns.forEach(btn => {
+            const btnTab = btn.getAttribute('data-tab');
+            if (btnTab === tabId) {
+                btn.classList.add('text-[#1a56db]', 'border-[#1a56db]');
+                btn.classList.remove('text-gray-500', 'border-transparent');
+            } else {
+                btn.classList.remove('text-[#1a56db]', 'border-[#1a56db]');
+                btn.classList.add('text-gray-500', 'border-transparent');
+            }
+        });
+    }
+    
+    // Add click handlers to tabs
+    tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.getAttribute('data-tab');
-            
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            
-            btn.classList.add('active');
-            document.getElementById(`${tabId}-tab`).classList.add('active');
+            switchTab(tabId);
         });
     });
     
+    // Function to scroll to and activate a specific tab
     function scrollToTab(tabId) {
-        const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-        if (btn) {
-            btn.click();
-            btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        switchTab(tabId);
+        
+        // Scroll to tabs section with smooth behavior
+        const tabsContainer = document.querySelector('.border-b.border-gray-200');
+        if (tabsContainer) {
+            const offset = 80;
+            const elementPosition = tabsContainer.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
         }
     }
+    
+    // Initialize - show routers tab by default
+    if (window.location.hash === '#aps') {
+        switchTab('aps');
+    } else {
+        switchTab('routers');
+    }
+    
+    // Handle URL hash for deep linking
+    window.addEventListener('hashchange', () => {
+        if (window.location.hash === '#aps') {
+            switchTab('aps');
+        } else if (window.location.hash === '#routers') {
+            switchTab('routers');
+        }
+    });
 </script>
 {% endblock %}

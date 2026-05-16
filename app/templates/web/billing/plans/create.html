@@ -2,357 +2,55 @@
 
 {% block title %}{{ organization.name }} - Create Plan{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ========================================
-       CREATE PLAN - 
-       Clean, Modern, Mobile-First
-       ========================================= */
-    
-    :root {
-        --primary: #1a56db;
-        --primary-dark: #1e40af;
-        --primary-light: #3b82f6;
-        --success: #059669;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
-    }
-
-    /* Container - Minimal Padding */
-    .plan-container {
-        padding: 0.75rem;
-    }
-    
-    @media (min-width: 640px) {
-        .plan-container {
-            padding: 1rem;
-        }
-    }
-    
-    @media (min-width: 1024px) {
-        .plan-container {
-            padding: 1.25rem;
-        }
-    }
-
-    /* Header */
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
-    
-    .page-title h1 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--gray-900);
-        margin: 0 0 0.125rem 0;
-    }
-    
-    .page-title p {
-        font-size: 0.7rem;
-        color: var(--gray-500);
-        margin: 0;
-    }
-    
-    @media (min-width: 640px) {
-        .page-title h1 {
-            font-size: 1.5rem;
-        }
-        .page-title p {
-            font-size: 0.8rem;
-        }
-    }
-
-    /* Back Button */
-    .btn-back {
-        background: white;
-        border: 1px solid var(--gray-200);
-        padding: 0.4rem 0.875rem;
-        font-size: 0.75rem;
-        border-radius: 0.375rem;
-        color: var(--gray-600);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-        transition: all 0.2s;
-    }
-    
-    .btn-back:hover {
-        background: var(--gray-50);
-        border-color: var(--gray-300);
-    }
-    
-    @media (min-width: 640px) {
-        .btn-back {
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-        }
-    }
-
-    /* Form Card */
-    .form-card {
-        background: white;
-        border-radius: 0.5rem;
-        border: 1px solid var(--gray-200);
-        overflow: hidden;
-    }
-    
-    .form-section {
-        padding: 1rem;
-        border-bottom: 1px solid var(--gray-100);
-    }
-    
-    .form-section:last-child {
-        border-bottom: none;
-    }
-    
-    @media (min-width: 640px) {
-        .form-section {
-            padding: 1.25rem;
-        }
-    }
-    
-    .section-title {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--gray-800);
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .section-title i {
-        color: var(--primary);
-        font-size: 0.875rem;
-    }
-
-    /* Form Grid */
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-    }
-    
-    @media (min-width: 640px) {
-        .form-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-    }
-    
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.375rem;
-    }
-    
-    .form-group.full-width {
-        grid-column: 1 / -1;
-    }
-    
-    .form-label {
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: var(--gray-700);
-    }
-    
-    .form-label .required {
-        color: #dc2626;
-        margin-left: 0.25rem;
-    }
-    
-    .form-input, .form-select {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8rem;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.375rem;
-        transition: all 0.2s;
-        background: white;
-    }
-    
-    .form-input:focus, .form-select:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.1);
-    }
-    
-    textarea.form-input {
-        resize: vertical;
-        min-height: 80px;
-    }
-    
-    .help-text {
-        font-size: 0.65rem;
-        color: var(--gray-500);
-        margin-top: 0.25rem;
-    }
-    
-    /* Two Column Row */
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-    }
-    
-    @media (min-width: 640px) {
-        .form-row {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-    }
-
-    /* Switch Toggle */
-    .switch-group {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-    }
-    
-    .switch-label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-    }
-    
-    .switch-label input {
-        width: 18px;
-        height: 18px;
-        margin: 0;
-        cursor: pointer;
-    }
-    
-    .switch-text {
-        font-size: 0.75rem;
-        color: var(--gray-700);
-    }
-    
-    .switch-hint {
-        font-size: 0.6rem;
-        color: var(--gray-500);
-        margin-left: 1.5rem;
-    }
-
-    /* Divider */
-    .form-divider {
-        margin: 1rem 0;
-        border-top: 1px solid var(--gray-200);
-    }
-
-    /* Action Buttons */
-    .form-actions {
-        padding: 1rem;
-        background: var(--gray-50);
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.75rem;
-    }
-    
-    @media (min-width: 640px) {
-        .form-actions {
-            padding: 1rem 1.25rem;
-        }
-    }
-    
-    .btn-cancel {
-        background: white;
-        border: 1px solid var(--gray-200);
-        padding: 0.5rem 1rem;
-        font-size: 0.75rem;
-        border-radius: 0.375rem;
-        color: var(--gray-600);
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-    
-    .btn-cancel:hover {
-        background: var(--gray-50);
-    }
-    
-    .btn-submit {
-        background: var(--primary);
-        border: none;
-        padding: 0.5rem 1rem;
-        font-size: 0.75rem;
-        border-radius: 0.375rem;
-        color: white;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .btn-submit:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
-    }
-    
-    @media (min-width: 640px) {
-        .btn-cancel, .btn-submit {
-            padding: 0.5rem 1.25rem;
-            font-size: 0.8rem;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="plan-container">
+<div class="p-3 md:p-4 lg:p-6 space-y-4">
+    
     <!-- Header -->
-    <div class="page-header">
-        <div class="page-title">
-            <h1>Create Service Plan</h1>
-            <p>Add a new internet service plan</p>
+    <div class="flex flex-wrap justify-between items-center gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">Create Service Plan</h1>
+            <p class="text-xs md:text-sm text-gray-500 mt-0.5">Add a new internet service plan</p>
         </div>
-        <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Plans
+        <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" 
+           class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-all duration-150">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Plans
         </a>
     </div>
 
     <!-- Form Card -->
-    <div class="form-card">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <form method="POST" id="planForm">
+            
             <!-- Basic Information -->
-            <div class="form-section">
-                <div class="section-title">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Basic Information</span>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Plan Name <span class="required">*</span></label>
-                        <input type="text" name="name" class="form-input" required 
-                               value="{{ form_data.name if form_data else '' }}" 
+            <div class="border-b border-gray-100 p-4 md:p-5">
+                <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-info-circle text-[#1a56db]"></i> Basic Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Plan Name <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="name" 
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                               required value="{{ form_data.name if form_data else '' }}" 
                                placeholder="e.g., Basic 10Mbps">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Plan Type <span class="required">*</span></label>
-                        <select name="plan_type" class="form-select" required>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Plan Type <span class="text-red-500">*</span>
+                        </label>
+                        <select name="plan_type" 
+                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all">
                             <option value="hotspot" {% if form_data and form_data.plan_type == 'hotspot' %}selected{% endif %}>Hotspot</option>
                             <option value="pppoe" {% if form_data and form_data.plan_type == 'pppoe' %}selected{% endif %}>PPPoE</option>
                             <option value="both" {% if form_data and form_data.plan_type == 'both' %}selected{% endif %}>Both</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Billing Cycle</label>
-                        <select name="billing_cycle" class="form-select">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Billing Cycle</label>
+                        <select name="billing_cycle" 
+                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all">
                             <option value="one_time" {% if form_data and form_data.billing_cycle == 'one_time' %}selected{% endif %}>One Time</option>
                             <option value="daily" {% if form_data and form_data.billing_cycle == 'daily' %}selected{% endif %}>Daily</option>
                             <option value="weekly" {% if form_data and form_data.billing_cycle == 'weekly' %}selected{% endif %}>Weekly</option>
@@ -365,15 +63,17 @@
             </div>
 
             <!-- Validity Configuration -->
-            <div class="form-section">
-                <div class="section-title">
-                    <i class="fas fa-clock"></i>
-                    <span>Validity Configuration</span>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Validity Type <span class="required">*</span></label>
-                        <select name="validity_type" id="validityType" class="form-select" required>
+            <div class="border-b border-gray-100 p-4 md:p-5">
+                <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-clock text-[#1a56db]"></i> Validity Configuration
+                </h3>
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Validity Type <span class="text-red-500">*</span>
+                        </label>
+                        <select name="validity_type" id="validityType" 
+                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all">
                             <option value="time_based" {% if not form_data or form_data.validity_type == 'time_based' %}selected{% endif %}>Time Based</option>
                             <option value="data_based" {% if form_data and form_data.validity_type == 'data_based' %}selected{% endif %}>Data Based</option>
                             <option value="unlimited" {% if form_data and form_data.validity_type == 'unlimited' %}selected{% endif %}>Unlimited</option>
@@ -382,86 +82,96 @@
                 </div>
 
                 <!-- Time Based Fields -->
-                <div id="timeBasedFields" style="{% if form_data and form_data.validity_type == 'data_based' %}display: none;{% elif form_data and form_data.validity_type == 'unlimited' %}display: none;{% endif %}">
-                    <div class="form-row" style="margin-top: 0.75rem;">
-                        <div class="form-group">
-                            <label class="form-label">Validity Value <span class="required">*</span></label>
-                            <input type="number" name="validity_value" id="validityValue" class="form-input" 
-                                   value="{{ form_data.validity_value if form_data else '30' }}" 
-                                   placeholder="e.g., 30, 2, 1" min="1">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Validity Unit <span class="required">*</span></label>
-                            <select name="validity_unit" id="validityUnit" class="form-select">
-                                <option value="minutes" {% if form_data and form_data.validity_unit == 'minutes' %}selected{% endif %}>Minutes</option>
-                                <option value="hours" {% if form_data and form_data.validity_unit == 'hours' %}selected{% endif %}>Hours</option>
-                                <option value="days" {% if not form_data or form_data.validity_unit == 'days' %}selected{% endif %}>Days</option>
-                                <option value="months" {% if form_data and form_data.validity_unit == 'months' %}selected{% endif %}>Months</option>
-                                <option value="years" {% if form_data and form_data.validity_unit == 'years' %}selected{% endif %}>Years</option>
-                            </select>
-                        </div>
+                <div id="timeBasedFields" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4
+                    {% if form_data and form_data.validity_type == 'data_based' %}hidden{% elif form_data and form_data.validity_type == 'unlimited' %}hidden{% endif %}">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Validity Value <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="validity_value" id="validityValue" 
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                               value="{{ form_data.validity_value if form_data else '30' }}" min="1">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Validity Unit <span class="text-red-500">*</span>
+                        </label>
+                        <select name="validity_unit" id="validityUnit" 
+                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all">
+                            <option value="minutes" {% if form_data and form_data.validity_unit == 'minutes' %}selected{% endif %}>Minutes</option>
+                            <option value="hours" {% if form_data and form_data.validity_unit == 'hours' %}selected{% endif %}>Hours</option>
+                            <option value="days" {% if not form_data or form_data.validity_unit == 'days' %}selected{% endif %}>Days</option>
+                            <option value="months" {% if form_data and form_data.validity_unit == 'months' %}selected{% endif %}>Months</option>
+                            <option value="years" {% if form_data and form_data.validity_unit == 'years' %}selected{% endif %}>Years</option>
+                        </select>
                     </div>
                 </div>
 
                 <!-- Data Based Fields -->
-                <div id="dataBasedFields" style="{% if not form_data or form_data.validity_type != 'data_based' %}display: none;{% endif %}">
-                    <div class="form-group" style="margin-top: 0.75rem;">
-                        <label class="form-label">Data Limit (MB) <span class="required">*</span></label>
-                        <input type="number" name="data_limit_mb" id="dataLimitMb" class="form-input" 
+                <div id="dataBasedFields" class="mt-4 
+                    {% if not form_data or form_data.validity_type != 'data_based' %}hidden{% endif %}">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Data Limit (MB) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="data_limit_mb" id="dataLimitMb" 
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
                                value="{{ form_data.data_limit_mb if form_data else '' }}" 
                                placeholder="e.g., 1024 (1GB), 10240 (10GB)" min="1">
-                        <div class="help-text">1 GB = 1024 MB</div>
+                        <p class="text-xs text-gray-500 mt-1">1 GB = 1024 MB</p>
                     </div>
                 </div>
             </div>
 
             <!-- Bandwidth Configuration -->
-            <div class="form-section">
-                <div class="section-title">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Bandwidth Configuration</span>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Download Speed (Mbps)</label>
-                        <input type="number" name="bandwidth_down_mbps" class="form-input" 
-                               value="{{ form_data.bandwidth_down_mbps if form_data else '10' }}" 
-                               placeholder="10" min="0">
-                        <div class="help-text">0 = Unlimited</div>
+            <div class="border-b border-gray-100 p-4 md:p-5">
+                <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-tachometer-alt text-[#1a56db]"></i> Bandwidth Configuration
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Download Speed (Mbps)</label>
+                        <input type="number" name="bandwidth_down_mbps" 
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                               value="{{ form_data.bandwidth_down_mbps if form_data else '10' }}" min="0">
+                        <p class="text-xs text-gray-500 mt-1">0 = Unlimited</p>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Upload Speed (Mbps)</label>
-                        <input type="number" name="bandwidth_up_mbps" class="form-input" 
-                               value="{{ form_data.bandwidth_up_mbps if form_data else '10' }}" 
-                               placeholder="10" min="0">
-                        <div class="help-text">0 = Unlimited</div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Upload Speed (Mbps)</label>
+                        <input type="number" name="bandwidth_up_mbps" 
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                               value="{{ form_data.bandwidth_up_mbps if form_data else '10' }}" min="0">
+                        <p class="text-xs text-gray-500 mt-1">0 = Unlimited</p>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Device Limit</label>
-                        <input type="number" name="device_limit" class="form-input" 
-                               value="{{ form_data.device_limit if form_data else '1' }}" 
-                               placeholder="1" min="1">
-                        <div class="help-text">Max concurrent devices</div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Device Limit</label>
+                        <input type="number" name="device_limit" 
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                               value="{{ form_data.device_limit if form_data else '1' }}" min="1">
+                        <p class="text-xs text-gray-500 mt-1">Max concurrent devices</p>
                     </div>
                 </div>
             </div>
 
             <!-- Pricing -->
-            <div class="form-section">
-                <div class="section-title">
-                    <i class="fas fa-tag"></i>
-                    <span>Pricing</span>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Price (KES) <span class="required">*</span></label>
-                        <input type="number" step="0.01" name="price" class="form-input" required 
-                               value="{{ form_data.price if form_data else '' }}" 
+            <div class="border-b border-gray-100 p-4 md:p-5">
+                <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-tag text-[#1a56db]"></i> Pricing
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Price (KES) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" step="0.01" name="price" 
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
+                               required value="{{ form_data.price if form_data else '' }}" 
                                placeholder="1000.00" min="0">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Setup Fee (KES)</label>
-                        <input type="number" step="0.01" name="setup_fee" class="form-input" 
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Setup Fee (KES)</label>
+                        <input type="number" step="0.01" name="setup_fee" 
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
                                value="{{ form_data.setup_fee if form_data else '0' }}" 
                                placeholder="0.00" min="0">
                     </div>
@@ -469,44 +179,48 @@
             </div>
 
             <!-- Description -->
-            <div class="form-section">
-                <div class="section-title">
-                    <i class="fas fa-align-left"></i>
-                    <span>Description</span>
-                </div>
-                <div class="form-group">
-                    <textarea name="description" class="form-input" rows="2" 
-                              placeholder="Plan description...">{{ form_data.description if form_data else '' }}</textarea>
-                </div>
+            <div class="border-b border-gray-100 p-4 md:p-5">
+                <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-align-left text-[#1a56db]"></i> Description
+                </h3>
+                <textarea name="description" rows="3" 
+                          class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all resize-y"
+                          placeholder="Plan description...">{{ form_data.description if form_data else '' }}</textarea>
             </div>
 
             <!-- Status Switches -->
-            <div class="form-section">
-                <div class="section-title">
-                    <i class="fas fa-toggle-on"></i>
-                    <span>Status</span>
-                </div>
-                <div class="form-group">
-                    <label class="switch-label">
-                        <input type="checkbox" name="is_active" {% if not form_data or form_data.is_active != false %}checked{% endif %}>
-                        <span class="switch-text">Active</span>
+            <div class="border-b border-gray-100 p-4 md:p-5">
+                <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-toggle-on text-[#1a56db]"></i> Status
+                </h3>
+                <div class="space-y-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="is_active" 
+                               class="w-4 h-4 text-[#1a56db] rounded border-gray-300 focus:ring-[#1a56db]/20"
+                               {% if not form_data or form_data.is_active != false %}checked{% endif %}>
+                        <span class="text-sm text-gray-700">Active</span>
                     </label>
-                    <div class="switch-hint">Inactive plans won't be available for new subscriptions</div>
-                </div>
-                <div class="form-group" style="margin-top: 0.5rem;">
-                    <label class="switch-label">
-                        <input type="checkbox" name="is_public" {% if not form_data or form_data.is_public != false %}checked{% endif %}>
-                        <span class="switch-text">Public</span>
+                    <p class="text-xs text-gray-500 ml-6 -mt-1">Inactive plans won't be available for new subscriptions</p>
+                    
+                    <label class="flex items-center gap-2 cursor-pointer mt-2">
+                        <input type="checkbox" name="is_public" 
+                               class="w-4 h-4 text-[#1a56db] rounded border-gray-300 focus:ring-[#1a56db]/20"
+                               {% if not form_data or form_data.is_public != false %}checked{% endif %}>
+                        <span class="text-sm text-gray-700">Public</span>
                     </label>
-                    <div class="switch-hint">Public plans are visible on the customer portal</div>
+                    <p class="text-xs text-gray-500 ml-6 -mt-1">Public plans are visible on the customer portal</p>
                 </div>
             </div>
 
             <!-- Form Actions -->
-            <div class="form-actions">
-                <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="btn-cancel">Cancel</a>
-                <button type="submit" class="btn-submit">
-                    <i class="fas fa-save"></i> Create Plan
+            <div class="bg-gray-50 px-4 py-3 md:px-5 md:py-4 flex justify-end gap-3">
+                <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" 
+                   class="px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                    Cancel
+                </a>
+                <button type="submit" id="submitBtn"
+                        class="px-4 py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm hover:shadow-md">
+                    <i class="fas fa-save mr-2"></i> Create Plan
                 </button>
             </div>
         </form>
@@ -514,6 +228,7 @@
 </div>
 
 <script>
+    // Toggle validity fields based on selection
     const validityType = document.getElementById('validityType');
     const timeBasedFields = document.getElementById('timeBasedFields');
     const dataBasedFields = document.getElementById('dataBasedFields');
@@ -525,41 +240,77 @@
         const type = validityType.value;
         
         if (type === 'time_based') {
-            timeBasedFields.style.display = 'block';
-            dataBasedFields.style.display = 'none';
+            timeBasedFields.classList.remove('hidden');
+            dataBasedFields.classList.add('hidden');
+            // Enable required fields
+            if (validityValue) validityValue.required = true;
+            if (validityUnit) validityUnit.required = true;
+            if (dataLimitMb) dataLimitMb.required = false;
         } else if (type === 'data_based') {
-            timeBasedFields.style.display = 'none';
-            dataBasedFields.style.display = 'block';
+            timeBasedFields.classList.add('hidden');
+            dataBasedFields.classList.remove('hidden');
+            // Enable required fields
+            if (validityValue) validityValue.required = false;
+            if (validityUnit) validityUnit.required = false;
+            if (dataLimitMb) dataLimitMb.required = true;
         } else {
-            timeBasedFields.style.display = 'none';
-            dataBasedFields.style.display = 'none';
+            timeBasedFields.classList.add('hidden');
+            dataBasedFields.classList.add('hidden');
+            // Disable all validity fields
+            if (validityValue) validityValue.required = false;
+            if (validityUnit) validityUnit.required = false;
+            if (dataLimitMb) dataLimitMb.required = false;
         }
     }
     
-    validityType.addEventListener('change', toggleValidityFields);
-    toggleValidityFields();
+    if (validityType) {
+        validityType.addEventListener('change', toggleValidityFields);
+        // Initialize on page load
+        toggleValidityFields();
+    }
     
-    // Form validation
-    document.getElementById('planForm').addEventListener('submit', function(e) {
-        const type = validityType.value;
-        
-        if (type === 'time_based') {
-            const value = parseInt(validityValue.value);
-            if (isNaN(value) || value < 1) {
-                alert('Please enter a valid validity value');
-                e.preventDefault();
-                return;
+    // Form validation before submit
+    const planForm = document.getElementById('planForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (planForm) {
+        planForm.addEventListener('submit', function(e) {
+            const type = validityType ? validityType.value : 'time_based';
+            
+            if (type === 'time_based') {
+                const value = validityValue ? parseInt(validityValue.value) : null;
+                if (!value || isNaN(value) || value < 1) {
+                    e.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('Please enter a valid validity value', 'error');
+                    } else {
+                        alert('Please enter a valid validity value');
+                    }
+                    if (validityValue) validityValue.focus();
+                    return;
+                }
             }
-        }
-        
-        if (type === 'data_based') {
-            const dataLimit = parseInt(dataLimitMb.value);
-            if (isNaN(dataLimit) || dataLimit < 1) {
-                alert('Please enter a valid data limit');
-                e.preventDefault();
-                return;
+            
+            if (type === 'data_based') {
+                const dataLimit = dataLimitMb ? parseInt(dataLimitMb.value) : null;
+                if (!dataLimit || isNaN(dataLimit) || dataLimit < 1) {
+                    e.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('Please enter a valid data limit', 'error');
+                    } else {
+                        alert('Please enter a valid data limit');
+                    }
+                    if (dataLimitMb) dataLimitMb.focus();
+                    return;
+                }
             }
-        }
-    });
+            
+            // Show loading state
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating...';
+            }
+        });
+    }
 </script>
 {% endblock %}

@@ -2,449 +2,86 @@
 
 {% block title %}{{ organization.name }} - Service Plans{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ========================================
-       PLANS PAGE v2.0
-       Clean, Modern, Searchable, Tabs
-       ========================================= */
-    
-    :root {
-        --primary: #1a56db;
-        --primary-dark: #1e40af;
-        --primary-light: #3b82f6;
-        --success: #059669;
-        --danger: #dc2626;
-        --warning: #d97706;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
-    }
-
-    /* Container */
-    .plans-container {
-        padding: 1rem;
-    }
-    
-    @media (min-width: 768px) {
-        .plans-container {
-            padding: 1.5rem;
-        }
-    }
-    
-    @media (min-width: 1200px) {
-        .plans-container {
-            padding: 2rem;
-        }
-    }
-
-    /* Header */
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .page-title h1 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--gray-900);
-        margin-bottom: 0.25rem;
-        letter-spacing: -0.025em;
-    }
-    
-    .page-title p {
-        font-size: 0.875rem;
-        color: var(--gray-500);
-        margin: 0;
-    }
-    
-    @media (max-width: 640px) {
-        .page-title h1 {
-            font-size: 1.25rem;
-        }
-    }
-
-    /* Buttons */
-    .btn-primary {
-        background: var(--primary);
-        border: none;
-        color: white;
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        border-radius: 0.5rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: all 0.2s;
-    }
-    
-    .btn-primary:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
-    }
-
-    /* Tabs */
-    .tabs {
-        display: flex;
-        gap: 0;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid var(--gray-200);
-        flex-wrap: wrap;
-    }
-    
-    .tab-btn {
-        background: none;
-        border: none;
-        padding: 0.75rem 1.25rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--gray-500);
-        cursor: pointer;
-        transition: all 0.2s;
-        position: relative;
-    }
-    
-    .tab-btn:hover {
-        color: var(--primary);
-    }
-    
-    .tab-btn.active {
-        color: var(--primary);
-    }
-    
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: var(--primary);
-    }
-    
-    .tab-count {
-        display: inline-block;
-        margin-left: 0.5rem;
-        font-size: 0.7rem;
-        font-weight: normal;
-        color: var(--gray-400);
-    }
-    
-    .tab-btn.active .tab-count {
-        color: var(--primary);
-    }
-    
-    @media (max-width: 640px) {
-        .tab-btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.75rem;
-        }
-    }
-
-    /* Tab Content */
-    .tab-content {
-        display: none;
-    }
-    
-    .tab-content.active {
-        display: block;
-    }
-
-    /* Search Bar */
-    .search-bar {
-        margin-bottom: 1rem;
-    }
-    
-    .search-input {
-        width: 100%;
-        max-width: 320px;
-        padding: 0.5rem 0.75rem;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-        transition: all 0.2s;
-    }
-    
-    .search-input:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
-    }
-
-    /* Table Card */
-    .table-card {
-        background: white;
-        border-radius: 0.75rem;
-        border: 1px solid var(--gray-200);
-        overflow: hidden;
-    }
-    
-    .table-container {
-        overflow-x: auto;
-    }
-    
-    .plans-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.875rem;
-    }
-    
-    .plans-table thead th {
-        text-align: left;
-        padding: 0.75rem 1rem;
-        background: var(--gray-50);
-        font-weight: 600;
-        color: var(--gray-600);
-        border-bottom: 1px solid var(--gray-200);
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    
-    .plans-table tbody td {
-        padding: 0.875rem 1rem;
-        border-bottom: 1px solid var(--gray-100);
-        color: var(--gray-700);
-        vertical-align: middle;
-    }
-    
-    .plans-table tbody tr:hover {
-        background: var(--gray-50);
-    }
-    
-    @media (max-width: 768px) {
-        .plans-table thead th,
-        .plans-table tbody td {
-            padding: 0.5rem 0.75rem;
-        }
-    }
-
-    /* Plan Name */
-    .plan-name {
-        font-weight: 600;
-        color: var(--gray-900);
-        margin-bottom: 0.25rem;
-    }
-    
-    .plan-desc {
-        font-size: 0.7rem;
-        color: var(--gray-500);
-    }
-
-    /* Price */
-    .plan-price {
-        font-weight: 700;
-        color: var(--gray-900);
-        white-space: nowrap;
-    }
-    
-    .plan-price small {
-        font-size: 0.7rem;
-        font-weight: normal;
-        color: var(--gray-500);
-    }
-
-    /* Bandwidth */
-    .bandwidth {
-        font-family: monospace;
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: var(--gray-700);
-        white-space: nowrap;
-    }
-
-    /* Validity Badge */
-    .validity-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.375rem;
-        font-size: 0.7rem;
-        font-weight: 500;
-        background: var(--gray-100);
-        color: var(--gray-600);
-        white-space: nowrap;
-    }
-
-    /* Status Badges */
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 1rem;
-        font-size: 0.65rem;
-        font-weight: 500;
-        white-space: nowrap;
-    }
-    
-    .status-active {
-        background: rgba(5, 150, 105, 0.1);
-        color: var(--success);
-    }
-    
-    .status-inactive {
-        background: rgba(220, 38, 38, 0.1);
-        color: var(--danger);
-    }
-    
-    .status-public {
-        background: rgba(26, 86, 219, 0.1);
-        color: var(--primary);
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: 0.25rem;
-        flex-wrap: wrap;
-    }
-    
-    .btn-icon {
-        background: none;
-        border: none;
-        padding: 0.375rem;
-        border-radius: 0.375rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 0.875rem;
-    }
-    
-    .btn-edit {
-        color: var(--primary);
-    }
-    
-    .btn-edit:hover {
-        background: rgba(26, 86, 219, 0.1);
-    }
-    
-    .btn-delete {
-        color: var(--danger);
-    }
-    
-    .btn-delete:hover {
-        background: rgba(220, 38, 38, 0.1);
-    }
-
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: var(--gray-400);
-    }
-    
-    .empty-state i {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-    
-    .empty-state p {
-        font-size: 0.875rem;
-        margin: 0;
-    }
-
-    /* Responsive Table Columns */
-    @media (max-width: 768px) {
-        .plans-table thead th:nth-child(3),
-        .plans-table tbody td:nth-child(3) {
-            display: none;
-        }
-    }
-    
-    @media (max-width: 640px) {
-        .plans-table thead th:nth-child(4),
-        .plans-table tbody td:nth-child(4) {
-            display: none;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="plans-container">
+<div class="p-3 md:p-4 lg:p-6 space-y-4 md:space-y-5">
+    
     <!-- Header -->
-    <div class="page-header">
-        <div class="page-title">
-            <h1>Service Plans</h1>
-            <p>Manage internet service plans and packages</p>
+    <div class="flex flex-wrap justify-between items-center gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">Service Plans</h1>
+            <p class="text-xs md:text-sm text-gray-500 mt-0.5">Manage internet service plans and packages</p>
         </div>
-        <a href="{{ url_for('billing_web.plan_create', org_id=organization.id) }}" class="btn-primary">
-            <i class="fas fa-plus"></i> Add Plan
+        <a href="{{ url_for('billing_web.plan_create', org_id=organization.id) }}" 
+           class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm rounded-lg transition-all duration-150 shadow-sm hover:shadow-md">
+            <i class="fas fa-plus text-xs"></i>
+            <span>Add Plan</span>
         </a>
     </div>
 
     <!-- Tabs -->
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="all">
-            All Plans <span class="tab-count">{{ all_plans|length }}</span>
-        </button>
-        <button class="tab-btn" data-tab="hotspot">
-            <i class="fas fa-wifi me-1"></i> Hotspot <span class="tab-count">{{ hotspot_plans|length }}</span>
-        </button>
-        <button class="tab-btn" data-tab="pppoe">
-            <i class="fas fa-network-wired me-1"></i> PPPoE <span class="tab-count">{{ pppoe_plans|length }}</span>
-        </button>
+    <div class="border-b border-gray-200">
+        <div class="flex flex-wrap gap-0">
+            <button data-tab="all" 
+                    class="tab-btn px-3 py-2 md:px-5 md:py-2.5 text-xs md:text-sm font-medium text-[#1a56db] border-b-2 border-[#1a56db] transition-colors">
+                All Plans <span class="ml-1 text-xs text-gray-400">({{ all_plans|length }})</span>
+            </button>
+            <button data-tab="hotspot" 
+                    class="tab-btn px-3 py-2 md:px-5 md:py-2.5 text-xs md:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
+                <i class="fas fa-wifi mr-1"></i> Hotspot <span class="ml-1 text-xs text-gray-400">({{ hotspot_plans|length }})</span>
+            </button>
+            <button data-tab="pppoe" 
+                    class="tab-btn px-3 py-2 md:px-5 md:py-2.5 text-xs md:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
+                <i class="fas fa-network-wired mr-1"></i> PPPoE <span class="ml-1 text-xs text-gray-400">({{ pppoe_plans|length }})</span>
+            </button>
+        </div>
     </div>
 
     <!-- Search Bar -->
-    <div class="search-bar">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search by plan name, description...">
+    <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input type="text" id="searchInput" 
+               class="w-full md:w-80 pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]"
+               placeholder="Search by plan name, description...">
     </div>
 
     <!-- All Plans Tab -->
-    <div id="all-tab" class="tab-content active">
-        <div class="table-card">
-            <div class="table-container">
-                <table class="plans-table" id="allPlansTable">
-                    <thead>
+    <div id="all-tab" class="tab-content">
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th>Plan Name</th>
-                            <th>Price</th>
-                            <th>Bandwidth</th>
-                            <th>Validity</th>
-                            <th>Status</th>
-                            <th style="width: 80px;">Actions</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Plan Name</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">Bandwidth</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Validity</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                            <th class="text-center px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-100" id="allPlansBody">
                         {% if all_plans %}
                             {% for plan in all_plans %}
-                            <tr class="plan-row" data-name="{{ plan.name.lower() }}" data-desc="{{ (plan.description or '').lower() }}">
-                                <td>
-                                    <div class="plan-name">{{ plan.name }}</div>
-                                    <div class="plan-desc">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
+                            <tr class="plan-row hover:bg-gray-50 transition-colors duration-150" 
+                                data-name="{{ plan.name.lower() }}" 
+                                data-desc="{{ (plan.description or '').lower() }}">
+                                <td class="px-3 py-3">
+                                    <div class="font-semibold text-gray-800">{{ plan.name }}</div>
+                                    <div class="text-xs text-gray-500 mt-0.5">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
                                 </td>
-                                <td class="plan-price">KES {{ "%.0f"|format(plan.price) }}<small>/mo</small></td>
-                                <td class="bandwidth">
+                                <td class="px-3 py-3">
+                                    <span class="font-bold text-gray-900">KES {{ "%.0f"|format(plan.price) }}</span>
+                                    <span class="text-xs text-gray-500">/mo</span>
+                                </td>
+                                <td class="px-3 py-3 font-mono text-xs text-gray-600 hidden sm:table-cell">
                                     ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
                                 </td>
-                                <td>
-                                    <span class="validity-badge">
-                                        <i class="fas fa-hourglass-half"></i>
+                                <td class="px-3 py-3 hidden md:table-cell">
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-600">
+                                        <i class="fas fa-hourglass-half text-gray-400"></i>
                                         {% if plan.validity_type == 'time_based' %}
                                             {% if plan.validity_value and plan.validity_unit %}
-                                                {{ plan.validity_value }}
-                                                {% if plan.validity_unit|lower == 'minutes' %}minutes
-                                                {% elif plan.validity_unit|lower == 'hours' %}hours
-                                                {% elif plan.validity_unit|lower == 'days' %}days
-                                                {% elif plan.validity_unit|lower == 'months' %}months
-                                                {% elif plan.validity_unit|lower == 'years' %}years
-                                                {% else %}days
-                                                {% endif %}
+                                                {{ plan.validity_value }} {{ plan.validity_unit|lower }}
                                             {% else %}
                                                 {{ plan.validity_days }} days
                                             {% endif %}
@@ -459,26 +96,31 @@
                                         {% endif %}
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <span class="status-badge {% if plan.is_active %}status-active{% else %}status-inactive{% endif %}">
-                                            <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
+                                <td class="px-3 py-3">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
+                                            {% if plan.is_active %}bg-emerald-100 text-emerald-700
+                                            {% else %}bg-red-100 text-red-700{% endif %}">
+                                            <span class="w-1 h-1 rounded-full {{ 'bg-emerald-500' if plan.is_active else 'bg-red-500' }}"></span>
                                             {{ 'Active' if plan.is_active else 'Inactive' }}
                                         </span>
                                         {% if plan.is_public %}
-                                        <span class="status-badge status-public">
-                                            <i class="fas fa-globe"></i> Public
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700">
+                                            <i class="fas fa-globe text-[8px]"></i> Public
                                         </span>
                                         {% endif %}
                                     </div>
                                 </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn-icon btn-edit" title="Edit">
-                                            <i class="fas fa-edit"></i>
+                                <td class="px-3 py-3">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" 
+                                           class="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="Edit">
+                                            <i class="fas fa-edit text-sm"></i>
                                         </a>
-                                        <button class="btn-icon btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
-                                            <i class="fas fa-trash"></i>
+                                        <button type="button" 
+                                                onclick="openDeleteModal('{{ plan.id }}', '{{ plan.name }}')"
+                                                class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Delete">
+                                            <i class="fas fa-trash text-sm"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -486,9 +128,9 @@
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="6" class="empty-state">
-                                    <i class="fas fa-tags"></i>
-                                    <p>No plans created yet</p>
+                                <td colspan="6" class="text-center py-8 text-gray-400">
+                                    <i class="fas fa-tags text-3xl mb-2 block opacity-50"></i>
+                                    <p class="text-sm">No plans created yet</p>
                                 </td>
                             </tr>
                         {% endif %}
@@ -499,48 +141,42 @@
     </div>
 
     <!-- Hotspot Plans Tab -->
-    <div id="hotspot-tab" class="tab-content">
-        <div class="table-card">
-            <div class="table-container">
-                <table class="plans-table" id="hotspotPlansTable">
-                    <thead>
+    <div id="hotspot-tab" class="tab-content hidden">
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th>Plan Name</th>
-                            <th>Price</th>
-                            <th>Bandwidth</th>
-                            <th>Validity</th>
-                            <th>Status</th>
-                            <th style="width: 80px;">Actions</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Plan Name</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">Bandwidth</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Validity</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                            <th class="text-center px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-100" id="hotspotPlansBody">
                         {% if hotspot_plans %}
                             {% for plan in hotspot_plans %}
-                            <tr class="plan-row" data-name="{{ plan.name.lower() }}" data-desc="{{ (plan.description or '').lower() }}">
-                                <td>
-                                    <div class="plan-name">{{ plan.name }}</div>
-                                    <div class="plan-desc">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
+                            <tr class="plan-row hover:bg-gray-50 transition-colors duration-150" 
+                                data-name="{{ plan.name.lower() }}" 
+                                data-desc="{{ (plan.description or '').lower() }}">
+                                <td class="px-3 py-3">
+                                    <div class="font-semibold text-gray-800">{{ plan.name }}</div>
+                                    <div class="text-xs text-gray-500 mt-0.5">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
                                 </td>
-                                <td class="plan-price">KES {{ "%.0f"|format(plan.price) }}<small>/mo</small></td>
-                                <td class="bandwidth">
+                                <td class="px-3 py-3">
+                                    <span class="font-bold text-gray-900">KES {{ "%.0f"|format(plan.price) }}</span>
+                                    <span class="text-xs text-gray-500">/mo</span>
+                                </td>
+                                <td class="px-3 py-3 font-mono text-xs text-gray-600 hidden sm:table-cell">
                                     ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
                                 </td>
-                                <td>
-                                    <span class="validity-badge">
-                                        <i class="fas fa-hourglass-half"></i>
+                                <td class="px-3 py-3 hidden md:table-cell">
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-600">
+                                        <i class="fas fa-hourglass-half text-gray-400"></i>
                                         {% if plan.validity_type == 'time_based' %}
-                                            {% if plan.validity_value and plan.validity_unit %}
-                                                {{ plan.validity_value }}
-                                                {% if plan.validity_unit|lower == 'minutes' %}minutes
-                                                {% elif plan.validity_unit|lower == 'hours' %}hours
-                                                {% elif plan.validity_unit|lower == 'days' %}days
-                                                {% elif plan.validity_unit|lower == 'months' %}months
-                                                {% elif plan.validity_unit|lower == 'years' %}years
-                                                {% else %}days
-                                                {% endif %}
-                                            {% else %}
-                                                {{ plan.validity_days }} days
-                                            {% endif %}
+                                            {{ plan.validity_days }} days
                                         {% elif plan.validity_type == 'data_based' %}
                                             {% if plan.data_limit_mb >= 1024 %}
                                                 {{ (plan.data_limit_mb / 1024)|round(0)|int }} GB
@@ -552,26 +188,24 @@
                                         {% endif %}
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <span class="status-badge {% if plan.is_active %}status-active{% else %}status-inactive{% endif %}">
-                                            <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
+                                <td class="px-3 py-3">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
+                                            <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
                                             {{ 'Active' if plan.is_active else 'Inactive' }}
                                         </span>
-                                        {% if plan.is_public %}
-                                        <span class="status-badge status-public">
-                                            <i class="fas fa-globe"></i> Public
-                                        </span>
-                                        {% endif %}
                                     </div>
                                 </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn-icon btn-edit" title="Edit">
-                                            <i class="fas fa-edit"></i>
+                                <td class="px-3 py-3">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" 
+                                           class="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="Edit">
+                                            <i class="fas fa-edit text-sm"></i>
                                         </a>
-                                        <button class="btn-icon btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
-                                            <i class="fas fa-trash"></i>
+                                        <button type="button" 
+                                                onclick="openDeleteModal('{{ plan.id }}', '{{ plan.name }}')"
+                                                class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Delete">
+                                            <i class="fas fa-trash text-sm"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -579,9 +213,9 @@
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="6" class="empty-state">
-                                    <i class="fas fa-wifi"></i>
-                                    <p>No hotspot plans created yet</p>
+                                <td colspan="6" class="text-center py-8 text-gray-400">
+                                    <i class="fas fa-wifi text-3xl mb-2 block opacity-50"></i>
+                                    <p class="text-sm">No hotspot plans created yet</p>
                                 </td>
                             </tr>
                         {% endif %}
@@ -592,48 +226,42 @@
     </div>
 
     <!-- PPPoE Plans Tab -->
-    <div id="pppoe-tab" class="tab-content">
-        <div class="table-card">
-            <div class="table-container">
-                <table class="plans-table" id="pppoePlansTable">
-                    <thead>
+    <div id="pppoe-tab" class="tab-content hidden">
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th>Plan Name</th>
-                            <th>Price</th>
-                            <th>Bandwidth</th>
-                            <th>Validity</th>
-                            <th>Status</th>
-                            <th style="width: 80px;">Actions</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Plan Name</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">Bandwidth</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Validity</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                            <th class="text-center px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-100" id="pppoePlansBody">
                         {% if pppoe_plans %}
                             {% for plan in pppoe_plans %}
-                            <tr class="plan-row" data-name="{{ plan.name.lower() }}" data-desc="{{ (plan.description or '').lower() }}">
-                                <td>
-                                    <div class="plan-name">{{ plan.name }}</div>
-                                    <div class="plan-desc">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
+                            <tr class="plan-row hover:bg-gray-50 transition-colors duration-150" 
+                                data-name="{{ plan.name.lower() }}" 
+                                data-desc="{{ (plan.description or '').lower() }}">
+                                <td class="px-3 py-3">
+                                    <div class="font-semibold text-gray-800">{{ plan.name }}</div>
+                                    <div class="text-xs text-gray-500 mt-0.5">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
                                 </td>
-                                <td class="plan-price">KES {{ "%.0f"|format(plan.price) }}<small>/mo</small></td>
-                                <td class="bandwidth">
+                                <td class="px-3 py-3">
+                                    <span class="font-bold text-gray-900">KES {{ "%.0f"|format(plan.price) }}</span>
+                                    <span class="text-xs text-gray-500">/mo</span>
+                                </td>
+                                <td class="px-3 py-3 font-mono text-xs text-gray-600 hidden sm:table-cell">
                                     ↓ {{ plan.bandwidth_down_mbps or '∞' }} / ↑ {{ plan.bandwidth_up_mbps or '∞' }} Mbps
                                 </td>
-                                <td>
-                                    <span class="validity-badge">
-                                        <i class="fas fa-hourglass-half"></i>
+                                <td class="px-3 py-3 hidden md:table-cell">
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-600">
+                                        <i class="fas fa-hourglass-half text-gray-400"></i>
                                         {% if plan.validity_type == 'time_based' %}
-                                            {% if plan.validity_value and plan.validity_unit %}
-                                                {{ plan.validity_value }}
-                                                {% if plan.validity_unit|lower == 'minutes' %}minutes
-                                                {% elif plan.validity_unit|lower == 'hours' %}hours
-                                                {% elif plan.validity_unit|lower == 'days' %}days
-                                                {% elif plan.validity_unit|lower == 'months' %}months
-                                                {% elif plan.validity_unit|lower == 'years' %}years
-                                                {% else %}days
-                                                {% endif %}
-                                            {% else %}
-                                                {{ plan.validity_days }} days
-                                            {% endif %}
+                                            {{ plan.validity_days }} days
                                         {% elif plan.validity_type == 'data_based' %}
                                             {% if plan.data_limit_mb >= 1024 %}
                                                 {{ (plan.data_limit_mb / 1024)|round(0)|int }} GB
@@ -645,26 +273,24 @@
                                         {% endif %}
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <span class="status-badge {% if plan.is_active %}status-active{% else %}status-inactive{% endif %}">
-                                            <i class="fas fa-circle" style="font-size: 0.35rem;"></i>
+                                <td class="px-3 py-3">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
+                                            <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
                                             {{ 'Active' if plan.is_active else 'Inactive' }}
                                         </span>
-                                        {% if plan.is_public %}
-                                        <span class="status-badge status-public">
-                                            <i class="fas fa-globe"></i> Public
-                                        </span>
-                                        {% endif %}
                                     </div>
                                 </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" class="btn-icon btn-edit" title="Edit">
-                                            <i class="fas fa-edit"></i>
+                                <td class="px-3 py-3">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" 
+                                           class="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="Edit">
+                                            <i class="fas fa-edit text-sm"></i>
                                         </a>
-                                        <button class="btn-icon btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" title="Delete">
-                                            <i class="fas fa-trash"></i>
+                                        <button type="button" 
+                                                onclick="openDeleteModal('{{ plan.id }}', '{{ plan.name }}')"
+                                                class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Delete">
+                                            <i class="fas fa-trash text-sm"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -672,9 +298,9 @@
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="6" class="empty-state">
-                                    <i class="fas fa-network-wired"></i>
-                                    <p>No PPPoE plans created yet</p>
+                                <td colspan="6" class="text-center py-8 text-gray-400">
+                                    <i class="fas fa-network-wired text-3xl mb-2 block opacity-50"></i>
+                                    <p class="text-sm">No PPPoE plans created yet</p>
                                 </td>
                             </tr>
                         {% endif %}
@@ -686,42 +312,61 @@
 </div>
 
 <!-- Delete Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title">Confirm Deactivation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Deactivate plan <strong id="deletePlanName"></strong>?</p>
-                <small class="text-muted">This plan will be hidden from customers but existing subscriptions remain active.</small>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Deactivate</button>
-                </form>
-            </div>
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeDeleteModal()"></div>
+    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Confirm Deactivation</h3>
+            <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <p class="text-gray-700">Deactivate plan <strong id="deletePlanName" class="text-gray-900"></strong>?</p>
+            <p class="text-xs text-gray-500 mt-2">This plan will be hidden from customers but existing subscriptions remain active.</p>
+        </div>
+        <div class="flex justify-end gap-2 p-4 border-t border-gray-200">
+            <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                Cancel
+            </button>
+            <form id="deleteForm" method="POST">
+                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                    Deactivate
+                </button>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
+    let currentPlanId = null;
+    let currentPlanName = null;
+    
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.getAttribute('data-tab');
             
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            // Update button styles
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('text-[#1a56db]', 'border-[#1a56db]');
+                b.classList.add('text-gray-500', 'border-transparent');
+            });
+            btn.classList.remove('text-gray-500', 'border-transparent');
+            btn.classList.add('text-[#1a56db]', 'border-[#1a56db]');
             
-            btn.classList.add('active');
-            document.getElementById(`${tabId}-tab`).classList.add('active');
+            // Update content visibility
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`${tabId}-tab`).classList.remove('hidden');
             
             // Clear search when switching tabs
-            document.getElementById('searchInput').value = '';
-            filterPlans('');
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+                filterPlans('');
+            }
         });
     });
     
@@ -729,9 +374,14 @@
     const searchInput = document.getElementById('searchInput');
     
     function filterPlans(searchTerm) {
-        const activeTab = document.querySelector('.tab-content.active').id;
-        const tableId = activeTab.replace('-tab', 'PlansTable');
-        const rows = document.querySelectorAll(`#${tableId} .plan-row`);
+        const activeTab = document.querySelector('.tab-content:not(.hidden)').id;
+        let tableBodyId;
+        
+        if (activeTab === 'all-tab') tableBodyId = 'allPlansBody';
+        else if (activeTab === 'hotspot-tab') tableBodyId = 'hotspotPlansBody';
+        else tableBodyId = 'pppoePlansBody';
+        
+        const rows = document.querySelectorAll(`#${tableBodyId} .plan-row`);
         
         rows.forEach(row => {
             const name = row.getAttribute('data-name') || '';
@@ -752,16 +402,34 @@
         });
     }
     
-    // Delete modal handler
-    const deleteModal = document.getElementById('deleteModal');
-    if (deleteModal) {
-        deleteModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const planId = button.getAttribute('data-plan-id');
-            const planName = button.getAttribute('data-plan-name');
-            document.getElementById('deletePlanName').textContent = planName;
-            document.getElementById('deleteForm').action = `/organization/{{ organization.id }}/billing/plans/${planId}/delete`;
-        });
+    // Delete modal functions
+    function openDeleteModal(planId, planName) {
+        currentPlanId = planId;
+        currentPlanName = planName;
+        
+        const modal = document.getElementById('deleteModal');
+        const deleteForm = document.getElementById('deleteForm');
+        const nameSpan = document.getElementById('deletePlanName');
+        
+        nameSpan.textContent = planName;
+        deleteForm.action = `/organization/{{ organization.id }}/billing/plans/${planId}/delete`;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
+    
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        currentPlanId = null;
+        currentPlanName = null;
+    }
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteModal();
+        }
+    });
 </script>
 {% endblock %}

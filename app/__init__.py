@@ -12,7 +12,8 @@ from app.core.exceptions.handlers import register_error_handlers
 
 # Import all models from the centralized models folder
 from app.models import *
-
+import json
+from markupsafe import Markup
 
 def create_app(config_name=None):
     """Application factory"""
@@ -87,6 +88,16 @@ def create_app(config_name=None):
         if hasattr(value, 'strftime'):
             return value.strftime(format)
         return str(value)[:16]
+
+
+
+
+    @app.template_filter('escapejs')
+    def escapejs_filter(value):
+        """Escape a string for use in JavaScript."""
+        if not value:
+            return ''
+        return Markup(json.dumps(str(value))[1:-1])    
 
     # Middleware registration order (LIFO - Last In First Out)
     # These are applied from bottom to top, so order them from outermost to innermost

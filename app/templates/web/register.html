@@ -1,641 +1,232 @@
 {% extends "web/base.html" %}
+
 {% block title %}Complete Registration | Bhatek ISP{% endblock %}
 
 {% block content %}
 
-<div class="register-wrapper">
-    <div class="register-container">
-        <!-- Left Side - Brand & Progress -->
-        <div class="register-brand">
-            <div class="brand-content">
-                <div class="brand-logo">
-                    <i class="fas fa-broadcast-tower"></i>
-                    <span>Bhatek</span>
+<div class="min-h-screen bg-gradient-to-br from-[#eef5f2] to-[#d4e4df] flex items-center justify-center p-4">
+    <div class="max-w-[1200px] w-full flex flex-col md:flex-row bg-white rounded-2xl shadow-2xl overflow-hidden">
+        
+        <!-- Left Side - Brand & Progress (Hidden on Mobile) -->
+        <div class="hidden md:flex md:w-[40%] bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] p-6 lg:p-8 relative overflow-hidden flex-col">
+            <!-- Background Decoration -->
+            <div class="absolute -top-1/2 -right-1/2 w-full h-full bg-white/5 rounded-full blur-3xl"></div>
+            
+            <div class="relative z-10 text-white flex flex-col h-full">
+                <!-- Logo -->
+                <div class="flex items-center gap-2 mb-8">
+                    <i class="fas fa-broadcast-tower text-xl lg:text-2xl"></i>
+                    <span class="text-lg lg:text-xl font-bold tracking-tight">Bhatek</span>
                 </div>
                 
-                <div class="progress-steps">
-                    <div class="step completed">
-                        <div class="step-number"><i class="fas fa-check"></i></div>
-                        <div class="step-info">
-                            <span class="step-label">Step 1</span>
-                            <span class="step-name">Email Verification</span>
+                <!-- Progress Steps -->
+                <div class="space-y-5 mb-auto">
+                    <!-- Step 1 - Completed -->
+                    <div class="flex items-center gap-3 opacity-80">
+                        <div class="w-9 h-9 bg-[#40916c] rounded-full flex items-center justify-center text-sm font-bold">
+                            <i class="fas fa-check text-xs"></i>
+                        </div>
+                        <div>
+                            <div class="text-[0.65rem] opacity-70">Step 1</div>
+                            <div class="text-sm font-semibold">Email Verification</div>
                         </div>
                     </div>
-                    <div class="step active">
-                        <div class="step-number">2</div>
-                        <div class="step-info">
-                            <span class="step-label">Step 2</span>
-                            <span class="step-name">Organization Details</span>
+                    
+                    <!-- Step 2 - Active -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-white text-[#2d6a4f] rounded-full flex items-center justify-center text-sm font-bold">
+                            2
+                        </div>
+                        <div>
+                            <div class="text-[0.65rem] opacity-70">Step 2</div>
+                            <div class="text-sm font-semibold">Organization Details</div>
                         </div>
                     </div>
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <div class="step-info">
-                            <span class="step-label">Step 3</span>
-                            <span class="step-name">Account Setup</span>
+                    
+                    <!-- Step 3 - Pending -->
+                    <div class="flex items-center gap-3 opacity-50">
+                        <div class="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-sm font-bold">
+                            3
+                        </div>
+                        <div>
+                            <div class="text-[0.65rem] opacity-70">Step 3</div>
+                            <div class="text-sm font-semibold">Account Setup</div>
                         </div>
                     </div>
                 </div>
-
-                <div class="brand-testimonial">
-                    <i class="fas fa-quote-left"></i>
-                    <p>“The most comprehensive ISP management platform we've ever used. Setup was seamless and support is exceptional.”</p>
-                    <div class="testimonial-author">
-                        <strong>John M.</strong>
-                        <span>ISP Owner, Nairobi</span>
+                
+                <!-- Testimonial -->
+                <div class="mt-auto pt-6 border-t border-white/15">
+                    <i class="fas fa-quote-left text-2xl opacity-40 mb-3 block"></i>
+                    <p class="text-sm italic leading-relaxed mb-3">
+                        "The most comprehensive ISP management platform we've ever used. Setup was seamless and support is exceptional."
+                    </p>
+                    <div>
+                        <strong class="text-sm block">John M.</strong>
+                        <span class="text-xs opacity-70">ISP Owner, Nairobi</span>
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <!-- Right Side - Registration Form -->
-        <div class="register-form-wrapper">
-            <div class="register-card">
+        <div class="w-full md:w-[60%] p-6 sm:p-8 lg:p-10">
+            <div class="max-w-[500px] mx-auto">
                 <!-- Header -->
-                <div class="register-header">
-                    <div class="register-icon">
-                        <i class="fas fa-user-plus"></i>
+                <div class="text-center mb-6">
+                    <div class="w-14 h-14 bg-[#2d6a4f]/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-user-plus text-[#2d6a4f] text-2xl"></i>
                     </div>
-                    <h3>Complete Registration</h3>
-                    <p>Set up your organization account</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-1">Complete Registration</h3>
+                    <p class="text-sm text-gray-500">Set up your organization account</p>
                 </div>
-
+                
+                <!-- Registration Form -->
                 <form id="registerForm">
-                    <!-- Two Column Row -->
-                    <div class="form-row">
-                        <div class="input-group-custom">
-                            <label>First Name <span class="required">*</span></label>
-                            <div class="input-field">
-                                <i class="fas fa-user"></i>
-                                <input type="text" id="firstName" placeholder="John" required>
+                    <!-- Name Row -->
+                    <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                First Name <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="text" id="firstName" 
+                                       class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
+                                       placeholder="John" required>
                             </div>
                         </div>
-
-                        <div class="input-group-custom">
-                            <label>Last Name <span class="required">*</span></label>
-                            <div class="input-field">
-                                <i class="fas fa-user"></i>
-                                <input type="text" id="lastName" placeholder="Doe" required>
+                        
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Last Name <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="text" id="lastName" 
+                                       class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
+                                       placeholder="Doe" required>
                             </div>
                         </div>
                     </div>
-
+                    
                     <!-- Email (Readonly) -->
-                    <div class="input-group-custom">
-                        <label>Email Address</label>
-                        <div class="input-field">
-                            <i class="fas fa-envelope"></i>
-                            <input type="email" id="email" readonly>
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Email Address</label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                            <input type="email" id="email" readonly
+                                   class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 cursor-not-allowed">
                         </div>
-                        <small>This email cannot be changed</small>
+                        <small class="text-xs text-gray-500 mt-1 block">This email cannot be changed</small>
                     </div>
-
+                    
                     <!-- Phone -->
-                    <div class="input-group-custom">
-                        <label>Phone Number <span class="required">*</span></label>
-                        <div class="input-field">
-                            <i class="fas fa-phone"></i>
-                            <input type="tel" id="phone" placeholder="254712345678" required>
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Phone Number <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fas fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                            <input type="tel" id="phone" 
+                                   class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
+                                   placeholder="254712345678" required>
                         </div>
-                        <small>Include country code (e.g., 2547XXXXXXXX)</small>
+                        <small class="text-xs text-gray-500 mt-1 block">Include country code (e.g., 2547XXXXXXXX)</small>
                     </div>
-
-                    <!-- Two Column Row - Organization -->
-                    <div class="form-row">
-                        <div class="input-group-custom">
-                            <label>Organization Name <span class="required">*</span></label>
-                            <div class="input-field">
-                                <i class="fas fa-building"></i>
-                                <input type="text" id="orgName" placeholder="My ISP Company" required>
+                    
+                    <!-- Organization Row -->
+                    <div class="flex flex-col sm:flex-row gap-4 mb-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Organization Name <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i class="fas fa-building absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="text" id="orgName" 
+                                       class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
+                                       placeholder="My ISP Company" required>
                             </div>
                         </div>
-
-                        <div class="input-group-custom">
-                            <label>Organization Slug <span class="required">*</span></label>
-                            <div class="input-field">
-                                <i class="fas fa-link"></i>
-                                <input type="text" id="orgSlug" placeholder="my-isp-company" required>
+                        
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Organization Slug <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i class="fas fa-link absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="text" id="orgSlug" 
+                                       class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
+                                       placeholder="my-isp-company" required>
                             </div>
                         </div>
                     </div>
-                    <small class="slug-hint">URL-friendly name (lowercase, numbers and hyphens only)</small>
-
-                    <!-- Two Column Row - Password -->
-                    <div class="form-row">
-                        <div class="input-group-custom">
-                            <label>Password <span class="required">*</span></label>
-                            <div class="input-field">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" id="password" placeholder="Create a strong password" required>
-                                <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                    <small class="text-xs text-gray-500 block mb-4 -mt-2">URL-friendly name (lowercase, numbers and hyphens only)</small>
+                    
+                    <!-- Password Row -->
+                    <div class="flex flex-col sm:flex-row gap-4 mb-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Password <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="password" id="password" 
+                                       class="w-full pl-9 pr-10 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
+                                       placeholder="Create a strong password" required>
+                                <button type="button" onclick="togglePassword('password')" 
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <i class="fas fa-eye" id="passwordIcon"></i>
                                 </button>
                             </div>
                         </div>
-
-                        <div class="input-group-custom">
-                            <label>Confirm Password <span class="required">*</span></label>
-                            <div class="input-field">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
-                                <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">
+                        
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Confirm Password <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="password" id="confirmPassword" 
+                                       class="w-full pl-9 pr-10 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
+                                       placeholder="Confirm your password" required>
+                                <button type="button" onclick="togglePassword('confirmPassword')" 
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <i class="fas fa-eye" id="confirmPasswordIcon"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
-
+                    
                     <!-- Password Strength Indicator -->
-                    <div class="password-strength" id="passwordStrength">
-                        <div class="strength-bar"></div>
-                        <div class="strength-text">Use 8+ characters with uppercase, number & symbol</div>
+                    <div class="mb-5">
+                        <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+                            <div id="strengthBar" class="h-full w-0 transition-all duration-300 rounded-full"></div>
+                        </div>
+                        <p id="strengthText" class="text-xs text-gray-500 mt-1.5">
+                            Use 8+ characters with uppercase, number & symbol
+                        </p>
                     </div>
-
+                    
                     <!-- Submit Button -->
-                    <button type="submit" class="btn-register" id="registerBtn">
+                    <button type="submit" id="registerBtn" 
+                            class="w-full bg-gradient-to-r from-[#2d6a4f] to-[#40916c] hover:from-[#1b4332] hover:to-[#2d6a4f] text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
                         <span>Create My Account</span>
-                        <i class="fas fa-arrow-right"></i>
+                        <i class="fas fa-arrow-right ml-2 text-sm"></i>
                     </button>
                 </form>
-
+                
                 <!-- Footer -->
-                <div class="register-footer">
-                    <p>Already have an account? <a href="/login">Sign in</a></p>
+                <div class="text-center mt-6 pt-4 border-t border-gray-100">
+                    <p class="text-xs text-gray-500">
+                        Already have an account? <a href="/login" class="text-[#2d6a4f] font-semibold hover:underline">Sign in</a>
+                    </p>
                 </div>
             </div>
         </div>
+        
     </div>
 </div>
-
-<style>
-    /* ========================================
-       PROFESSIONAL REGISTRATION PAGE
-       ========================================= */
-    
-    :root {
-        --primary: #2d6a4f;
-        --primary-dark: #1b4332;
-        --primary-light: #40916c;
-        --gray-50: #f8fafc;
-        --gray-100: #f1f5f9;
-        --gray-200: #e2e8f0;
-        --gray-300: #cbd5e1;
-        --gray-400: #94a3b8;
-        --gray-500: #64748b;
-        --gray-600: #475569;
-        --gray-700: #334155;
-        --gray-800: #1e293b;
-    }
-
-    .register-wrapper {
-        min-height: 100vh;
-        background: linear-gradient(135deg, #eef5f2 0%, #d4e4df 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-    }
-
-    .register-container {
-        max-width: 1200px;
-        width: 100%;
-        display: flex;
-        background: white;
-        border-radius: 2rem;
-        overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-
-    /* ========================================
-       LEFT SIDE - BRAND SECTION
-       ========================================= */
-    
-    .register-brand {
-        flex: 1;
-        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-        padding: 2rem;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .register-brand::before {
-        content: '';
-        position: absolute;
-        top: -30%;
-        right: -30%;
-        width: 80%;
-        height: 80%;
-        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-        pointer-events: none;
-    }
-
-    .brand-content {
-        position: relative;
-        z-index: 1;
-        color: white;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .brand-logo {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .brand-logo i {
-        font-size: 1.5rem;
-    }
-
-    .brand-logo span {
-        font-size: 1.2rem;
-        font-weight: 700;
-    }
-
-    /* Progress Steps */
-    .progress-steps {
-        margin: 2rem 0;
-        flex: 1;
-    }
-
-    .step {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        opacity: 0.5;
-        transition: opacity 0.3s;
-    }
-
-    .step.active {
-        opacity: 1;
-    }
-
-    .step.completed {
-        opacity: 0.8;
-    }
-
-    .step-number {
-        width: 36px;
-        height: 36px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.9rem;
-    }
-
-    .step.completed .step-number {
-        background: var(--primary-light);
-    }
-
-    .step.active .step-number {
-        background: white;
-        color: var(--primary);
-    }
-
-    .step-info {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .step-label {
-        font-size: 0.65rem;
-        opacity: 0.7;
-    }
-
-    .step-name {
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-
-    /* Testimonial */
-    .brand-testimonial {
-        margin-top: auto;
-        padding-top: 2rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .brand-testimonial i {
-        font-size: 1.5rem;
-        opacity: 0.5;
-        margin-bottom: 0.5rem;
-        display: block;
-    }
-
-    .brand-testimonial p {
-        font-size: 0.8rem;
-        line-height: 1.5;
-        margin-bottom: 1rem;
-        font-style: italic;
-    }
-
-    .testimonial-author {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .testimonial-author strong {
-        font-size: 0.8rem;
-    }
-
-    .testimonial-author span {
-        font-size: 0.65rem;
-        opacity: 0.7;
-    }
-
-    /* ========================================
-       RIGHT SIDE - FORM SECTION
-       ========================================= */
-    
-    .register-form-wrapper {
-        flex: 1.2;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-        background: white;
-    }
-
-    .register-card {
-        width: 100%;
-        max-width: 500px;
-    }
-
-    .register-header {
-        text-align: center;
-        margin-bottom: 1.5rem;
-    }
-
-    .register-icon {
-        width: 56px;
-        height: 56px;
-        background: rgba(45, 106, 79, 0.1);
-        border-radius: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1rem;
-    }
-
-    .register-icon i {
-        font-size: 1.8rem;
-        color: var(--primary);
-    }
-
-    .register-header h3 {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: var(--gray-800);
-        margin-bottom: 0.25rem;
-    }
-
-    .register-header p {
-        font-size: 0.8rem;
-        color: var(--gray-500);
-    }
-
-    /* Form Elements */
-    .form-row {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 0;
-    }
-
-    .form-row .input-group-custom {
-        flex: 1;
-    }
-
-    .input-group-custom {
-        margin-bottom: 1rem;
-    }
-
-    .input-group-custom label {
-        display: block;
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        margin-bottom: 0.35rem;
-    }
-
-    .input-group-custom .required {
-        color: #dc2626;
-    }
-
-    .input-field {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-
-    .input-field i:first-child {
-        position: absolute;
-        left: 1rem;
-        color: var(--gray-400);
-        font-size: 0.85rem;
-        pointer-events: none;
-    }
-
-    .input-field input {
-        width: 100%;
-        padding: 0.7rem 2.5rem;
-        font-size: 0.85rem;
-        border: 1.5px solid var(--gray-200);
-        border-radius: 0.75rem;
-        transition: all 0.2s;
-        outline: none;
-        background: white;
-    }
-
-    .input-field input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
-    }
-
-    .input-field input:read-only {
-        background: var(--gray-50);
-        cursor: not-allowed;
-    }
-
-    .toggle-password {
-        position: absolute;
-        right: 1rem;
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: var(--gray-400);
-        font-size: 0.85rem;
-        padding: 0;
-    }
-
-    .input-group-custom small {
-        display: block;
-        font-size: 0.6rem;
-        color: var(--gray-500);
-        margin-top: 0.25rem;
-    }
-
-    .slug-hint {
-        display: block;
-        font-size: 0.6rem;
-        color: var(--gray-500);
-        margin-top: -0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    /* Password Strength */
-    .password-strength {
-        margin: 0.5rem 0 1rem;
-    }
-
-    .strength-bar {
-        height: 4px;
-        background: var(--gray-200);
-        border-radius: 2px;
-        margin-bottom: 0.5rem;
-        transition: all 0.3s;
-    }
-
-    .strength-text {
-        font-size: 0.6rem;
-        color: var(--gray-500);
-    }
-
-    /* Register Button */
-    .btn-register {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-        border: none;
-        color: white;
-        padding: 0.85rem;
-        border-radius: 0.75rem;
-        font-weight: 600;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.3s;
-        margin-top: 0.5rem;
-    }
-
-    .btn-register:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(45, 106, 79, 0.3);
-    }
-
-    .btn-register:disabled {
-        opacity: 0.7;
-        transform: none;
-    }
-
-    /* Register Footer */
-    .register-footer {
-        text-align: center;
-        margin-top: 1.5rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--gray-100);
-    }
-
-    .register-footer p {
-        font-size: 0.75rem;
-        color: var(--gray-500);
-    }
-
-    .register-footer a {
-        color: var(--primary);
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    /* Toast Notifications */
-    .toast-notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        padding: 12px 24px;
-        border-radius: 8px;
-        color: white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        animation: slideIn 0.3s ease-out;
-    }
-
-    .toast-success {
-        background: #10b981;
-    }
-
-    .toast-error {
-        background: #ef4444;
-    }
-
-    .toast-warning {
-        background: #f59e0b;
-    }
-
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-        .register-container {
-            flex-direction: column;
-            max-width: 550px;
-        }
-
-        .register-brand {
-            display: none;
-        }
-
-        .register-form-wrapper {
-            padding: 1.5rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .register-form-wrapper {
-            padding: 1.25rem;
-        }
-
-        .form-row {
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .register-header h3 {
-            font-size: 1.2rem;
-        }
-
-        .register-icon {
-            width: 48px;
-            height: 48px;
-        }
-
-        .register-icon i {
-            font-size: 1.5rem;
-        }
-
-        .input-field input {
-            padding: 0.65rem 2.2rem;
-            font-size: 0.8rem;
-        }
-    }
-</style>
 
 <script>
 // Auto-fill email from session or URL
@@ -665,128 +256,200 @@ function togglePassword(fieldId) {
 }
 
 // Auto-generate slug from organization name
-document.getElementById('orgName').addEventListener('input', function() {
-    let slug = this.value
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-');
-    
-    document.getElementById('orgSlug').value = slug;
-});
+const orgNameInput = document.getElementById('orgName');
+const orgSlugInput = document.getElementById('orgSlug');
+
+if (orgNameInput && orgSlugInput) {
+    orgNameInput.addEventListener('input', function() {
+        let slug = this.value
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-');
+        
+        orgSlugInput.value = slug;
+    });
+}
 
 // Password strength indicator
-const passwordInput = document.getElementById('password');
-const strengthBar = document.querySelector('.strength-bar');
-const strengthText = document.querySelector('.strength-text');
+const passwordField = document.getElementById('password');
+const strengthBar = document.getElementById('strengthBar');
+const strengthText = document.getElementById('strengthText');
 
-passwordInput.addEventListener('input', function() {
-    const password = this.value;
-    let strength = 0;
-    
-    if (password.length >= 8) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[!@#$%^&*]/.test(password)) strength++;
-    
-    const colors = ['#e2e8f0', '#ef4444', '#f59e0b', '#10b981', '#10b981'];
-    const texts = ['Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
-    
-    strengthBar.style.background = colors[strength];
-    strengthText.textContent = texts[strength] + ' - Use 8+ characters with uppercase, number & symbol';
-});
+if (passwordField) {
+    passwordField.addEventListener('input', function() {
+        const password = this.value;
+        let strength = 0;
+        let color = '#e2e8f0';
+        let message = '';
+        
+        if (password.length >= 8) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[!@#$%^&*]/.test(password)) strength++;
+        
+        switch(strength) {
+            case 0:
+                color = '#e2e8f0';
+                message = 'Very Weak - Use 8+ characters with uppercase, number & symbol';
+                break;
+            case 1:
+                color = '#ef4444';
+                message = 'Weak - Add uppercase letters';
+                break;
+            case 2:
+                color = '#f59e0b';
+                message = 'Fair - Add numbers and symbols';
+                break;
+            case 3:
+                color = '#10b981';
+                message = 'Strong - Good password';
+                break;
+            case 4:
+                color = '#10b981';
+                message = 'Very Strong - Excellent password';
+                break;
+        }
+        
+        const width = (strength / 4) * 100;
+        strengthBar.style.width = width + '%';
+        strengthBar.style.backgroundColor = color;
+        strengthText.textContent = message;
+    });
+}
 
 // Form Submission
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+const registerForm = document.getElementById('registerForm');
+const registerBtn = document.getElementById('registerBtn');
 
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const orgName = document.getElementById('orgName').value.trim();
-    const orgSlug = document.getElementById('orgSlug').value.trim();
+if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    // Validation
-    if (!firstName || !lastName || !phone || !orgName || !orgSlug || !password) {
-        showToast('Please fill in all required fields', 'error');
-        return;
-    }
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const orgName = document.getElementById('orgName').value.trim();
+        const orgSlug = document.getElementById('orgSlug').value.trim();
 
-    if (password !== confirmPassword) {
-        showToast('Passwords do not match', 'error');
-        return;
-    }
-
-    if (password.length < 8) {
-        showToast('Password must be at least 8 characters long', 'error');
-        return;
-    }
-
-    if (!/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*]/.test(password)) {
-        showToast('Password must contain uppercase letter, number and special character', 'error');
-        return;
-    }
-
-    const phoneRegex = /^(254|0)[17]\d{8}$/;
-    if (!phoneRegex.test(phone)) {
-        showToast('Please enter a valid Kenyan phone number (e.g., 254712345678)', 'error');
-        return;
-    }
-
-    const btn = document.getElementById('registerBtn');
-    const originalText = btn.innerHTML;
-
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
-
-    try {
-        const response = await fetch('/api/v1/auth/register-organization', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: email,
-                password: password,
-                confirm_password: confirmPassword,
-                first_name: firstName,
-                last_name: lastName,
-                phone: phone,
-                organization_name: orgName,
-                organization_slug: orgSlug
-            })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            showToast('Account created successfully!', 'success');
-            sessionStorage.removeItem('verificationEmail');
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 1800);
-        } else {
-            showToast(data.error || 'Registration failed. Please try again.', 'error');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+        // Validation
+        if (!firstName || !lastName || !phone || !orgName || !orgSlug || !password) {
+            showToast('Please fill in all required fields', 'error');
+            return;
         }
-    } catch (error) {
-        console.error('Registration error:', error);
-        showToast('Network error. Please check your connection.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-    }
-});
 
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast-notification toast-${type}`;
-    toast.innerHTML = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+        if (password !== confirmPassword) {
+            showToast('Passwords do not match', 'error');
+            return;
+        }
+
+        if (password.length < 8) {
+            showToast('Password must be at least 8 characters long', 'error');
+            return;
+        }
+
+        if (!/[A-Z]/.test(password)) {
+            showToast('Password must contain at least one uppercase letter', 'error');
+            return;
+        }
+
+        if (!/[0-9]/.test(password)) {
+            showToast('Password must contain at least one number', 'error');
+            return;
+        }
+
+        const phoneRegex = /^(254|0)[17]\d{8}$/;
+        if (!phoneRegex.test(phone)) {
+            showToast('Please enter a valid Kenyan phone number (e.g., 254712345678)', 'error');
+            return;
+        }
+
+        const originalText = registerBtn.innerHTML;
+        registerBtn.disabled = true;
+        registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Account...';
+
+        try {
+            const response = await fetch('/api/v1/auth/register-organization', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    confirm_password: confirmPassword,
+                    first_name: firstName,
+                    last_name: lastName,
+                    phone: phone,
+                    organization_name: orgName,
+                    organization_slug: orgSlug
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showToast('Account created successfully! Redirecting to login...', 'success');
+                sessionStorage.removeItem('verificationEmail');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1800);
+            } else {
+                showToast(data.error || 'Registration failed. Please try again.', 'error');
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = originalText;
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            showToast('Network error. Please check your connection.', 'error');
+            registerBtn.disabled = false;
+            registerBtn.innerHTML = originalText;
+        }
+    });
 }
+
+// Toast notification function (uses your base.html's showToast if available)
+function showToast(message, type = 'success') {
+    if (typeof window.showToast === 'function') {
+        window.showToast(message, type);
+    } else {
+        // Fallback toast
+        const toast = document.createElement('div');
+        const colors = {
+            success: 'bg-green-500',
+            error: 'bg-red-500',
+            warning: 'bg-yellow-500'
+        };
+        toast.className = `fixed top-5 right-5 z-50 ${colors[type] || colors.success} text-white px-4 py-2 rounded-lg shadow-lg text-sm animate-slide-in`;
+        toast.innerHTML = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+}
+
+// Add animation style for fallback toast
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    .animate-slide-in {
+        animation: slideIn 0.3s ease-out;
+    }
+`;
+document.head.appendChild(style);
 </script>
 
 {% endblock %}

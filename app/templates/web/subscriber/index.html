@@ -2,569 +2,84 @@
 
 {% block title %}{{ organization.name }} - Subscribers{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ========================================
-       SUBSCRIBERS MODULE - PROFESSIONAL V2
-       Mobile-First, Tabs, Clean Design
-       ========================================= */
-    
-    :root {
-        --primary: #1a56db;
-        --primary-dark: #1e40af;
-        --success: #059669;
-        --danger: #dc2626;
-        --warning: #d97706;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
-    }
-
-    /* Container - Minimal Padding on Mobile */
-    .subscribers-container {
-        padding: 0.5rem;
-    }
-    
-    @media (min-width: 640px) {
-        .subscribers-container {
-            padding: 0.75rem;
-        }
-    }
-    
-    @media (min-width: 1024px) {
-        .subscribers-container {
-            padding: 1rem;
-        }
-    }
-
-    /* Header */
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    .page-title h1 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--gray-900);
-        margin: 0;
-    }
-    
-    .page-title p {
-        font-size: 0.65rem;
-        color: var(--gray-500);
-        margin: 0;
-    }
-    
-    @media (min-width: 640px) {
-        .page-header {
-            margin-bottom: 1rem;
-            gap: 0.75rem;
-        }
-        .page-title h1 {
-            font-size: 1.25rem;
-        }
-        .page-title p {
-            font-size: 0.7rem;
-        }
-    }
-    
-    @media (min-width: 768px) {
-        .page-title h1 {
-            font-size: 1.5rem;
-        }
-        .page-title p {
-            font-size: 0.75rem;
-        }
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: 0.375rem;
-    }
-    
-    .btn-sm-custom {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.65rem;
-        border-radius: 0.375rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        transition: all 0.2s;
-    }
-    
-    .btn-primary-custom {
-        background: var(--primary);
-        color: white;
-        border: none;
-    }
-    
-    .btn-primary-custom:hover {
-        background: var(--primary-dark);
-        color: white;
-    }
-    
-    .btn-secondary-custom {
-        background: white;
-        border: 1px solid var(--gray-200);
-        color: var(--gray-700);
-    }
-    
-    .btn-secondary-custom:hover {
-        background: var(--gray-50);
-    }
-    
-    @media (min-width: 640px) {
-        .btn-sm-custom {
-            padding: 0.4rem 0.75rem;
-            font-size: 0.7rem;
-        }
-    }
-
-    /* Stats Row - Compact */
-    .stats-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.375rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    @media (min-width: 640px) {
-        .stats-row {
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-    }
-    
-    .stat-item {
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.5rem;
-        padding: 0.5rem;
-        text-align: center;
-    }
-    
-    .stat-number {
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--gray-800);
-    }
-    
-    .stat-label {
-        font-size: 0.55rem;
-        color: var(--gray-500);
-    }
-    
-    @media (min-width: 640px) {
-        .stat-item {
-            padding: 0.625rem;
-        }
-        .stat-number {
-            font-size: 1.1rem;
-        }
-        .stat-label {
-            font-size: 0.6rem;
-        }
-    }
-
-    /* Tabs */
-    .tabs {
-        display: flex;
-        gap: 0;
-        margin-bottom: 0.75rem;
-        border-bottom: 1px solid var(--gray-200);
-        flex-wrap: wrap;
-    }
-    
-    .tab-btn {
-        background: none;
-        border: none;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.7rem;
-        font-weight: 500;
-        color: var(--gray-500);
-        cursor: pointer;
-        transition: all 0.2s;
-        position: relative;
-    }
-    
-    .tab-btn:hover {
-        color: var(--primary);
-    }
-    
-    .tab-btn.active {
-        color: var(--primary);
-    }
-    
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: var(--primary);
-    }
-    
-    .tab-count {
-        display: inline-block;
-        margin-left: 0.25rem;
-        font-size: 0.6rem;
-        color: var(--gray-400);
-    }
-    
-    .tab-btn.active .tab-count {
-        color: var(--primary);
-    }
-    
-    @media (min-width: 640px) {
-        .tab-btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.75rem;
-        }
-    }
-
-    /* Filter Bar - Compact */
-    .filter-bar {
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.5rem;
-        padding: 0.5rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    @media (min-width: 640px) {
-        .filter-bar {
-            padding: 0.625rem;
-            margin-bottom: 1rem;
-        }
-    }
-    
-    .filter-form {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.375rem;
-        align-items: flex-end;
-    }
-    
-    .filter-group {
-        flex: 1;
-        min-width: 100px;
-    }
-    
-    .filter-group label {
-        font-size: 0.6rem;
-        font-weight: 500;
-        color: var(--gray-500);
-        margin-bottom: 0.2rem;
-        display: block;
-    }
-    
-    .filter-group input,
-    .filter-group select {
-        width: 100%;
-        padding: 0.35rem 0.5rem;
-        font-size: 0.7rem;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.375rem;
-        background: white;
-    }
-    
-    .btn-reset {
-        background: var(--gray-100);
-        border: 1px solid var(--gray-200);
-        color: var(--gray-600);
-        padding: 0.35rem 0.6rem;
-        font-size: 0.65rem;
-        border-radius: 0.375rem;
-        cursor: pointer;
-    }
-    
-    @media (min-width: 640px) {
-        .filter-group label {
-            font-size: 0.65rem;
-        }
-        .filter-group input,
-        .filter-group select {
-            padding: 0.4rem 0.6rem;
-            font-size: 0.75rem;
-        }
-        .btn-reset {
-            padding: 0.4rem 0.7rem;
-            font-size: 0.7rem;
-        }
-    }
-
-    /* Table Container */
-    .table-container {
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.5rem;
-        overflow-x: auto;
-        margin-bottom: 0.75rem;
-    }
-    
-    .subscribers-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.7rem;
-        min-width: 650px;
-    }
-    
-    .subscribers-table thead th {
-        text-align: left;
-        padding: 0.5rem 0.5rem;
-        background: var(--gray-50);
-        font-weight: 600;
-        color: var(--gray-600);
-        border-bottom: 1px solid var(--gray-200);
-        font-size: 0.65rem;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-    }
-    
-    .subscribers-table tbody td {
-        padding: 0.5rem 0.5rem;
-        border-bottom: 1px solid var(--gray-100);
-        color: var(--gray-700);
-        vertical-align: middle;
-    }
-    
-    .subscribers-table tbody tr:hover {
-        background: var(--gray-50);
-    }
-    
-    @media (min-width: 640px) {
-        .subscribers-table thead th {
-            padding: 0.6rem 0.75rem;
-            font-size: 0.7rem;
-        }
-        .subscribers-table tbody td {
-            padding: 0.6rem 0.75rem;
-            font-size: 0.75rem;
-        }
-    }
-
-    /* Cell Styles */
-    .subscriber-name {
-        font-weight: 600;
-        color: var(--gray-800);
-        margin-bottom: 0.125rem;
-    }
-    
-    .subscriber-id {
-        font-size: 0.6rem;
-        color: var(--gray-500);
-        font-family: monospace;
-    }
-    
-    .type-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.15rem 0.4rem;
-        border-radius: 0.25rem;
-        font-size: 0.6rem;
-        font-weight: 500;
-    }
-    
-    .type-hotspot {
-        background: rgba(59, 130, 246, 0.1);
-        color: var(--primary);
-    }
-    
-    .type-pppoe {
-        background: rgba(5, 150, 105, 0.1);
-        color: var(--success);
-    }
-    
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
-    
-    .status-dot {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-    }
-    
-    .status-dot.active { background: var(--success); }
-    .status-dot.suspended { background: var(--warning); }
-    .status-dot.blocked { background: var(--danger); }
-    
-    .status-text {
-        font-size: 0.65rem;
-    }
-    
-    .plan-name {
-        font-size: 0.65rem;
-        font-weight: 500;
-        color: var(--gray-700);
-    }
-    
-    .expiry-date {
-        font-size: 0.6rem;
-        color: var(--gray-500);
-    }
-    
-    .action-icons {
-        display: flex;
-        gap: 0.2rem;
-    }
-    
-    .action-icon {
-        background: none;
-        border: none;
-        padding: 0.25rem;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        color: var(--gray-500);
-        font-size: 0.7rem;
-    }
-    
-    .action-icon:hover {
-        background: var(--gray-100);
-        color: var(--primary);
-    }
-
-    /* Pagination - Compact */
-    .pagination {
-        display: flex;
-        justify-content: center;
-        gap: 0.2rem;
-        flex-wrap: wrap;
-    }
-    
-    .page-link {
-        background: white;
-        border: 1px solid var(--gray-200);
-        color: var(--gray-600);
-        padding: 0.25rem 0.5rem;
-        font-size: 0.65rem;
-        border-radius: 0.375rem;
-        text-decoration: none;
-    }
-    
-    .page-link:hover {
-        background: var(--gray-50);
-    }
-    
-    .page-link.active {
-        background: var(--primary);
-        border-color: var(--primary);
-        color: white;
-    }
-    
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 1.5rem 1rem;
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: 0.5rem;
-    }
-    
-    .empty-state i {
-        font-size: 1.5rem;
-        color: var(--gray-300);
-        margin-bottom: 0.5rem;
-    }
-    
-    .empty-state p {
-        font-size: 0.7rem;
-        color: var(--gray-500);
-        margin: 0 0 0.75rem 0;
-    }
-    
-    /* Responsive */
-    @media (max-width: 640px) {
-        .hide-mobile {
-            display: none;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="subscribers-container">
+<div class="p-2 sm:p-3 md:p-4 space-y-3 md:space-y-4">
+    
     <!-- Header -->
-    <div class="page-header">
-        <div class="page-title">
-            <h1>Subscribers</h1>
-            <p>Manage customers & subscriptions</p>
+    <div class="flex flex-wrap justify-between items-center gap-2">
+        <div>
+            <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-900">Subscribers</h1>
+            <p class="text-xs text-gray-500">Manage customers & subscriptions</p>
         </div>
-        <div class="action-buttons">
-            <a href="{{ url_for('subscriber_web.create_hotspot', org_id=organization.id) }}" class="btn-sm-custom btn-secondary-custom">
-                <i class="fas fa-mobile-alt"></i> <span class="hide-mobile">Hotspot</span>
+        <div class="flex gap-2">
+            <a href="{{ url_for('subscriber_web.create_hotspot', org_id=organization.id) }}" 
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors duration-150">
+                <i class="fas fa-mobile-alt"></i>
+                <span class="hidden sm:inline">Hotspot</span>
             </a>
-            <a href="{{ url_for('subscriber_web.create_pppoe', org_id=organization.id) }}" class="btn-sm-custom btn-primary-custom">
-                <i class="fas fa-plus"></i> <span class="hide-mobile">PPPoE</span>
+            <a href="{{ url_for('subscriber_web.create_pppoe', org_id=organization.id) }}" 
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1a56db] hover:bg-[#1e40af] text-white text-xs rounded-lg transition-colors duration-150">
+                <i class="fas fa-plus"></i>
+                <span class="hidden sm:inline">PPPoE</span>
             </a>
         </div>
     </div>
 
-    <!-- Stats Row -->
-    <div class="stats-row">
-        <div class="stat-item">
-            <div class="stat-number">{{ stats.total|default(0) }}</div>
-            <div class="stat-label">Total</div>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-4 gap-1.5 sm:gap-2">
+        <div class="bg-white rounded-lg border border-gray-200 p-2 sm:p-3 text-center">
+            <div class="text-base sm:text-lg font-bold text-gray-800">{{ stats.total|default(0) }}</div>
+            <div class="text-[10px] sm:text-xs text-gray-500">Total</div>
         </div>
-        <div class="stat-item">
-            <div class="stat-number">{{ stats.active_subscriptions|default(0) }}</div>
-            <div class="stat-label">Active</div>
+        <div class="bg-white rounded-lg border border-gray-200 p-2 sm:p-3 text-center">
+            <div class="text-base sm:text-lg font-bold text-emerald-600">{{ stats.active_subscriptions|default(0) }}</div>
+            <div class="text-[10px] sm:text-xs text-gray-500">Active</div>
         </div>
-        <div class="stat-item">
-            <div class="stat-number">{{ stats.hotspot_users|default(0) }}</div>
-            <div class="stat-label">Hotspot</div>
+        <div class="bg-white rounded-lg border border-gray-200 p-2 sm:p-3 text-center">
+            <div class="text-base sm:text-lg font-bold text-blue-600">{{ stats.hotspot_users|default(0) }}</div>
+            <div class="text-[10px] sm:text-xs text-gray-500">Hotspot</div>
         </div>
-        <div class="stat-item">
-            <div class="stat-number">{{ stats.pppoe_users|default(0) }}</div>
-            <div class="stat-label">PPPoE</div>
+        <div class="bg-white rounded-lg border border-gray-200 p-2 sm:p-3 text-center">
+            <div class="text-base sm:text-lg font-bold text-emerald-600">{{ stats.pppoe_users|default(0) }}</div>
+            <div class="text-[10px] sm:text-xs text-gray-500">PPPoE</div>
         </div>
     </div>
 
     <!-- Tabs -->
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="all">
-            All <span class="tab-count">({{ stats.total|default(0) }})</span>
-        </button>
-        <button class="tab-btn" data-tab="hotspot">
-            <i class="fas fa-wifi"></i> Hotspot <span class="tab-count">({{ stats.hotspot_users|default(0) }})</span>
-        </button>
-        <button class="tab-btn" data-tab="pppoe">
-            <i class="fas fa-network-wired"></i> PPPoE <span class="tab-count">({{ stats.pppoe_users|default(0) }})</span>
-        </button>
-        <button class="tab-btn" data-tab="active">
-            <i class="fas fa-check-circle"></i> Active <span class="tab-count">({{ stats.active_subscriptions|default(0) }})</span>
-        </button>
+    <div class="border-b border-gray-200">
+        <div class="flex gap-0">
+            <button data-tab="all" 
+                    class="tab-btn px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-[#1a56db] border-b-2 border-[#1a56db] transition-colors">
+                All <span class="ml-1 text-xs text-gray-400">({{ stats.total|default(0) }})</span>
+            </button>
+            <button data-tab="hotspot" 
+                    class="tab-btn px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
+                <i class="fas fa-wifi"></i> Hotspot <span class="ml-1 text-xs text-gray-400">({{ stats.hotspot_users|default(0) }})</span>
+            </button>
+            <button data-tab="pppoe" 
+                    class="tab-btn px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
+                <i class="fas fa-network-wired"></i> PPPoE <span class="ml-1 text-xs text-gray-400">({{ stats.pppoe_users|default(0) }})</span>
+            </button>
+            <button data-tab="active" 
+                    class="tab-btn px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
+                <i class="fas fa-check-circle"></i> Active <span class="ml-1 text-xs text-gray-400">({{ stats.active_subscriptions|default(0) }})</span>
+            </button>
+        </div>
     </div>
 
     <!-- Filter Bar -->
-    <div class="filter-bar">
-        <form method="GET" id="filterForm" class="filter-form">
-            <div class="filter-group">
-                <label>Search</label>
-                <input type="text" name="search" id="searchInput" placeholder="Name, phone..." value="{{ filters.search or '' }}">
+    <div class="bg-white rounded-lg border border-gray-200 p-3">
+        <form method="GET" id="filterForm" class="flex flex-wrap gap-2 items-end">
+            <div class="flex-1 min-w-[120px]">
+                <label class="block text-xs font-medium text-gray-500 mb-0.5">Search</label>
+                <input type="text" name="search" id="searchInput" 
+                       class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]"
+                       placeholder="Name, phone..." value="{{ filters.search or '' }}">
             </div>
-            <div class="filter-group">
-                <label>Status</label>
-                <select name="status" id="statusSelect">
+            <div class="flex-1 min-w-[100px]">
+                <label class="block text-xs font-medium text-gray-500 mb-0.5">Status</label>
+                <select name="status" id="statusSelect" 
+                        class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db]">
                     <option value="">All</option>
                     <option value="active" {% if filters.status == 'active' %}selected{% endif %}>Active</option>
                     <option value="suspended" {% if filters.status == 'suspended' %}selected{% endif %}>Suspended</option>
@@ -572,146 +87,194 @@
                 </select>
             </div>
             <div>
-                <button type="submit" class="btn-reset">Filter</button>
+                <button type="submit" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors duration-150">
+                    Filter
+                </button>
             </div>
         </form>
     </div>
 
     <!-- Subscribers Table -->
     {% if subscribers %}
-    <div class="table-container">
-        <table class="subscribers-table" id="subscribersTable">
-            <thead>
-                <tr>
-                    <th>Subscriber</th>
-                    <th>Type</th>
-                    <th class="hide-mobile">Contact</th>
-                    <th>Status</th>
-                    <th class="hide-mobile">Plan</th>
-                    <th style="width: 50px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for subscriber in subscribers %}
-                <tr data-type="{{ subscriber.subscriber_type }}" data-status="{{ subscriber.status }}">
-                    <td>
-                        <div class="subscriber-name">{{ subscriber.get_full_name() or subscriber.display_name }}</div>
-                        <div class="subscriber-id">{{ subscriber.id|string|truncate(8, True, '') }}</div>
-                    </td>
-                    <td>
-                        <span class="type-badge type-{{ subscriber.subscriber_type }}">
-                            <i class="fas {% if subscriber.subscriber_type == 'hotspot' %}fa-wifi{% else %}fa-network-wired{% endif %}"></i>
-                            {{ subscriber.subscriber_type|upper }}
-                        </span>
-                    </td>
-                    <td class="hide-mobile">
-                        {% if subscriber.phone %}{{ subscriber.phone }}{% elif subscriber.email %}{{ subscriber.email }}{% else %}—{% endif %}
-                    </td>
-                    <td>
-                        <span class="status-badge">
-                            <span class="status-dot {{ subscriber.status }}"></span>
-                            <span class="status-text">{{ subscriber.status|capitalize }}</span>
-                        </span>
-                    </td>
-                    <td class="hide-mobile">
-                        {% if subscriber.active_sub %}
-                            <div class="plan-name">{{ subscriber.active_sub.plan.name }}</div>
-                            <div class="expiry-date">Exp: {{ subscriber.active_sub.expiry_time.strftime('%Y-%m-%d') }}</div>
-                        {% else %}
-                            <span class="expiry-date">No active plan</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div class="action-icons">
-                            <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="action-icon" title="View">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ url_for('subscriber_web.edit', org_id=organization.id, subscriber_id=subscriber.id) }}" class="action-icon" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button type="button" class="action-icon text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                                    data-subscriber-id="{{ subscriber.id }}" data-subscriber-name="{{ subscriber.get_full_name() or subscriber.display_name }}" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm" id="subscribersTable">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Subscriber</th>
+                        <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Type</th>
+                        <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600 hidden sm:table-cell">Contact</th>
+                        <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600">Status</th>
+                        <th class="text-left px-3 py-2 text-xs font-semibold text-gray-600 hidden md:table-cell">Plan</th>
+                        <th class="text-center px-3 py-2 text-xs font-semibold text-gray-600 w-16">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for subscriber in subscribers %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-150" 
+                        data-type="{{ subscriber.subscriber_type }}" 
+                        data-status="{{ subscriber.status }}">
+                        <td class="px-3 py-2">
+                            <div class="font-semibold text-gray-800">{{ subscriber.get_full_name() or subscriber.display_name }}</div>
+                            <div class="text-[10px] font-mono text-gray-400">{{ subscriber.id|string|truncate(8, True, '') }}</div>
+                        </td>
+                        <td class="px-3 py-2">
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium
+                                {% if subscriber.subscriber_type == 'hotspot' %}bg-blue-50 text-blue-700
+                                {% else %}bg-emerald-50 text-emerald-700{% endif %}">
+                                <i class="fas {% if subscriber.subscriber_type == 'hotspot' %}fa-wifi{% else %}fa-network-wired{% endif %} text-[9px]"></i>
+                                {{ subscriber.subscriber_type|upper }}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 text-xs text-gray-600 hidden sm:table-cell">
+                            {% if subscriber.phone %}{{ subscriber.phone }}
+                            {% elif subscriber.email %}{{ subscriber.email }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="px-3 py-2">
+                            <span class="inline-flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full 
+                                    {% if subscriber.status == 'active' %}bg-emerald-500
+                                    {% elif subscriber.status == 'suspended' %}bg-amber-500
+                                    {% else %}bg-red-500{% endif %}"></span>
+                                <span class="text-xs font-medium 
+                                    {% if subscriber.status == 'active' %}text-emerald-700
+                                    {% elif subscriber.status == 'suspended' %}text-amber-700
+                                    {% else %}text-red-700{% endif %}">
+                                    {{ subscriber.status|capitalize }}
+                                </span>
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 text-xs hidden md:table-cell">
+                            {% if subscriber.active_sub %}
+                                <div class="font-medium text-gray-700">{{ subscriber.active_sub.plan.name }}</div>
+                                <div class="text-[10px] text-gray-400">Exp: {{ subscriber.active_sub.expiry_time.strftime('%Y-%m-%d') if subscriber.active_sub.expiry_time else 'N/A' }}</div>
+                            {% else %}
+                                <span class="text-gray-400">No active plan</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2">
+                            <div class="flex items-center justify-center gap-1">
+                                <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+                                   class="p-1 rounded text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="View">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </a>
+                                <a href="{{ url_for('subscriber_web.edit', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+                                   class="p-1 rounded text-gray-600 hover:bg-gray-100 transition-colors duration-150" title="Edit">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </a>
+                                <button type="button" 
+                                        onclick="openDeleteModal('{{ subscriber.id }}', '{{ subscriber.get_full_name() or subscriber.display_name }}')"
+                                        class="p-1 rounded text-red-600 hover:bg-red-50 transition-colors duration-150" title="Delete">
+                                    <i class="fas fa-trash text-sm"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Pagination -->
     {% if pagination and pagination.pages > 1 %}
-    <div class="pagination">
+    <div class="flex justify-center gap-1 flex-wrap">
         {% if pagination.page > 1 %}
-        <a class="page-link" href="?page={{ pagination.page-1 }}{% for key, value in request.args.items() if key != 'page' %}&{{ key }}={{ value }}{% endfor %}">
-            <i class="fas fa-chevron-left"></i>
+        <a href="?page={{ pagination.page-1 }}{% for key, value in request.args.items() if key != 'page' %}&{{ key }}={{ value }}{% endfor %}" 
+           class="inline-flex items-center justify-center min-w-[28px] px-2 py-1 text-xs bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">
+            <i class="fas fa-chevron-left text-[10px]"></i>
         </a>
         {% endif %}
         
-        {% for p in range(1, pagination.pages + 1) %}
+        {% set start_page = [pagination.page - 2, 1]|max %}
+        {% set end_page = [start_page + 4, pagination.pages]|min %}
+        {% set start_page = [end_page - 4, 1]|max %}
+        
+        {% if start_page > 1 %}
+        <a href="?page=1{% for key, value in request.args.items() if key != 'page' %}&{{ key }}={{ value }}{% endfor %}" 
+           class="inline-flex items-center justify-center min-w-[28px] px-2 py-1 text-xs bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">1</a>
+        {% if start_page > 2 %}<span class="px-1 text-xs text-gray-400">...</span>{% endif %}
+        {% endif %}
+        
+        {% for p in range(start_page, end_page + 1) %}
             {% if p == pagination.page %}
-            <span class="page-link active">{{ p }}</span>
-            {% elif p <= pagination.page + 2 and p >= pagination.page - 2 %}
-            <a class="page-link" href="?page={{ p }}{% for key, value in request.args.items() if key != 'page' %}&{{ key }}={{ value }}{% endfor %}">{{ p }}</a>
+            <span class="inline-flex items-center justify-center min-w-[28px] px-2 py-1 text-xs bg-[#1a56db] border border-[#1a56db] rounded-md text-white">{{ p }}</span>
+            {% else %}
+            <a href="?page={{ p }}{% for key, value in request.args.items() if key != 'page' %}&{{ key }}={{ value }}{% endfor %}" 
+               class="inline-flex items-center justify-center min-w-[28px] px-2 py-1 text-xs bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">{{ p }}</a>
             {% endif %}
         {% endfor %}
         
+        {% if end_page < pagination.pages %}
+        {% if end_page < pagination.pages - 1 %}<span class="px-1 text-xs text-gray-400">...</span>{% endif %}
+        <a href="?page={{ pagination.pages }}{% for key, value in request.args.items() if key != 'page' %}&{{ key }}={{ value }}{% endfor %}" 
+           class="inline-flex items-center justify-center min-w-[28px] px-2 py-1 text-xs bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">{{ pagination.pages }}</a>
+        {% endif %}
+        
         {% if pagination.page < pagination.pages %}
-        <a class="page-link" href="?page={{ pagination.page+1 }}{% for key, value in request.args.items() if key != 'page' %}&{{ key }}={{ value }}{% endfor %}">
-            <i class="fas fa-chevron-right"></i>
+        <a href="?page={{ pagination.page+1 }}{% for key, value in request.args.items() if key != 'page' %}&{{ key }}={{ value }}{% endfor %}" 
+           class="inline-flex items-center justify-center min-w-[28px] px-2 py-1 text-xs bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">
+            <i class="fas fa-chevron-right text-[10px]"></i>
         </a>
         {% endif %}
     </div>
     {% endif %}
 
     {% else %}
-    <div class="empty-state">
-        <i class="fas fa-users"></i>
-        <p>No subscribers found</p>
-        <a href="{{ url_for('subscriber_web.create_hotspot', org_id=organization.id) }}" class="btn-sm-custom btn-primary-custom">Add First Subscriber</a>
+    <!-- Empty State -->
+    <div class="bg-white rounded-lg border border-gray-200 text-center py-8">
+        <i class="fas fa-users text-4xl text-gray-300 mb-2 block"></i>
+        <p class="text-gray-500 text-sm mb-3">No subscribers found</p>
+        <a href="{{ url_for('subscriber_web.create_hotspot', org_id=organization.id) }}" 
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1a56db] hover:bg-[#1e40af] text-white text-xs rounded-lg">
+            <i class="fas fa-plus"></i> Add First Subscriber
+        </a>
     </div>
     {% endif %}
 </div>
 
 <!-- Delete Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Delete subscriber <strong id="deleteSubscriberName"></strong>?</p>
-                <small class="text-muted">This will deactivate the account and terminate all active sessions.</small>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST">
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeDeleteModal()"></div>
+    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Confirm Delete</h3>
+            <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <p class="text-gray-700">Delete subscriber <strong id="deleteSubscriberName" class="text-gray-900"></strong>?</p>
+            <p class="text-xs text-gray-500 mt-2">This will deactivate the account and terminate all active sessions.</p>
+        </div>
+        <div class="flex justify-end gap-2 p-4 border-t border-gray-200">
+            <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
+                Cancel
+            </button>
+            <form id="deleteForm" method="POST">
+                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                    Delete
+                </button>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
-    // Tab switching
+    let currentSubscriberId = null;
+    let currentSubscriberName = null;
+    
+    // Tab switching with URL updates
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.getAttribute('data-tab');
-            const typeSelect = document.getElementById('typeSelect');
             const statusSelect = document.getElementById('statusSelect');
             const searchInput = document.getElementById('searchInput');
             
-            // Clear filters
-            if (typeSelect) typeSelect.value = '';
             if (statusSelect) statusSelect.value = '';
             if (searchInput) searchInput.value = '';
             
-            // Update URL with type filter
             const url = new URL(window.location.href);
             if (tabId !== 'all') {
                 url.searchParams.set('type', tabId);
@@ -723,16 +286,56 @@
         });
     });
     
-    // Delete modal handler
-    const deleteModal = document.getElementById('deleteModal');
-    if (deleteModal) {
-        deleteModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const subscriberId = button.getAttribute('data-subscriber-id');
-            const subscriberName = button.getAttribute('data-subscriber-name');
-            document.getElementById('deleteSubscriberName').textContent = subscriberName;
-            document.getElementById('deleteForm').action = `/organization/{{ organization.id }}/subscribers/${subscriberId}/delete`;
+    // Set active tab based on URL or current view
+    function setActiveTab() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const typeParam = urlParams.get('type');
+        const activeClass = 'text-[#1a56db] border-[#1a56db]';
+        const inactiveClass = 'text-gray-500 border-transparent';
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            const tabId = btn.getAttribute('data-tab');
+            btn.classList.remove('text-[#1a56db]', 'border-[#1a56db]', 'text-gray-500', 'border-transparent');
+            
+            if ((tabId === 'all' && !typeParam) || (tabId === typeParam)) {
+                btn.classList.add('text-[#1a56db]', 'border-[#1a56db]');
+            } else {
+                btn.classList.add('text-gray-500', 'border-transparent');
+            }
         });
     }
+    
+    // Delete modal functions
+    function openDeleteModal(subscriberId, subscriberName) {
+        currentSubscriberId = subscriberId;
+        currentSubscriberName = subscriberName;
+        
+        const modal = document.getElementById('deleteModal');
+        const deleteForm = document.getElementById('deleteForm');
+        const nameSpan = document.getElementById('deleteSubscriberName');
+        
+        nameSpan.textContent = subscriberName;
+        deleteForm.action = `/organization/{{ organization.id }}/subscribers/${subscriberId}/delete`;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        currentSubscriberId = null;
+        currentSubscriberName = null;
+    }
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteModal();
+        }
+    });
+    
+    // Initialize
+    setActiveTab();
 </script>
 {% endblock %}

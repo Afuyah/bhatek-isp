@@ -2,172 +2,372 @@
 
 {% block title %}{{ organization.name }} - Edit {{ subscriber.display_name }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    .form-container {
-        max-width: 700px;
-        margin: 0 auto;
-    }
-    .form-card {
-        background: white;
-        border-radius: 0.75rem;
-        border: 1px solid #e5e7eb;
-        overflow: hidden;
-    }
-    .form-header {
-        padding: 1rem 1.25rem;
-        background: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    .form-body {
-        padding: 1.25rem;
-    }
-    .form-row {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-    }
-    .form-group {
-        margin-bottom: 1rem;
-    }
-    .form-label {
-        display: block;
-        font-size: 0.8rem;
-        font-weight: 500;
-        margin-bottom: 0.375rem;
-        color: #374151;
-    }
-    .form-input, .form-select {
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.375rem;
-    }
-    .form-input:focus, .form-select:focus {
-        outline: none;
-        border-color: #1a56db;
-        box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.1);
-    }
-    .help-text {
-        font-size: 0.7rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
-    }
-    .section-title {
-        font-size: 0.85rem;
-        font-weight: 600;
-        margin: 1rem 0 0.75rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.75rem;
-        margin-top: 1.5rem;
-        padding-top: 1rem;
-        border-top: 1px solid #e5e7eb;
-    }
-    .btn-cancel {
-        background: white;
-        border: 1px solid #e5e7eb;
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-        border-radius: 0.375rem;
-        color: #6b7280;
-        text-decoration: none;
-    }
-    .btn-save {
-        background: #1a56db;
-        border: none;
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-        border-radius: 0.375rem;
-        color: white;
-        cursor: pointer;
-    }
-    @media (max-width: 640px) {
-        .form-row {
-            grid-template-columns: 1fr;
-            gap: 0;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="p-3 md:p-4 lg:p-6 space-y-4">
+    
+    <!-- Header -->
+    <div class="flex flex-wrap justify-between items-center gap-3">
         <div>
-            <h4 class="mb-1">Edit Subscriber</h4>
-            <p class="text-muted mb-0">{{ subscriber.display_name }}</p>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">Edit Subscriber</h1>
+            <p class="text-xs md:text-sm text-gray-500 mt-0.5">{{ subscriber.display_name }}</p>
         </div>
-        <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back
+        <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+           class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-xl transition-all duration-150">
+            <i class="fas fa-arrow-left text-xs"></i> Back
         </a>
     </div>
 
-    <div class="form-container">
-        <div class="form-card">
-            <div class="form-header">
-                <h3><i class="fas fa-user-edit me-2"></i>Edit Subscriber</h3>
-            </div>
-            <div class="form-body">
-                <form method="POST">
-                    <div class="section-title">Personal Information</div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">First Name</label>
-                            <input type="text" name="first_name" class="form-input" value="{{ subscriber.first_name or '' }}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" name="last_name" class="form-input" value="{{ subscriber.last_name or '' }}">
-                        </div>
+    <!-- Form Container -->
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+            
+            <!-- Form Header -->
+            <div class="px-4 py-3 md:px-5 md:py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-user-edit text-blue-600"></i>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-input" value="{{ subscriber.email or '' }}">
+                    <div>
+                        <h3 class="text-base md:text-lg font-semibold text-gray-800">Edit Subscriber</h3>
+                        <p class="text-xs text-gray-500">Update subscriber information and account settings</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Body -->
+            <div class="p-4 md:p-5">
+                <form method="POST" id="editForm">
+                    
+                    <!-- Personal Information Section -->
+                    <div class="mb-5">
+                        <h4 class="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3 flex items-center gap-2">
+                            <i class="fas fa-id-card text-blue-500 text-xs"></i>
+                            Personal Information
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">First Name</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </span>
+                                    <input type="text" name="first_name" 
+                                           class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                           value="{{ subscriber.first_name or '' }}" 
+                                           placeholder="John">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Last Name</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </span>
+                                    <input type="text" name="last_name" 
+                                           class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                           value="{{ subscriber.last_name or '' }}" 
+                                           placeholder="Doe">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Email Address</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <i class="fas fa-envelope text-sm"></i>
+                                </span>
+                                <input type="email" name="email" 
+                                       class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                       value="{{ subscriber.email or '' }}" 
+                                       placeholder="john@example.com">
+                            </div>
+                        </div>
+
+                        {% if subscriber.subscriber_type == 'hotspot' %}
+                        <div class="mt-4">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Phone Number</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <i class="fas fa-phone text-sm"></i>
+                                </span>
+                                <input type="tel" name="phone" id="phoneNumber"
+                                       class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                       value="{{ subscriber.phone or '' }}" 
+                                       placeholder="254712345678">
+                            </div>
+                            <div class="flex items-center gap-2 mt-1.5">
+                                <i class="fas fa-info-circle text-gray-400 text-[10px]"></i>
+                                <p class="text-xs text-gray-500">Format: 254XXXXXXXXX (Kenyan format)</p>
+                            </div>
+                            <div id="phoneError" class="text-xs text-red-500 mt-1 hidden"></div>
+                        </div>
+                        {% endif %}
                     </div>
 
-                    {% if subscriber.subscriber_type == 'hotspot' %}
-                    <div class="form-group">
-                        <label class="form-label">Phone Number</label>
-                        <input type="tel" name="phone" class="form-input" value="{{ subscriber.phone or '' }}">
-                        <div class="help-text">Format: 254XXXXXXXXX</div>
-                    </div>
-                    {% else %}
-                    <div class="section-title">PPPoE Credentials</div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Username</label>
-                            <input type="text" name="username" class="form-input" value="{{ subscriber.username or '' }}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">New Password</label>
-                            <input type="password" name="password" class="form-input" placeholder="Leave blank to keep current">
+                    {% if subscriber.subscriber_type == 'pppoe' %}
+                    <!-- PPPoE Credentials Section -->
+                    <div class="mb-5">
+                        <h4 class="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3 flex items-center gap-2">
+                            <i class="fas fa-key text-blue-500 text-xs"></i>
+                            PPPoE Credentials
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Username</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </span>
+                                    <input type="text" name="username" 
+                                           class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                           value="{{ subscriber.username or '' }}" 
+                                           placeholder="john_doe">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">New Password</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <i class="fas fa-lock text-sm"></i>
+                                    </span>
+                                    <input type="password" name="password" id="password"
+                                           class="w-full pl-9 pr-10 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                           placeholder="Leave blank to keep current">
+                                    <button type="button" id="togglePassword"
+                                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                        <i class="fas fa-eye text-sm"></i>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1.5 ml-7">Minimum 6 characters if changing</p>
+                            </div>
                         </div>
                     </div>
                     {% endif %}
 
-                    <div class="section-title">Account Status</div>
-                    <div class="form-group">
-                        <label class="form-label">Status</label>
-                        <select name="status" class="form-select">
-                            <option value="active" {% if subscriber.status == 'active' %}selected{% endif %}>Active</option>
-                            <option value="suspended" {% if subscriber.status == 'suspended' %}selected{% endif %}>Suspended</option>
-                            <option value="blocked" {% if subscriber.status == 'blocked' %}selected{% endif %}>Blocked</option>
-                        </select>
+                    <!-- Account Status Section -->
+                    <div class="mb-5">
+                        <h4 class="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3 flex items-center gap-2">
+                            <i class="fas fa-toggle-on text-blue-500 text-xs"></i>
+                            Account Status
+                        </h4>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Status</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <i class="fas fa-circle text-[8px]"></i>
+                                </span>
+                                <select name="status" 
+                                        class="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none bg-white">
+                                    <option value="active" {% if subscriber.status == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="suspended" {% if subscriber.status == 'suspended' %}selected{% endif %}>Suspended</option>
+                                    <option value="blocked" {% if subscriber.status == 'blocked' %}selected{% endif %}>Blocked</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                </div>
+                            </div>
+                            <div class="mt-2 p-3 rounded-lg text-xs
+                                {% if subscriber.status == 'active' %}bg-emerald-50 text-emerald-700
+                                {% elif subscriber.status == 'suspended' %}bg-amber-50 text-amber-700
+                                {% else %}bg-red-50 text-red-700{% endif %}">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                {% if subscriber.status == 'active' %}
+                                    Subscriber has full access to services.
+                                {% elif subscriber.status == 'suspended' %}
+                                    Subscriber access is temporarily suspended.
+                                {% else %}
+                                    Subscriber is permanently blocked from accessing services.
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-actions">
-                        <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn-cancel">Cancel</a>
-                        <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Save Changes</button>
+                    <!-- Info Card for Hotspot Subscribers -->
+                    {% if subscriber.subscriber_type == 'hotspot' %}
+                    <div class="mb-5 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <div class="flex gap-2">
+                            <i class="fas fa-lightbulb text-blue-500 text-sm mt-0.5"></i>
+                            <div>
+                                <p class="text-xs font-semibold text-blue-800 mb-0.5">Hotspot Subscriber</p>
+                                <p class="text-xs text-blue-600">Hotspot users are identified by phone number. Changes to phone number will affect login credentials.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Form Actions -->
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 mt-4 border-t border-gray-200">
+                        <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" 
+                           class="w-full sm:w-auto px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-all duration-150 text-center">
+                            Cancel
+                        </a>
+                        <button type="submit" id="submitBtn"
+                                class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-xl transition-all duration-150 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                            <i class="fas fa-save text-sm"></i>
+                            <span>Save Changes</span>
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    const form = document.getElementById('editForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const phoneInput = document.getElementById('phoneNumber');
+    const phoneError = document.getElementById('phoneError');
+    
+    // Password toggle for PPPoE
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    // Phone validation function (for hotspot subscribers)
+    function validatePhoneNumber(phone) {
+        if (!phone || phone.trim() === '') return { valid: true, normalized: null, message: '' };
+        
+        const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+        const kenyaPattern = /^(254|07|01)\d{8}$/;
+        
+        if (!kenyaPattern.test(cleaned)) {
+            return { valid: false, normalized: null, message: 'Enter a valid Kenyan phone number (2547XXXXXXXX, 07XXXXXXXX, or 01XXXXXXXX)' };
+        }
+        
+        let normalized = cleaned;
+        if (cleaned.startsWith('07') || cleaned.startsWith('01')) {
+            normalized = '254' + cleaned.substring(1);
+        }
+        
+        return { valid: true, normalized: normalized, message: '' };
+    }
+    
+    // Real-time phone validation
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            if (this.value.trim() === '') {
+                phoneError.classList.add('hidden');
+                this.classList.remove('border-red-500');
+                return;
+            }
+            const result = validatePhoneNumber(this.value);
+            if (!result.valid) {
+                phoneError.textContent = result.message;
+                phoneError.classList.remove('hidden');
+                this.classList.add('border-red-500', 'focus:border-red-500');
+                this.classList.remove('border-gray-200');
+            } else {
+                phoneError.classList.add('hidden');
+                this.classList.remove('border-red-500', 'focus:border-red-500');
+                this.classList.add('border-gray-200');
+            }
+        });
+    }
+    
+    // Form submission validation
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Validate phone if present
+            if (phoneInput) {
+                const phone = phoneInput.value.trim();
+                if (phone) {
+                    const result = validatePhoneNumber(phone);
+                    if (!result.valid) {
+                        e.preventDefault();
+                        if (phoneError) {
+                            phoneError.textContent = result.message;
+                            phoneError.classList.remove('hidden');
+                        }
+                        if (phoneInput) {
+                            phoneInput.classList.add('border-red-500', 'focus:border-red-500');
+                            phoneInput.focus();
+                        }
+                        if (typeof showToast === 'function') {
+                            showToast(result.message, 'error');
+                        }
+                        return;
+                    }
+                    // Update with normalized phone number
+                    if (result.normalized) {
+                        phoneInput.value = result.normalized;
+                    }
+                }
+            }
+            
+            // Validate password if changing (PPPoE)
+            if (passwordInput && passwordInput.value.trim()) {
+                if (passwordInput.value.length < 6) {
+                    e.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('Password must be at least 6 characters', 'error');
+                    } else {
+                        alert('Password must be at least 6 characters');
+                    }
+                    passwordInput.focus();
+                    return;
+                }
+            }
+            
+            // Show loading state
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm mr-2"></i>Saving...';
+            }
+        });
+    }
+    
+    // Custom select styling helper
+    const selectElements = document.querySelectorAll('select');
+    selectElements.forEach(select => {
+        select.addEventListener('change', function() {
+            // Optional: Add any custom behavior on status change
+            const statusInfo = document.querySelector('.p-3.rounded-lg.text-xs');
+            if (statusInfo && this.name === 'status') {
+                const status = this.value;
+                if (status === 'active') {
+                    statusInfo.className = 'mt-2 p-3 rounded-lg text-xs bg-emerald-50 text-emerald-700';
+                    statusInfo.innerHTML = '<i class="fas fa-info-circle mr-1"></i> Subscriber has full access to services.';
+                } else if (status === 'suspended') {
+                    statusInfo.className = 'mt-2 p-3 rounded-lg text-xs bg-amber-50 text-amber-700';
+                    statusInfo.innerHTML = '<i class="fas fa-info-circle mr-1"></i> Subscriber access is temporarily suspended.';
+                } else {
+                    statusInfo.className = 'mt-2 p-3 rounded-lg text-xs bg-red-50 text-red-700';
+                    statusInfo.innerHTML = '<i class="fas fa-info-circle mr-1"></i> Subscriber is permanently blocked from accessing services.';
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Custom styling for select dropdown */
+    select {
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1rem;
+        appearance: none;
+    }
+    
+    /* Smooth transitions */
+    input, select, button {
+        transition: all 0.2s ease;
+    }
+    
+    /* Focus styles */
+    input:focus, select:focus {
+        outline: none;
+    }
+</style>
 {% endblock %}
