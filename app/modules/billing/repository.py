@@ -241,6 +241,17 @@ class SubscriptionRepository:
             logger.error(f"Database error in get_by_plan: {e}", exc_info=True)
             raise
     
+    # ✅ NEW METHOD - Add this
+    def get_by_organization(self, organization_id: UUID, skip: int = 0, limit: int = 1000) -> List[Subscription]:
+        """Get all subscriptions for an organization with pagination"""
+        try:
+            return self.model.query.filter(
+                self.model.organization_id == organization_id
+            ).order_by(desc(self.model.created_at)).offset(skip).limit(limit).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error in get_by_organization: {e}", exc_info=True)
+            raise
+    
     def get_expiring_soon(self, organization_id: UUID, days: int = 3) -> List[Subscription]:
         """Get subscriptions expiring within specified days"""
         try:

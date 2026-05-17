@@ -419,21 +419,142 @@ def subscriptions(org_id, current_user=None, current_organization=None):
 def dashboard(org_id, current_user=None, current_organization=None):
     """Billing dashboard with overview"""
     
-    # Get statistics
-    plans = billing_service.get_plans(current_organization.id, 0, 100, only_active=True)
-    active_plans = len(plans)
-    
-    # Get expiring subscriptions
-    expiring = billing_service.subscription_repo.get_expiring_soon(current_organization.id, 7)
-    
-    # Get voucher batches
-    batches = billing_service.voucher_batch_repo.get_by_organization(current_organization.id, 0, 10)
-    
-    return render_template(
-        'web/billing/dashboard.html',
-        organization=current_organization,
-        user=current_user,
-        active_plans=active_plans,
-        expiring_subscriptions=expiring,
-        voucher_batches=batches
-    )
+    try:
+        from datetime import datetime, timedelta
+        from decimal import Decimal
+        from sqlalchemy import func
+        
+        # Get days parameter from query string (default 30)
+        days = request.args.get('days', 30, type=int)
+        
+        # Get all active subscriptions
+        all_subscriptions = billing_service.subscription_repo.get_by_organization(
+            current_organization.id, 0, 1000
+        )
+        
+        # Filter active subscriptions
+        now = datetime.utcnow()
+        active_subs = [s for s in all_subscriptions if s.status == 'active' and s.expiry_time > now]
+        
+        # Calculate total revenue from all subscriptions (using plan prices)
+        total_revenue = sum(float(s.plan.price) for s in all_subscriptions if s.status == 'active')
+        
+        # Calculate MRR (Monthly Recurring Revenue)
+        # For monthly plans, use price; for others, pro-rate
+        mrr = 0
+        for sub in active_subs:
+            price = float(sub.plan.price)
+            if sub.plan.billing_cycle == 'monthly':
+                mrr += price
+            elif sub.plan.billing_cycle == 'yearly':
+                mrr += price / 12
+            elif sub.plan.billing_cycle == 'weekly':
+                mrr += price * 4.33
+            else:
+                mrr += price / 30  # one_time plans approximated
+        
+        # Get expired subscriptions
+        expired_subs = [s for s in all_subscriptions if s.expiry_time < now]
+        
+        # Get expiring soon (within 7 days)
+        expiring_soon = [s for s in active_subs if s.expiry_time <= now + timedelta(days=7)]
+        
+        # Get top plans by subscription count
+        plan_counts = {}
+        plan_revenue = {}
+        for sub in active_subs:
+            plan_name = sub.plan.name
+            plan_counts[plan_name] = plan_counts.get(plan_name, 0) + 1
+            plan_revenue[plan_name] = plan_revenue.get(plan_name, 0) + float(sub.plan.price)
+        
+        top_plans = [
+            {
+                'name': name,
+                'active_subscriptions': count,
+                'revenue': plan_revenue[name],
+                'price': 0,  # You can fetch from plan object
+                'plan_type': 'hotspot',  # You can fetch from plan object
+                'validity_display': 'N/A'
+            }
+            for name, count in sorted(plan_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        ]
+        
+        # Get plan type distribution
+        hotspot_count = len([s for s in active_subs if s.plan.plan_type in ['hotspot', 'both']])
+        pppoe_count = len([s for s in active_subs if s.plan.plan_type in ['pppoe', 'both']])
+        
+        # Prepare revenue trend data (last 30 days)
+        revenue_labels = []
+        revenue_data = []
+        for i in range(days, 0, -1):
+            date = now - timedelta(days=i)
+            revenue_labels.append(date.strftime('%Y-%m-%d'))
+            # You would query actual daily revenue from transactions table
+            revenue_data.append(0)  # Placeholder - implement actual query
+        
+        # Prepare subscription growth data (last 6 months)
+        growth_labels = []
+        growth_data = []
+        total_subs = 0
+        for i in range(5, -1, -1):
+            month = now - timedelta(days=30 * i)
+            growth_labels.append(month.strftime('%b'))
+            # You would query cumulative subscriptions by month
+            total_subs += 5  # Placeholder
+            growth_data.append(total_subs)
+        
+        # Build stats dictionary
+        stats = {
+            'total_revenue': total_revenue,
+            'revenue_trend': 0,  # Calculate from previous period
+            'active_subscriptions': len(active_subs),
+            'total_subscribers': len(all_subscriptions),
+            'mrr': mrr,
+            'pending_payments': 0,  # Implement from payment module
+            'overdue_invoices': 0,  # Implement from payment module
+            'expiring_soon': len(expiring_soon),
+            'expired_subscriptions': len(expired_subs),
+            'revenue_labels': revenue_labels,
+            'revenue_data': revenue_data,
+            'plan_type_labels': ['Hotspot', 'PPPoE'],
+            'plan_type_data': [hotspot_count, pppoe_count],
+            'top_plans': top_plans,
+            'recent_transactions': [],  # Implement from payment module
+            'growth_labels': growth_labels,
+            'growth_data': growth_data
+        }
+        
+        return render_template(
+            'web/billing/dashboard.html',
+            organization=current_organization,
+            user=current_user,
+            stats=stats
+        )
+        
+    except Exception as e:
+        logger.error(f"Error loading billing dashboard: {e}", exc_info=True)
+        flash('Error loading dashboard data', 'danger')
+        return render_template(
+            'web/billing/dashboard.html',
+            organization=current_organization,
+            user=current_user,
+            stats={
+                'total_revenue': 0,
+                'revenue_trend': 0,
+                'active_subscriptions': 0,
+                'total_subscribers': 0,
+                'mrr': 0,
+                'pending_payments': 0,
+                'overdue_invoices': 0,
+                'expiring_soon': 0,
+                'expired_subscriptions': 0,
+                'revenue_labels': [],
+                'revenue_data': [],
+                'plan_type_labels': ['Hotspot', 'PPPoE'],
+                'plan_type_data': [0, 0],
+                'top_plans': [],
+                'recent_transactions': [],
+                'growth_labels': [],
+                'growth_data': []
+            }
+        )
