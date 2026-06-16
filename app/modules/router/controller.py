@@ -2,7 +2,7 @@
 from flask import request, g, jsonify
 from marshmallow import ValidationError
 from uuid import UUID
-
+from flask import current_app
 from app.modules.router.service import RouterService
 from app.modules.router.schemas import (
     RouterCreateSchema, 

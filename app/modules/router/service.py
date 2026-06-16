@@ -3,12 +3,14 @@ from typing import Dict, Any, List, Optional
 from uuid import UUID
 from datetime import datetime
 import secrets
+import re
 
 from flask import current_app
 
 from app.modules.router.repository import RouterRepository, HotspotServerRepository, PPPoeServerRepository
 from app.models.router import Router, HotspotServer, PPPoeServer
 from app.models.nas import NAS
+from app.models.organization import Organization
 
 from app.core.security.encryption import EncryptionService
 from app.core.logging.logger import logger
@@ -19,7 +21,7 @@ from app.core.database.session import db
 
 
 class RouterService:
-    """Service for router management with multi-method"""
+    """Service for router management with multiple discovery methods"""
 
     def __init__(self):
         self.repository = RouterRepository()
@@ -28,11 +30,40 @@ class RouterService:
         self.encryption = EncryptionService()
         self.mikrotik_client = MikroTikClient()
 
+    # ==========================================================================
     # HELPER METHODS
+    # ==========================================================================
     
     def _generate_radius_secret(self) -> str:
         """Generate a strong unique RADIUS shared secret"""
         return secrets.token_urlsafe(32)
+    
+    def _parse_uptime(self, uptime_str: str) -> int:
+        """Parse MikroTik uptime string to seconds"""
+        seconds = 0
+        
+        if not uptime_str:
+            return 0
+        
+        # Pattern: "1w2d3h4m5s" or "2d3h4m5s" or "3h4m5s" etc.
+        weeks = re.search(r'(\d+)w', uptime_str)
+        days = re.search(r'(\d+)d', uptime_str)
+        hours = re.search(r'(\d+)h', uptime_str)
+        minutes = re.search(r'(\d+)m', uptime_str)
+        secs = re.search(r'(\d+)s', uptime_str)
+        
+        if weeks:
+            seconds += int(weeks.group(1)) * 7 * 24 * 3600
+        if days:
+            seconds += int(days.group(1)) * 24 * 3600
+        if hours:
+            seconds += int(hours.group(1)) * 3600
+        if minutes:
+            seconds += int(minutes.group(1)) * 60
+        if secs:
+            seconds += int(secs.group(1))
+        
+        return seconds
     
     def _create_nas_entry(self, router: Router, radius_secret: str) -> NAS:
         """Create a NAS entry for FreeRADIUS"""
@@ -48,7 +79,7 @@ class RouterService:
                 is_active=True
             )
             db.session.add(nas_entry)
-            db.session.flush()  # Get ID without committing yet
+            db.session.flush()
             
             # Link NAS entry to router
             router.nas_entry_id = nas_entry.id
@@ -61,23 +92,70 @@ class RouterService:
             logger.error(f"Failed to create NAS entry: {e}")
             raise BusinessError(f"Failed to create NAS entry: {str(e)}")
     
-    def _auto_configure_router_radius(self, router: Router, radius_secret: str) -> Dict[str, Any]:
+    def _store_org_slug_on_router(self, router: Router, organization: Organization) -> Dict[str, Any]:
+        """Store organization slug on the MikroTik router"""
+        results = {
+            'comment_set': False,
+            'dns_name_set': False,
+            'variable_set': False,
+            'hotspot_address_set': False
+        }
         
+        router_data = {
+            'id': str(router.id),
+            'ip_address': str(router.ip_address),
+            'username': router.username,
+            'password_encrypted': router.password_encrypted,
+            'api_port': router.api_port
+        }
+        
+        # Method 1: Store in router's comment
         try:
-            password = self.encryption.decrypt(router.password_encrypted)
-            
-            # Get your VPS FreeRADIUS server IP from config
+            self.mikrotik_client.execute(
+                router_data=router_data,
+                command='/system/comment/set',
+                comment=f"org_slug:{organization.slug}"
+            )
+            results['comment_set'] = True
+            logger.info(f"Set router comment with org_slug: {organization.slug}")
+        except Exception as e:
+            logger.warning(f"Failed to set router comment: {e}")
+        
+        # Method 2: Set in hotspot profile dns-name
+        try:
+            dns_name = f"{organization.slug}.hotspot.local"
+            self.mikrotik_client.execute(
+                router_data=router_data,
+                command='/ip/hotspot/profile/set',
+                **{'dns-name': dns_name}
+            )
+            results['dns_name_set'] = True
+            logger.info(f"Set hotspot dns-name: {dns_name}")
+        except Exception as e:
+            logger.warning(f"Failed to set hotspot dns-name: {e}")
+        
+        return results
+    
+    def _auto_configure_router_radius(self, router: Router, radius_secret: str, organization: Organization = None) -> Dict[str, Any]:
+        """Auto-configure RADIUS on MikroTik router"""
+        try:
             radius_server_ip = current_app.config.get('RADIUS_SERVER_IP', '163.245.217.16')
             
-            # Use MikroTik client to configure RADIUS
+            router_data = {
+                'id': str(router.id),
+                'ip_address': str(router.ip_address),
+                'username': router.username,
+                'password_encrypted': router.password_encrypted,
+                'api_port': router.api_port
+            }
+            
+            # Store organization slug on router
+            if organization:
+                self._store_org_slug_on_router(router, organization)
+            
+            # Configure RADIUS on MikroTik
             result = self.mikrotik_client.configure_radius(
-                router_data={
-                    'id': str(router.id),
-                    'ip_address': str(router.ip_address),
-                    'username': router.username,
-                    'password_encrypted': router.password_encrypted,
-                    'api_port': router.api_port
-                },
+                router_data=router_data,
                 radius_server=radius_server_ip,
                 radius_secret=radius_secret,
                 radius_port=1812,
@@ -87,33 +165,21 @@ class RouterService:
             if result.get('success'):
                 logger.info(f"Auto-configured RADIUS on router {router.name}")
                 
-                # Also ensure hotspot uses RADIUS
+                # Enable hotspot RADIUS
                 try:
                     self.mikrotik_client.execute(
-                        router_data={
-                            'id': str(router.id),
-                            'ip_address': str(router.ip_address),
-                            'username': router.username,
-                            'password_encrypted': router.password_encrypted,
-                            'api_port': router.api_port
-                        },
-                        command='/ip/hotspot/set',  # ← Make command a keyword argument
+                        router_data=router_data,
+                        command='/ip/hotspot/set',
                         radius='yes'
                     )
                 except Exception as e:
                     logger.warning(f"Failed to enable hotspot RADIUS: {e}")
                 
-                # Also ensure PPPoE uses RADIUS
+                # Enable PPPoE RADIUS
                 try:
                     self.mikrotik_client.execute(
-                        router_data={
-                            'id': str(router.id),
-                            'ip_address': str(router.ip_address),
-                            'username': router.username,
-                            'password_encrypted': router.password_encrypted,
-                            'api_port': router.api_port
-                        },
-                        command='/ppp/set',  # ← Make command a keyword argument
+                        router_data=router_data,
+                        command='/ppp/set',
                         **{'use-radius': 'yes'}
                     )
                 except Exception as e:
@@ -127,25 +193,22 @@ class RouterService:
             logger.error(f"Auto-configuration error for router {router.name}: {e}")
             return {'success': False, 'error': str(e)}
 
-    # CREATE OPERATIONS (with RADIUS auto-config)
+    # ==========================================================================
+    # CREATE OPERATIONS
+    # ==========================================================================
         
     def create_router(self, organization_id: UUID, network_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Create a new router with automatic RADIUS configuration.
-        
-        Returns:
-            Dict containing router object and configuration status
-        """
-        # Validate required fields
+        """Create a new router with automatic RADIUS configuration"""
         required = ['name', 'ip_address', 'username', 'password']
         for field in required:
             if not data.get(field):
                 raise ValidationError(f"{field} is required")
 
-        # Generate unique RADIUS secret
+        organization = Organization.query.get(organization_id)
+        if not organization:
+            raise ValidationError("Organization not found")
+
         radius_secret = self._generate_radius_secret()
-        
-        # Encrypt password
         encrypted_password = self.encryption.encrypt(data['password'])
 
         router_data = {
@@ -166,23 +229,17 @@ class RouterService:
             'auto_config_attempts': 0
         }
 
-        # Create router
         router = self.repository.create(router_data)
-        
-        # Create NAS entry for FreeRADIUS
         nas_entry = self._create_nas_entry(router, radius_secret)
         
-        # Attempt auto-configuration
         auto_configured = False
         config_error = None
         
         try:
-            # Test connection first
             test_result = self.test_connection(router.id, organization_id)
             
             if test_result.get('success'):
-                # Auto-configure RADIUS on MikroTik
-                config_result = self._auto_configure_router_radius(router, radius_secret)
+                config_result = self._auto_configure_router_radius(router, radius_secret, organization)
                 
                 if config_result.get('success'):
                     auto_configured = True
@@ -215,12 +272,14 @@ class RouterService:
             router.radius_config_status = 'failed'
             db.session.commit()
         
-        # Prepare response
         response = {
             'router': router,
             'auto_configured': auto_configured,
-            'radius_secret': radius_secret,  # Only shown once!
+            'radius_secret': radius_secret,
             'radius_server_ip': current_app.config.get('RADIUS_SERVER_IP', '163.245.217.16'),
+            'organization_slug': organization.slug,
+            'organization_id': str(organization_id),
+            'organization_name': organization.name
         }
         
         if not auto_configured:
@@ -228,20 +287,23 @@ class RouterService:
                 'command': f'/radius add address={current_app.config.get("RADIUS_SERVER_IP", "163.245.217.16")} secret={radius_secret} service=hotspot,ppp',
                 'additional_commands': [
                     '/ip hotspot set radius=yes',
-                    '/ppp set use-radius=yes'
+                    '/ppp set use-radius=yes',
+                    f'/system comment set comment="org_slug:{organization.slug}"',
+                    f'/ip hotspot profile set default dns-name="{organization.slug}.hotspot.local"'
                 ],
                 'message': 'Please run these commands on your MikroTik router to complete RADIUS configuration'
             }
             if config_error:
                 response['error'] = config_error
         
-        logger.info(f"Router created: {router.name} (Auto-configured: {auto_configured})")
+        logger.info(f"Router created: {router.name} (Auto-configured: {auto_configured}) | Org: {organization.slug}")
         return response
 
+    # ==========================================================================
     # READ OPERATIONS
+    # ==========================================================================
         
     def get_router(self, router_id: UUID, organization_id: UUID) -> Router:
-        """Get router by ID with tenant isolation"""
         router = self.repository.get_by_id(router_id, organization_id)
         if not router:
             raise NotFoundError("Router not found")
@@ -251,28 +313,28 @@ class RouterService:
                                      limit: int = 100, status: str = None,
                                      network_id: UUID = None,
                                      radius_config_status: str = None) -> List[Router]:
-        """Get all routers for an organization with filters"""
         return self.repository.get_by_organization(
             organization_id, skip, limit, status, network_id, radius_config_status
         )
 
     def get_routers_by_network(self, network_id: UUID, organization_id: UUID) -> List[Router]:
-        """Get all routers in a specific network"""
         return self.repository.get_by_network(network_id, organization_id)
     
     def get_routers_pending_radius_config(self, organization_id: UUID) -> List[Router]:
-        """Get routers that need RADIUS configuration"""
         return self.repository.get_routers_pending_radius_config(organization_id)
+    
+    def get_router_by_ip(self, ip_address: str, organization_id: UUID) -> Optional[Router]:
+        return self.repository.get_by_ip(ip_address, organization_id)
 
+    # ==========================================================================
     # UPDATE OPERATIONS
+    # ==========================================================================
         
     def update_router(self, router_id: UUID, organization_id: UUID, data: Dict[str, Any]) -> Router:
-        """Update router information"""
-        # Handle password separately (encrypt before update)
         if "password" in data and data["password"]:
             data["password_encrypted"] = self.encryption.encrypt(data.pop("password"))
         elif "password" in data:
-            data.pop("password")  # Remove empty password
+            data.pop("password")
 
         router = self.repository.update(router_id, organization_id, data)
         if not router:
@@ -282,31 +344,25 @@ class RouterService:
         return router
     
     def retry_radius_configuration(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
-        """
-        Retry RADIUS configuration for a router that previously failed
-        """
         router = self.get_router(router_id, organization_id)
+        organization = Organization.query.get(organization_id)
         
         if not router.radius_secret:
             raise BusinessError("Router has no RADIUS secret configured")
         
-        # Attempt auto-configuration
-        config_result = self._auto_configure_router_radius(router, router.radius_secret)
+        config_result = self._auto_configure_router_radius(router, router.radius_secret, organization)
         
         if config_result.get('success'):
-            self.repository.update_radius_config_status(
-                router.id, organization_id, 'configured'
-            )
+            self.repository.update_radius_config_status(router.id, organization_id, 'configured')
             return {
                 'success': True,
                 'message': 'RADIUS configured successfully',
-                'radius_secret': router.radius_secret
+                'radius_secret': router.radius_secret,
+                'organization_slug': organization.slug if organization else None
             }
         else:
             error_msg = config_result.get('error', 'Unknown error')
-            self.repository.update_radius_config_status(
-                router.id, organization_id, 'failed', error=error_msg
-            )
+            self.repository.update_radius_config_status(router.id, organization_id, 'failed', error=error_msg)
             return {
                 'success': False,
                 'message': f'RADIUS configuration failed: {error_msg}',
@@ -314,20 +370,21 @@ class RouterService:
                     'command': f'/radius add address={current_app.config.get("RADIUS_SERVER_IP", "163.245.217.16")} secret={router.radius_secret} service=hotspot,ppp',
                     'additional_commands': [
                         '/ip hotspot set radius=yes',
-                        '/ppp set use-radius=yes'
+                        '/ppp set use-radius=yes',
+                        f'/system comment set comment="org_slug:{organization.slug}"' if organization else ''
                     ]
                 }
             }
 
+    # ==========================================================================
     # DELETE OPERATIONS
+    # ==========================================================================
         
     def delete_router(self, router_id: UUID, organization_id: UUID, soft_delete: bool = True):
-        """Soft or hard delete a router"""
         router = self.repository.get_by_id(router_id, organization_id, include_inactive=True)
         if not router:
             raise NotFoundError("Router not found")
 
-        # Check if router has active hotspot or PPPoE servers
         if not soft_delete:
             hotspot_count = self.hotspot_repo.get_by_router(router_id, organization_id).count()
             pppoe_count = self.pppoe_repo.get_by_router(router_id, organization_id).count()
@@ -338,19 +395,30 @@ class RouterService:
         self.repository.delete(router_id, organization_id, soft_delete)
         logger.info(f"Router {'deactivated' if soft_delete else 'deleted'}: {router_id}")
 
-    # DISCOVERY & CONNECTION
-        
+    # ==========================================================================
+    # MULTIPLE DISCOVERY METHODS (CORRECTED)
+    # ==========================================================================
+    
     def discover_router(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
         """
         Auto-discover router capabilities using multiple methods.
-        Priority: API > SSH > Telnet > Manual fallback
+        Methods attempted in order: API, SSH, SNMP, Telnet
         """
         router = self.get_router(router_id, organization_id)
-        password = self.encryption.decrypt(router.password_encrypted)
+        
+        router_data = {
+            'id': str(router.id),
+            'ip_address': str(router.ip_address),
+            'username': router.username,
+            'password_encrypted': router.password_encrypted,
+            'api_port': router.api_port
+        }
         
         discovery_methods = [
             ('api', self._discover_via_api),
             ('ssh', self._discover_via_ssh),
+            ('snmp', self._discover_via_snmp),
+            ('telnet', self._discover_via_telnet),
         ]
         
         results = []
@@ -358,21 +426,23 @@ class RouterService:
         for method_name, method_func in discovery_methods:
             try:
                 logger.info(f"Attempting discovery via {method_name} for router {router.name}")
-                result = method_func(router, password)
+                result = method_func(router, router_data)
                 
                 if result.get('success'):
                     # Update router with discovered info
-                    self.repository.update_discovery(
-                        router_id=router_id,
-                        organization_id=organization_id,
-                        model=result.get('model'),
-                        routeros_version=result.get('version'),
-                        serial_number=result.get('serial_number'),
-                        capabilities=result.get('capabilities', []),
-                        discovered_method=method_name
-                    )
+                    update_data = {
+                        'model': result.get('model'),
+                        'routeros_version': result.get('version'),
+                        'serial_number': result.get('serial_number'),
+                        'status': 'online',
+                        'last_seen_at': datetime.utcnow()
+                    }
                     
-                    # Update status to online
+                    # Update capabilities if returned
+                    if result.get('capabilities'):
+                        update_data['capabilities'] = result.get('capabilities')
+                    
+                    self.repository.update(router_id, organization_id, update_data)
                     self.repository.update_status(router_id, organization_id, 'online')
                     
                     return {
@@ -388,8 +458,7 @@ class RouterService:
                 continue
         
         # All discovery methods failed
-        self.repository.update_status(router_id, organization_id, 'offline', 
-                                      error_message="Auto-discovery failed. Router added in offline mode.")
+        self.repository.update_status(router_id, organization_id, 'offline')
         
         return {
             'success': False,
@@ -397,50 +466,205 @@ class RouterService:
             'attempts': results
         }
     
-    def _discover_via_api(self, router: Router, password: str) -> Dict[str, Any]:
-        """Discover via MikroTik REST API"""
+    def _discover_via_api(self, router: Router, router_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Discover via MikroTik API"""
         try:
-            info = self.mikrotik_client.get_router_info(
-                host=str(router.ip_address),
-                username=router.username,
-                password=password,
-                port=router.api_port
-            )
+            # Get router system info
+            info = self.mikrotik_client.get_router_info(router_data)
             
-            # Test capabilities
+            # Detect capabilities
             capabilities = ['api']
-            if self.mikrotik_client.has_hotspot(router.ip_address, router.username, password, router.api_port):
-                capabilities.append('hotspot')
-            if self.mikrotik_client.has_pppoe(router.ip_address, router.username, password, router.api_port):
-                capabilities.append('pppoe')
-            if self.mikrotik_client.has_wireless(router.ip_address, router.username, password, router.api_port):
-                capabilities.append('wireless')
+            
+            # Check for hotspot
+            try:
+                hotspot_result = self.mikrotik_client.execute(router_data, '/ip/hotspot/print')
+                if hotspot_result and len(hotspot_result) > 0:
+                    capabilities.append('hotspot')
+            except:
+                pass
+            
+            # Check for PPPoE
+            try:
+                pppoe_result = self.mikrotik_client.execute(router_data, '/interface/pppoe-server/server/print')
+                if pppoe_result and len(pppoe_result) > 0:
+                    capabilities.append('pppoe')
+            except:
+                pass
+            
+            # Check for wireless
+            try:
+                wireless_result = self.mikrotik_client.execute(router_data, '/interface/wireless/print')
+                if wireless_result and len(wireless_result) > 0:
+                    capabilities.append('wireless')
+            except:
+                pass
             
             return {
                 'success': True,
-                'model': info.get('model'),
+                'model': info.get('board_name'),
                 'version': info.get('version'),
-                'serial_number': info.get('serial_number'),
-                'capabilities': capabilities
+                'serial_number': None,
+                'capabilities': capabilities,
+                'uptime': info.get('uptime'),
+                'cpu_load': info.get('cpu_load'),
+                'free_memory': info.get('free_memory'),
+                'total_memory': info.get('total_memory')
             }
         except Exception as e:
-            raise Exception(f"API discovery failed: {e}")
+            raise Exception(f"API discovery failed: {str(e)}")
     
-    def _discover_via_ssh(self, router: Router, password: str) -> Dict[str, Any]:
-        """Discover via SSH command (fallback)"""
-        # Placeholder for SSH implementation
-        raise Exception("SSH discovery not yet implemented")
+    def _discover_via_ssh(self, router: Router, router_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Discover via SSH (requires paramiko library)"""
+        try:
+            import paramiko
+            from scp import SCPClient
+            
+            password = self.encryption.decrypt(router.password_encrypted)
+            
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(
+                hostname=str(router.ip_address),
+                username=router.username,
+                password=password,
+                port=router.api_port or 22,
+                timeout=10
+            )
+            
+            # Get system resource info
+            stdin, stdout, stderr = ssh.exec_command('/system resource print')
+            output = stdout.read().decode()
+            
+            # Parse output
+            model = None
+            version = None
+            
+            for line in output.split('\n'):
+                if 'board-name:' in line:
+                    model = line.split(':')[1].strip()
+                elif 'version:' in line:
+                    version = line.split(':')[1].strip()
+            
+            ssh.close()
+            
+            return {
+                'success': True,
+                'model': model,
+                'version': version,
+                'capabilities': ['ssh', 'api'],
+                'discovered_via': 'ssh'
+            }
+        except ImportError:
+            raise Exception("SSH discovery requires paramiko library")
+        except Exception as e:
+            raise Exception(f"SSH discovery failed: {str(e)}")
+    
+    def _discover_via_snmp(self, router: Router, router_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Discover via SNMP (requires pysnmp library)"""
+        try:
+            from pysnmp.hlapi import getCmd, CommunityData, UdpTransportTarget, ObjectIdentity, ObjectType
+            
+            # Default SNMP community (router should have SNMP enabled)
+            community = 'public'
+            
+            # OIDs for MikroTik
+            oids = {
+                'model': '1.3.6.1.4.1.14988.1.1.1.1.0',  # sysDescr
+                'version': '1.3.6.1.4.1.14988.1.1.1.2.0',  # sysVersion
+                'serial': '1.3.6.1.4.1.14988.1.1.1.3.0'    # sysSerial
+            }
+            
+            result = {}
+            
+            for key, oid in oids.items():
+                errorIndication, errorStatus, errorIndex, varBinds = next(
+                    getCmd(
+                        CommunityData(community),
+                        UdpTransportTarget((str(router.ip_address), 161)),
+                        0,
+                        ObjectType(ObjectIdentity(oid))
+                    )
+                )
+                
+                if not errorIndication and not errorStatus:
+                    for varBind in varBinds:
+                        result[key] = str(varBind[1])
+            
+            if not result:
+                raise Exception("No SNMP response")
+            
+            return {
+                'success': True,
+                'model': result.get('model'),
+                'version': result.get('version'),
+                'serial_number': result.get('serial'),
+                'capabilities': ['snmp'],
+                'discovered_via': 'snmp'
+            }
+        except ImportError:
+            raise Exception("SNMP discovery requires pysnmp library")
+        except Exception as e:
+            raise Exception(f"SNMP discovery failed: {str(e)}")
+    
+    def _discover_via_telnet(self, router: Router, router_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Discover via Telnet (fallback, not recommended for production)"""
+        try:
+            import telnetlib
+            
+            password = self.encryption.decrypt(router.password_encrypted)
+            
+            tn = telnetlib.Telnet(str(router.ip_address), port=23, timeout=10)
+            tn.read_until(b"Login: ")
+            tn.write(router.username.encode('ascii') + b"\n")
+            tn.read_until(b"Password: ")
+            tn.write(password.encode('ascii') + b"\n")
+            
+            tn.write(b"/system resource print\n")
+            tn.write(b"quit\n")
+            
+            output = tn.read_all().decode()
+            tn.close()
+            
+            # Parse output
+            model = None
+            version = None
+            
+            for line in output.split('\n'):
+                if 'board-name:' in line:
+                    model = line.split(':')[1].strip()
+                elif 'version:' in line:
+                    version = line.split(':')[1].strip()
+            
+            return {
+                'success': True,
+                'model': model,
+                'version': version,
+                'capabilities': ['telnet'],
+                'discovered_via': 'telnet'
+            }
+        except Exception as e:
+            raise Exception(f"Telnet discovery failed: {str(e)}")
 
+    # ==========================================================================
     # CONNECTION TEST
+    # ==========================================================================
         
-    def test_connection(self, router_id: UUID, organization_id: UUID, 
-                    method: str = 'api') -> Dict[str, Any]:
+    def test_connection(self, router_id: UUID, organization_id: UUID, method: str = 'api') -> Dict[str, Any]:
         """Test connection to router using specified method"""
         router = self.get_router(router_id, organization_id)
-        password = self.encryption.decrypt(router.password_encrypted)
+        
+        router_data = {
+            'id': str(router.id),
+            'ip_address': str(router.ip_address),
+            'username': router.username,
+            'password_encrypted': router.password_encrypted,
+            'api_port': router.api_port
+        }
 
         try:
             if method == 'api':
+                # Decrypt password for testing
+                password = self.encryption.decrypt(router.password_encrypted)
                 result = self.mikrotik_client.test_connection(
                     host=str(router.ip_address),
                     username=router.username,
@@ -464,43 +688,94 @@ class RouterService:
             self.repository.update_status(router_id, organization_id, "error", error_message=str(e))
             raise BusinessError(f"Connection test failed: {str(e)}")
 
-    # HEALTH MONITORING
+    # ==========================================================================
+    # HEALTH MONITORING (CORRECTED)
+    # ==========================================================================
         
     def update_health(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
         """Update router health metrics (CPU, memory, uptime)"""
         router = self.get_router(router_id, organization_id)
-        password = self.encryption.decrypt(router.password_encrypted)
+        
+        router_data = {
+            'id': str(router.id),
+            'ip_address': str(router.ip_address),
+            'username': router.username,
+            'password_encrypted': router.password_encrypted,
+            'api_port': router.api_port
+        }
 
         try:
-            health = self.mikrotik_client.get_health_metrics(
-                host=str(router.ip_address),
-                username=router.username,
-                password=password,
-                port=router.api_port
-            )
-
+            # Get router system info
+            info = self.mikrotik_client.get_router_info(router_data)
+            
+            # Parse uptime
+            uptime_str = info.get('uptime', '0s')
+            uptime_seconds = self._parse_uptime(uptime_str)
+            
+            # Get CPU load
+            cpu_load = info.get('cpu_load')
+            if cpu_load:
+                try:
+                    cpu_load = int(cpu_load)
+                except:
+                    cpu_load = 0
+            else:
+                cpu_load = 0
+            
+            # Calculate memory usage
+            free_memory = info.get('free_memory')
+            total_memory = info.get('total_memory')
+            memory_usage = 0
+            if free_memory and total_memory:
+                try:
+                    free = int(free_memory)
+                    total = int(total_memory)
+                    memory_usage = int(((total - free) / total) * 100)
+                except:
+                    pass
+            
+            # Update repository (using the correct method names)
             self.repository.update_health(
                 router_id=router_id,
                 organization_id=organization_id,
-                cpu_usage=health.get('cpu', 0),
-                memory_usage=health.get('memory', 0),
-                uptime_seconds=health.get('uptime', 0)
+                cpu_usage=cpu_load,
+                memory_usage=memory_usage,
+                uptime_seconds=uptime_seconds
             )
-
-            return health
+            
+            # Update last seen and status
+            self.repository.update_status(router_id, organization_id, 'online')
+            
+            return {
+                'cpu_load': cpu_load,
+                'memory_usage': memory_usage,
+                'uptime_seconds': uptime_seconds,
+                'uptime_hours': round(uptime_seconds / 3600, 2),
+                'version': info.get('version'),
+                'board_name': info.get('board_name'),
+                'free_memory': free_memory,
+                'total_memory': total_memory
+            }
 
         except Exception as e:
             self.repository.update_status(router_id, organization_id, "error", error_message=str(e))
             raise BusinessError(f"Health check failed: {str(e)}")
 
+    # ==========================================================================
     # SYNC (PULL FROM ROUTER)
+    # ==========================================================================
         
     def sync_router(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
-        """
-        Full sync of router configuration (hotspot servers, PPPoE servers, etc.)
-        """
+        """Full sync of router configuration"""
         router = self.get_router(router_id, organization_id)
-        password = self.encryption.decrypt(router.password_encrypted)
+        
+        router_data = {
+            'id': str(router.id),
+            'ip_address': str(router.ip_address),
+            'username': router.username,
+            'password_encrypted': router.password_encrypted,
+            'api_port': router.api_port
+        }
 
         results = {
             'success': True,
@@ -511,11 +786,11 @@ class RouterService:
 
         try:
             # Sync hotspot servers
-            hotspot_count = self._sync_hotspot_servers(router, password)
+            hotspot_count = self._sync_hotspot_servers(router, router_data)
             results['hotspot_synced'] = hotspot_count
 
             # Sync PPPoE servers
-            pppoe_count = self._sync_pppoe_servers(router, password)
+            pppoe_count = self._sync_pppoe_servers(router, router_data)
             results['pppoe_synced'] = pppoe_count
 
             # Update last sync timestamp
@@ -530,15 +805,10 @@ class RouterService:
             self.repository.update_status(router_id, organization_id, "error", error_message=str(e))
             raise BusinessError(f"Sync failed: {str(e)}")
 
-    def _sync_hotspot_servers(self, router: Router, password: str) -> int:
+    def _sync_hotspot_servers(self, router: Router, router_data: Dict[str, Any]) -> int:
         """Sync hotspot servers from router to database"""
         try:
-            hotspot_servers = self.mikrotik_client.get_hotspot_servers(
-                host=str(router.ip_address),
-                username=router.username,
-                password=password,
-                port=router.api_port
-            )
+            hotspot_servers = self.mikrotik_client.get_hotspot_servers(router_data)
 
             count = 0
             for hs in hotspot_servers:
@@ -547,17 +817,16 @@ class RouterService:
                 )
 
                 if existing:
-                    # Update existing
                     self.hotspot_repo.update(existing.id, router.organization_id, {
                         'interface': hs.get("interface"),
                         'is_active': hs.get("disabled") != "true"
                     })
                 else:
-                    # Create new
                     self.hotspot_repo.create({
                         'organization_id': router.organization_id,
                         'router_id': router.id,
                         'name': hs.get("name"),
+                        'hotspot_id': hs.get("name"),
                         'interface': hs.get("interface"),
                         'is_active': hs.get("disabled") != "true"
                     })
@@ -569,15 +838,10 @@ class RouterService:
             logger.error(f"Failed to sync hotspot servers for router {router.id}: {e}")
             return 0
 
-    def _sync_pppoe_servers(self, router: Router, password: str) -> int:
+    def _sync_pppoe_servers(self, router: Router, router_data: Dict[str, Any]) -> int:
         """Sync PPPoE servers from router to database"""
         try:
-            pppoe_servers = self.mikrotik_client.get_pppoe_servers(
-                host=str(router.ip_address),
-                username=router.username,
-                password=password,
-                port=router.api_port
-            )
+            pppoe_servers = self.mikrotik_client.get_pppoe_servers(router_data)
 
             count = 0
             for ps in pppoe_servers:
@@ -608,24 +872,27 @@ class RouterService:
             logger.error(f"Failed to sync PPPoE servers for router {router.id}: {e}")
             return 0
 
-    # MANUAL RADIUS CONFIGURATION (Legacy/Manual fallback)
+    # ==========================================================================
+    # MANUAL RADIUS CONFIGURATION
+    # ==========================================================================
         
     def configure_radius_manual(self, router_id: UUID, organization_id: UUID, 
                                 radius_server: str, radius_secret: str) -> Dict[str, Any]:
-        
+        """Manually configure RADIUS on a router"""
         router = self.get_router(router_id, organization_id)
-        password = self.encryption.decrypt(router.password_encrypted)
+        organization = Organization.query.get(organization_id)
 
         try:
-            # Use the correct parameter structure: router_data dict
+            router_data = {
+                'id': str(router.id),
+                'ip_address': str(router.ip_address),
+                'username': router.username,
+                'password_encrypted': router.password_encrypted,
+                'api_port': router.api_port
+            }
+            
             result = self.mikrotik_client.configure_radius(
-                router_data={
-                    'id': str(router.id),
-                    'ip_address': str(router.ip_address),
-                    'username': router.username,
-                    'password_encrypted': router.password_encrypted,
-                    'api_port': router.api_port
-                },
+                router_data=router_data,
                 radius_server=radius_server,
                 radius_secret=radius_secret,
                 radius_port=1812,
@@ -633,10 +900,11 @@ class RouterService:
             )
 
             if result.get('success'):
-                # Update router status
                 self.repository.update_radius_config_status(router_id, organization_id, 'configured')
                 
-                # Update router settings
+                if organization:
+                    self._store_org_slug_on_router(router, organization)
+                
                 settings = router.settings or {}
                 settings['radius_configured'] = True
                 settings['radius_server'] = radius_server
@@ -647,11 +915,14 @@ class RouterService:
         except Exception as e:
             raise BusinessError(f"RADIUS configuration failed: {str(e)}")
 
+    # ==========================================================================
     # UTILITY
+    # ==========================================================================
         
     def get_connection_status(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
         """Get current connection status and health summary"""
         router = self.get_router(router_id, organization_id)
+        organization = Organization.query.get(organization_id)
         
         return {
             'router_id': str(router.id),
@@ -663,5 +934,6 @@ class RouterService:
             'memory_usage': getattr(router, 'memory_usage', None),
             'uptime_seconds': getattr(router, 'uptime_seconds', None),
             'is_active': router.is_active,
-            'has_error': bool(getattr(router, 'last_error', None))
+            'has_error': bool(getattr(router, 'last_error', None)),
+            'organization_slug': organization.slug if organization else None
         }
