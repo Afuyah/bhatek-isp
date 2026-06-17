@@ -173,13 +173,8 @@ class RadiusAuthHandler:
         }
 
 
-# Flask route for RADIUS authentication (for use with radrest module)
 @radius_auth_bp.route('/authenticate', methods=['POST'])
 def radius_authenticate():
-    """
-    RADIUS authentication endpoint for FreeRADIUS rest module
-    FreeRADIUS will POST to this endpoint with authentication request
-    """
     try:
         data = request.get_json() or request.form
         
@@ -191,11 +186,13 @@ def radius_authenticate():
         organization_slug = data.get('organization_slug')
         
         if not username or not password:
-            return jsonify({'result': 'reject', 'reason': 'Missing credentials'}), 401
+            return jsonify({
+                'result': 'reject',
+                'reason': 'Missing credentials'
+            }), 200  # <-- Changed to 200
         
         handler = RadiusAuthHandler()
         
-        # Try to get organization from slug
         organization_id = None
         if organization_slug:
             from app.models.organization import Organization
@@ -221,11 +218,14 @@ def radius_authenticate():
             return jsonify({
                 'result': 'reject',
                 'reason': result.get('error', 'Access denied')
-            }), 401
+            }), 200  # <-- Changed to 200
             
     except Exception as e:
         logger.error(f"RADIUS auth endpoint error: {e}", exc_info=True)
-        return jsonify({'result': 'reject', 'reason': 'Internal error'}), 500
+        return jsonify({
+            'result': 'reject',
+            'reason': 'Internal error'
+        }), 200 
 
 
 @radius_auth_bp.route('/disconnect', methods=['POST'])
