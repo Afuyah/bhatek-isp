@@ -1,563 +1,397 @@
 {% extends "web/organization/base.html" %}
 
-{% block title %}{{ organization.name }} - Routers{% endblock %}
+{% block title %}{{ organization.name }} — Routers{% endblock %}
 
 {% block content %}
-<div class="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
-    
-    <!-- Header Section -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-            <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Network Routers</h1>
-            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Manage and monitor all router devices across your network</p>
-        </div>
-        <div class="flex gap-2">
-            <!-- Quick Import/Export -->
-            <button class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all">
-                <i class="fas fa-download text-xs"></i> Export
-            </button>
-            <a href="{{ url_for('router_web.create', org_id=organization.id) }}" 
-               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-xs sm:text-sm font-medium rounded-lg transition-all shadow-sm hover:shadow-md">
-                <i class="fas fa-plus text-xs"></i>
-                <span>Add Router</span>
-            </a>
-        </div>
-    </div>
-
-    <!-- Stats Dashboard -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <!-- Total Routers -->
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-2xl font-bold text-gray-800">{{ routers|length }}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">Total Routers</div>
-                </div>
-                <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-server text-blue-500 text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-2 text-[10px] text-gray-400">
-                <i class="fas fa-microchip mr-1"></i> All devices
-            </div>
-        </div>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
         
-        <!-- Online Status -->
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-2xl font-bold text-emerald-600">{{ routers|selectattr('status', 'equalto', 'online')|list|length }}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">Online</div>
-                </div>
-                <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-check-circle text-emerald-500 text-sm"></i>
-                </div>
+        {# =====================================================================
+           HEADER
+           ===================================================================== #}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 sm:mb-6">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Routers</h1>
+                <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                    {% if context %}
+                        {{ context.get('total', routers|length) }} router{{ 's' if context.get('total', routers|length) != 1 else '' }}
+                    {% else %}
+                        {{ routers|length }} router{{ 's' if routers|length != 1 else '' }}
+                    {% endif %}
+                    across {{ networks|length }} network{{ 's' if networks|length != 1 else '' }}
+                </p>
             </div>
-            <div class="mt-2 text-[10px] text-emerald-600">
-                <i class="fas fa-charging-station mr-1"></i> Active & healthy
-            </div>
-        </div>
-        
-        <!-- Offline Status -->
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-2xl font-bold text-red-600">{{ routers|selectattr('status', 'equalto', 'offline')|list|length }}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">Offline</div>
-                </div>
-                <div class="w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-exclamation-triangle text-red-500 text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-2 text-[10px] text-red-600">
-                <i class="fas fa-clock mr-1"></i> Needs attention
-            </div>
-        </div>
-        
-        <!-- RADIUS Ready -->
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-2xl font-bold text-indigo-600">{{ routers|selectattr('radius_config_status', 'equalto', 'configured')|list|length }}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">RADIUS Ready</div>
-                </div>
-                <div class="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-shield-alt text-indigo-500 text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-2 text-[10px] text-indigo-600">
-                <i class="fas fa-check-circle mr-1"></i> AAA configured
-            </div>
-        </div>
-        
-        <!-- Pending Config -->
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-2xl font-bold text-amber-600">{{ routers|selectattr('radius_config_status', 'equalto', 'pending')|list|length + routers|selectattr('radius_config_status', 'equalto', 'failed')|list|length }}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">Pending Config</div>
-                </div>
-                <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-clock text-amber-500 text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-2 text-[10px] text-amber-600">
-                <i class="fas fa-tools mr-1"></i> Setup required
-            </div>
-        </div>
-        
-        <!-- Network Coverage -->
-        <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm hidden lg:block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-2xl font-bold text-purple-600">{{ networks|length }}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">Networks</div>
-                </div>
-                <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-globe text-purple-500 text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-2 text-[10px] text-purple-600">
-                <i class="fas fa-layer-group mr-1"></i> Total coverage
-            </div>
-        </div>
-    </div>
-
-    <!-- Advanced Filter Bar -->
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <!-- Filter Header -->
-        <div class="px-4 py-3 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <i class="fas fa-sliders-h text-gray-400 text-xs"></i>
-                <span class="text-xs font-medium text-gray-600">Filters</span>
-                <span id="activeFilterCount" class="hidden bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full"></span>
+                <a href="{{ url_for('router_web.create', org_id=organization.id) }}" 
+                   class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xs sm:text-sm font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98]">
+                    <i class="fas fa-plus text-[11px]"></i>
+                    <span>Add Router</span>
+                </a>
             </div>
-            <button onclick="resetAllFilters()" class="text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="fas fa-undo-alt mr-1"></i> Reset all
-            </button>
         </div>
+
+        {# =====================================================================
+           STATS STRIP — FIXED: context is a dict, use .get() not .attribute
+           ===================================================================== #}
+        {% set total = context.get('total', routers|length) if context else routers|length %}
+        {% set online_count = context.get('counts', {}).get('online', 0) if context else routers|selectattr('status','equalto','online')|list|length %}
+        {% set offline_count = context.get('counts', {}).get('offline', 0) if context else routers|selectattr('status','equalto','offline')|list|length %}
+        {% set radius_conf = context.get('radius', {}).get('configured', 0) if context else routers|selectattr('radius_config_status','equalto','configured')|list|length %}
+        {% set radius_pend = (context.get('radius', {}).get('pending', 0) if context else 0) + (context.get('radius', {}).get('failed', 0) if context else 0) %}
         
-        <!-- Filter Controls -->
-        <div class="p-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <!-- Status Filter -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1.5">
-                        <i class="fas fa-circle mr-1 text-[8px] text-emerald-500"></i> Status
-                    </label>
-                    <select id="statusFilter" 
-                            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all">
-                        <option value="">All Statuses</option>
-                        <option value="online">🟢 Online</option>
-                        <option value="offline">🔴 Offline</option>
-                        <option value="unknown">⚪ Unknown</option>
-                    </select>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4 sm:mb-5">
+            {% set stats = [
+                ('Total', total, 'fas fa-server', 'bg-blue-50', 'text-blue-600'),
+                ('Online', online_count, 'fas fa-check-circle', 'bg-emerald-50', 'text-emerald-600'),
+                ('Offline', offline_count, 'fas fa-exclamation-triangle', 'bg-red-50', 'text-red-600'),
+                ('RADIUS Ready', radius_conf, 'fas fa-shield-halved', 'bg-indigo-50', 'text-indigo-600'),
+                ('Pending Setup', radius_pend, 'fas fa-clock', 'bg-amber-50', 'text-amber-600'),
+                ('Networks', networks|length, 'fas fa-globe', 'bg-purple-50', 'text-purple-600'),
+            ] %}
+            {% for label, value, icon, bg, color in stats %}
+            <div class="bg-white rounded-xl border border-slate-200/60 p-3 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <span class="text-lg sm:text-2xl font-bold text-slate-800">{{ value }}</span>
+                    <div class="w-8 h-8 sm:w-9 sm:h-9 {{ bg }} rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="{{ icon }} {{ color }} text-sm"></i>
+                    </div>
                 </div>
-                
-                <!-- RADIUS Status Filter -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1.5">
-                        <i class="fas fa-shield-alt mr-1 text-indigo-500"></i> RADIUS Status
-                    </label>
-                    <select id="radiusStatusFilter" 
-                            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all">
-                        <option value="">All</option>
-                        <option value="configured">✅ Configured</option>
-                        <option value="pending">⏳ Pending</option>
-                        <option value="failed">❌ Failed</option>
-                    </select>
-                </div>
-                
-                <!-- Network Filter -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1.5">
-                        <i class="fas fa-network-wired mr-1"></i> Network
-                    </label>
-                    <select id="networkFilter" 
-                            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all">
-                        <option value="">All Networks</option>
-                        {% for net in networks %}
-                        <option value="{{ net.id }}">{{ net.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <!-- Search -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1.5">
-                        <i class="fas fa-search mr-1"></i> Quick Search
-                    </label>
-                    <div class="relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                        <input type="text" id="searchInput" 
-                               class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
-                               placeholder="Name, IP or model...">
+                <p class="text-[10px] sm:text-[11px] text-slate-500 font-medium mt-1">{{ label }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        {# =====================================================================
+           FILTER BAR
+           ===================================================================== #}
+        <div class="bg-white rounded-xl border border-slate-200/60 shadow-sm mb-4 sm:mb-5 overflow-hidden">
+            <div class="p-3 sm:p-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Status</label>
+                        <select id="statusFilter" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white">
+                            <option value="">All Statuses</option>
+                            <option value="online">Online</option>
+                            <option value="offline">Offline</option>
+                            <option value="unknown">Unknown</option>
+                            <option value="error">Error</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">RADIUS</label>
+                        <select id="radiusFilter" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white">
+                            <option value="">All</option>
+                            <option value="configured">Configured</option>
+                            <option value="pending">Pending</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Network</label>
+                        <select id="networkFilter" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white">
+                            <option value="">All Networks</option>
+                            {% for net in networks %}
+                            <option value="{{ net.id }}">{{ net.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Search</label>
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="searchInput" 
+                                   class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white"
+                                   placeholder="Name or IP address...">
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Active Filters Display -->
-            <div id="activeFilters" class="flex flex-wrap gap-2 mt-3 hidden"></div>
         </div>
-    </div>
 
-    <!-- Routers Table -->
-    {% if routers %}
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <!-- Table Header with count -->
-        <div class="px-4 py-3 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <i class="fas fa-table-list text-gray-400 text-xs"></i>
-                <span class="text-xs font-medium text-gray-600">Router Inventory</span>
-                <span id="visibleCount" class="text-xs text-gray-400">({{ routers|length }} devices)</span>
+        {# =====================================================================
+           ROUTER TABLE
+           ===================================================================== #}
+        {% if routers %}
+        <div class="bg-white rounded-xl border border-slate-200/60 shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-500">
+                    <span id="visibleCount">{{ routers|length }}</span> device{{ 's' if routers|length != 1 else '' }}
+                </span>
             </div>
-            <div class="text-xs text-gray-400">
-                <i class="fas fa-sync-alt mr-1"></i> Last updated: {{ now.strftime('%H:%M') if now else 'N/A' }}
-            </div>
-        </div>
-        
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50 border-b border-gray-100">
-                    <tr class="text-xs font-semibold text-gray-500">
-                        <th class="text-left px-4 py-3 w-[25%]">Router</th>
-                        <th class="text-left px-4 py-3 w-[15%]">Connection</th>
-                        <th class="text-left px-4 py-3 w-[15%] hidden sm:table-cell">Network</th>
-                        <th class="text-left px-4 py-3 w-[12%]">Health</th>
-                        <th class="text-left px-4 py-3 w-[15%]">Security</th>
-                        <th class="text-left px-4 py-3 w-[10%] hidden lg:table-cell">Last Seen</th>
-                        <th class="text-center px-4 py-3 w-[8%]">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="routersTableBody" class="divide-y divide-gray-50">
-                    {% for router in routers %}
-                    <tr class="router-row hover:bg-gray-50/50 transition-all duration-150 group" 
-                        data-name="{{ router.name|lower }}" 
-                        data-ip="{{ router.ip_address }}" 
-                        data-model="{{ router.model|lower }}" 
-                        data-status="{{ router.status|default('unknown') }}" 
-                        data-radius-status="{{ router.radius_config_status|default('unknown') }}"
-                        data-network="{{ router.network_id or '' }}">
-                        
-                        <!-- Router Info -->
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
-                                    <i class="fas fa-router text-white text-sm"></i>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50/50">
+                            <th class="text-left px-4 py-3 text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">Router</th>
+                            <th class="text-left px-4 py-3 text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider hidden sm:table-cell">IP Address</th>
+                            <th class="text-left px-4 py-3 text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</th>
+                            <th class="text-left px-4 py-3 text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider hidden md:table-cell">RADIUS</th>
+                            <th class="text-left px-4 py-3 text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider hidden lg:table-cell">Last Seen</th>
+                            <th class="text-center px-4 py-3 text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider w-10">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="routersTableBody" class="divide-y divide-slate-50">
+                        {% for router in routers %}
+                        <tr class="router-row hover:bg-slate-50/50 transition-colors duration-150 group"
+                            data-name="{{ router.name|lower }}"
+                            data-ip="{{ router.ip_address }}"
+                            data-model="{{ (router.model or '')|lower }}"
+                            data-status="{{ router.status or 'unknown' }}"
+                            data-radius="{{ router.radius_config_status or 'unknown' }}"
+                            data-network="{{ router.network_id or '' }}">
+                            
+                            {# Name + Model #}
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                                        <i class="fas fa-server text-white text-xs"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" 
+                                           class="text-sm font-semibold text-slate-800 hover:text-blue-600 transition-colors duration-200 block truncate max-w-[180px] sm:max-w-none">
+                                            {{ router.name }}
+                                        </a>
+                                        <span class="text-[11px] text-slate-400">{{ router.model or 'Unknown model' }}</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="font-semibold text-gray-800 text-sm">{{ router.name }}</div>
-                                    <div class="text-[11px] text-gray-400 mt-0.5">{{ router.model or 'Unknown Model' }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <!-- IP Address -->
-                        <td class="px-4 py-3">
-                            <div class="font-mono text-xs text-gray-600">{{ router.ip_address }}</div>
-                            <div class="text-[10px] text-gray-400 mt-0.5">Port: {{ router.api_port }}</div>
-                        </td>
-                        
-                        <!-- Network -->
-                        <td class="px-4 py-3 hidden sm:table-cell">
-                            {% if router.network %}
-                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-md text-[11px] text-gray-600">
-                                <i class="fas fa-layer-group text-[9px]"></i>
-                                {{ router.network.name }}
-                            </span>
-                            {% else %}
-                            <span class="text-[11px] text-gray-400">—</span>
-                            {% endif %}
-                        </td>
-                        
-                        <!-- Status -->
-                        <td class="px-4 py-3">
-                            <div class="flex flex-col gap-1">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="w-2 h-2 rounded-full 
+                            </td>
+                            
+                            {# IP #}
+                            <td class="px-4 py-3 hidden sm:table-cell">
+                                <code class="text-xs font-mono bg-slate-50 px-2 py-1 rounded-md text-slate-600">{{ router.ip_address }}:{{ router.api_port }}</code>
+                            </td>
+                            
+                            {# Status #}
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-medium
+                                    {% if router.status == 'online' %}bg-emerald-50 text-emerald-700
+                                    {% elif router.status == 'offline' %}bg-red-50 text-red-600
+                                    {% elif router.status == 'error' %}bg-amber-50 text-amber-700
+                                    {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                    <span class="w-1.5 h-1.5 rounded-full 
                                         {% if router.status == 'online' %}bg-emerald-500 animate-pulse
                                         {% elif router.status == 'offline' %}bg-red-500
-                                        {% else %}bg-gray-400{% endif %}"></span>
-                                    <span class="text-xs font-medium 
-                                        {% if router.status == 'online' %}text-emerald-700
-                                        {% elif router.status == 'offline' %}text-red-700
-                                        {% else %}text-gray-500{% endif %}">
-                                        {{ (router.status|default('unknown'))|capitalize }}
-                                    </span>
+                                        {% elif router.status == 'error' %}bg-amber-500
+                                        {% else %}bg-slate-400{% endif %}"></span>
+                                    {{ router.status|capitalize if router.status else 'Unknown' }}
+                                </span>
+                            </td>
+                            
+                            {# RADIUS #}
+                            <td class="px-4 py-3 hidden md:table-cell">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
+                                    {% if router.radius_config_status == 'configured' %}bg-emerald-50 text-emerald-700
+                                    {% elif router.radius_config_status == 'pending' %}bg-amber-50 text-amber-700
+                                    {% elif router.radius_config_status == 'failed' %}bg-red-50 text-red-600
+                                    {% else %}bg-slate-100 text-slate-500{% endif %}">
+                                    {{ router.radius_config_status|capitalize if router.radius_config_status else 'None' }}
+                                </span>
+                            </td>
+                            
+                            {# Last Seen #}
+                            <td class="px-4 py-3 hidden lg:table-cell">
+                                <span class="text-xs text-slate-500">
+                                    {{ router.last_seen_at.strftime('%b %d, %H:%M') if router.last_seen_at else 'Never' }}
+                                </span>
+                            </td>
+                            
+                            {# Actions #}
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-center gap-1">
+                                    <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" 
+                                       class="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                                       title="View details">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </a>
+                                    <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" 
+                                       class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all duration-200"
+                                       title="Edit">
+                                        <i class="fas fa-pen text-xs"></i>
+                                    </a>
+                                    <button onclick="openDeleteModal('{{ router.id }}', '{{ router.name|e }}')"
+                                            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+                                            title="Delete">
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                    </button>
                                 </div>
-                                {% if not router.is_active %}
-                                <span class="text-[9px] text-red-500">(Maintenance)</span>
-                                {% endif %}
-                            </div>
-                        </td>
-                        
-                        <!-- RADIUS Status -->
-                        <td class="px-4 py-3">
-                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium
-                                {% if router.radius_config_status == 'configured' %}bg-emerald-100 text-emerald-700
-                                {% elif router.radius_config_status == 'pending' %}bg-amber-100 text-amber-700
-                                {% elif router.radius_config_status == 'failed' %}bg-red-100 text-red-700
-                                {% else %}bg-gray-100 text-gray-600{% endif %}">
-                                <i class="fas 
-                                    {%- if router.radius_config_status == 'configured' %}fa-check-circle
-                                    {%- elif router.radius_config_status == 'pending' %}fa-clock
-                                    {%- elif router.radius_config_status == 'failed' %}fa-exclamation-triangle
-                                    {%- else %}fa-question-circle{%- endif %} text-[9px]"></i>
-                                {{ (router.radius_config_status|default('Not Set'))|capitalize }}
-                            </span>
-                        </td>
-                        
-                        <!-- Last Seen -->
-                        <td class="px-4 py-3 text-[11px] text-gray-400 hidden lg:table-cell">
-                            {% if router.last_seen_at %}
-                                <i class="far fa-clock mr-1"></i>
-                                {{ router.last_seen_at.strftime('%Y-%m-%d %H:%M') }}
-                            {% else %}
-                                <i class="far fa-question-circle mr-1"></i> Never
-                            {% endif %}
-                        </td>
-                        
-                        <!-- Actions -->
-                        <td class="px-4 py-3">
-                            <div class="flex items-center justify-center gap-1">
-                                <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" 
-                                   class="w-7 h-7 rounded-md flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-all duration-150" title="View Details">
-                                    <i class="fas fa-eye text-sm"></i>
-                                </a>
-                                <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" 
-                                   class="w-7 h-7 rounded-md flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-all duration-150" title="Edit">
-                                    <i class="fas fa-edit text-sm"></i>
-                                </a>
-                                <button type="button" 
-                                        onclick="openDeleteModal('{{ router.id }}', '{{ router.name }}')"
-                                        class="w-7 h-7 rounded-md flex items-center justify-center text-red-500 hover:bg-red-50 transition-all duration-150" title="Delete">
-                                    <i class="fas fa-trash-alt text-sm"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- No Results State -->
-        <div id="noResultsState" class="hidden text-center py-12">
-            <i class="fas fa-search text-4xl text-gray-300 mb-3 block"></i>
-            <h4 class="text-base font-medium text-gray-600 mb-1">No routers found</h4>
-            <p class="text-sm text-gray-400">Try adjusting your filters or add a new router</p>
-        </div>
-    </div>
-    
-    <!-- Pagination -->
-    {% if pagination and pagination.pages > 1 %}
-    <div class="flex justify-between items-center gap-3 flex-wrap">
-        <div class="text-xs text-gray-500">
-            Showing page {{ pagination.page }} of {{ pagination.pages }}
-        </div>
-        <div class="flex gap-1">
-            {% if pagination.page > 1 %}
-            <a href="{{ url_for('router_web.index', org_id=organization.id, page=pagination.page-1) }}" 
-               class="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
-                <i class="fas fa-chevron-left mr-1"></i> Previous
-            </a>
-            {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             
-            {% for p in range([1, pagination.page-2]|max, [pagination.pages, pagination.page+2]|min + 1) %}
-                {% if p == pagination.page %}
-                <span class="px-3 py-1.5 text-xs bg-[#1a56db] border border-[#1a56db] rounded-md text-white">{{ p }}</span>
-                {% else %}
-                <a href="{{ url_for('router_web.index', org_id=organization.id, page=p) }}" 
-                   class="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">{{ p }}</a>
-                {% endif %}
-            {% endfor %}
-            
-            {% if pagination.page < pagination.pages %}
-            <a href="{{ url_for('router_web.index', org_id=organization.id, page=pagination.page+1) }}" 
-               class="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
-                Next <i class="fas fa-chevron-right ml-1"></i>
-            </a>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
-
-    {% else %}
-    <!-- Empty State -->
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm text-center py-12">
-        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-server text-3xl text-gray-400"></i>
-        </div>
-        <h3 class="text-lg font-semibold text-gray-800 mb-1">No Routers Configured</h3>
-        <p class="text-sm text-gray-500 mb-4 max-w-md mx-auto">Get started by adding your first router to begin managing your network infrastructure.</p>
-        <a href="{{ url_for('router_web.create', org_id=organization.id) }}" 
-           class="inline-flex items-center gap-2 px-4 py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm rounded-lg transition-all shadow-sm">
-            <i class="fas fa-plus"></i> Add Your First Router
-        </a>
-    </div>
-    {% endif %}
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeDeleteModal()"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
-        <div class="p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-exclamation-triangle text-red-500 text-lg"></i>
+            {# No Results #}
+            <div id="noResults" class="hidden text-center py-12">
+                <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-slate-100 flex items-center justify-center">
+                    <i class="fas fa-search text-slate-400 text-xl"></i>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900">Delete Router</h3>
+                <p class="text-sm font-medium text-slate-500">No routers match your filters</p>
+                <p class="text-xs text-slate-400 mt-1">Try adjusting or resetting your filters</p>
             </div>
-            <p class="text-gray-600 text-sm mb-2">
-                Are you sure you want to delete <strong id="deleteRouterName" class="text-gray-900"></strong>?
+        </div>
+
+        {# =====================================================================
+           PAGINATION
+           ===================================================================== #}
+        {% if pagination and pagination.pages > 1 %}
+        <div class="flex items-center justify-between mt-4">
+            <span class="text-xs text-slate-500">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+            <div class="flex gap-1.5">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('router_web.index', org_id=organization.id, page=pagination.page-1) }}" 
+                   class="px-3 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
+                    Previous
+                </a>
+                {% endif %}
+                {% if pagination.has_next %}
+                <a href="{{ url_for('router_web.index', org_id=organization.id, page=pagination.page+1) }}" 
+                   class="px-3 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
+                    Next
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        {# =====================================================================
+           EMPTY STATE
+           ===================================================================== #}
+        <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm text-center py-16">
+            <div class="w-20 h-20 mx-auto mb-5 rounded-3xl bg-slate-100 flex items-center justify-center">
+                <i class="fas fa-server text-slate-400 text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">No Routers Configured</h3>
+            <p class="text-sm text-slate-500 mb-6 max-w-md mx-auto">
+                Add your first router to start managing your network infrastructure and enable RADIUS authentication.
             </p>
-            <p class="text-xs text-gray-500 mb-6">
-                This action cannot be undone. All associated configurations and RADIUS settings will be removed.
-            </p>
-            <div class="flex justify-end gap-3">
-                <button onclick="closeDeleteModal()" 
-                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors">
-                    Cancel
+            <a href="{{ url_for('router_web.create', org_id=organization.id) }}" 
+               class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98]">
+                <i class="fas fa-plus text-xs"></i> Add Your First Router
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# =============================================================================
+   DELETE MODAL
+   ============================================================================= #}
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeDeleteModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-200">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+                    <i class="fas fa-trash-alt text-red-500 text-sm"></i>
+                </span>
+                Delete Router
+            </h3>
+            <button onclick="closeDeleteModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <div class="px-5 py-4">
+            <p class="text-sm text-slate-600">Delete <strong id="deleteRouterName" class="text-slate-900"></strong>?</p>
+            <p class="text-xs text-slate-400 mt-2">This will deactivate the router and its RADIUS NAS entry.</p>
+        </div>
+        <div class="flex justify-end gap-2.5 px-5 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+            <button onclick="closeDeleteModal()" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl transition-all duration-200">
+                Cancel
+            </button>
+            <form id="deleteForm" method="POST">
+                <input type="hidden" name="soft" value="true">
+                <button type="submit" class="px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98]">
+                    <i class="fas fa-trash-alt mr-1.5 text-xs"></i> Delete
                 </button>
-                <form id="deleteForm" method="POST">
-                    <button type="submit" 
-                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
-                        <i class="fas fa-trash-alt mr-1.5"></i> Delete Router
-                    </button>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
 </div>
 
+{# =============================================================================
+   SCRIPTS
+   ============================================================================= #}
 <script>
-const orgId = '{{ organization.id }}';
-let currentFilters = { status: '', radius: '', network: '', search: '' };
-
-function updateActiveFiltersDisplay() {
-    const container = document.getElementById('activeFilters');
-    const countSpan = document.getElementById('activeFilterCount');
-    const activeFilters = [];
+    const orgId = '{{ organization.id }}';
     
-    if (currentFilters.status) activeFilters.push({ key: 'status', value: currentFilters.status, label: `Status: ${currentFilters.status}` });
-    if (currentFilters.radius) activeFilters.push({ key: 'radius', value: currentFilters.radius, label: `RADIUS: ${currentFilters.radius}` });
-    if (currentFilters.network) {
-        const networkName = document.querySelector(`#networkFilter option[value="${currentFilters.network}"]`)?.textContent || currentFilters.network;
-        activeFilters.push({ key: 'network', value: currentFilters.network, label: `Network: ${networkName}` });
-    }
-    if (currentFilters.search) activeFilters.push({ key: 'search', value: currentFilters.search, label: `Search: "${currentFilters.search}"` });
-    
-    if (activeFilters.length > 0) {
-        container.classList.remove('hidden');
-        countSpan.classList.remove('hidden');
-        countSpan.textContent = activeFilters.length;
-        container.innerHTML = activeFilters.map(f => `
-            <button onclick="removeFilter('${f.key}')" 
-                    class="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-700 text-[11px] rounded-md hover:bg-blue-100 transition-colors">
-                ${f.label}
-                <i class="fas fa-times text-[9px]"></i>
-            </button>
-        `).join('');
-    } else {
-        container.classList.add('hidden');
-        countSpan.classList.add('hidden');
-    }
-}
-
-function removeFilter(key) {
-    if (key === 'status') document.getElementById('statusFilter').value = '';
-    if (key === 'radius') document.getElementById('radiusStatusFilter').value = '';
-    if (key === 'network') document.getElementById('networkFilter').value = '';
-    if (key === 'search') document.getElementById('searchInput').value = '';
-    currentFilters[key] = '';
-    updateActiveFiltersDisplay();
-    filterRouters();
-}
-
-function filterRouters() {
-    const status = document.getElementById('statusFilter')?.value || '';
-    const radius = document.getElementById('radiusStatusFilter')?.value || '';
-    const network = document.getElementById('networkFilter')?.value || '';
-    const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
-    
-    currentFilters = { status, radius, network, search };
-    updateActiveFiltersDisplay();
-    
-    const rows = document.querySelectorAll('.router-row');
-    let visibleCount = 0;
-    
-    rows.forEach(row => {
-        const rowStatus = row.getAttribute('data-status');
-        const rowRadius = row.getAttribute('data-radius-status');
-        const rowNetwork = row.getAttribute('data-network');
-        const rowName = row.getAttribute('data-name');
-        const rowIp = row.getAttribute('data-ip');
-        const rowModel = row.getAttribute('data-model');
+    function filterRouters() {
+        const statusFilter = document.getElementById('statusFilter')?.value || '';
+        const radiusFilter = document.getElementById('radiusFilter')?.value || '';
+        const networkFilter = document.getElementById('networkFilter')?.value || '';
+        const searchText = (document.getElementById('searchInput')?.value || '').toLowerCase();
         
-        let show = true;
-        if (status && rowStatus !== status) show = false;
-        if (radius && rowRadius !== radius) show = false;
-        if (network && rowNetwork !== network) show = false;
-        if (search && !rowName.includes(search) && !rowIp.includes(search) && !rowModel.includes(search)) show = false;
+        const rows = document.querySelectorAll('.router-row');
+        let visibleCount = 0;
         
-        row.style.display = show ? '' : 'none';
-        if (show) visibleCount++;
+        rows.forEach(row => {
+            const status = row.getAttribute('data-status');
+            const radius = row.getAttribute('data-radius');
+            const network = row.getAttribute('data-network');
+            const name = row.getAttribute('data-name') || '';
+            const ip = row.getAttribute('data-ip') || '';
+            const model = row.getAttribute('data-model') || '';
+            
+            let show = true;
+            if (statusFilter && status !== statusFilter) show = false;
+            if (radiusFilter && radius !== radiusFilter) show = false;
+            if (networkFilter && network !== networkFilter) show = false;
+            if (searchText && !name.includes(searchText) && !ip.includes(searchText) && !model.includes(searchText)) show = false;
+            
+            row.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+        
+        const visibleSpan = document.getElementById('visibleCount');
+        const noResults = document.getElementById('noResults');
+        const tableBody = document.getElementById('routersTableBody');
+        
+        if (visibleSpan) visibleSpan.textContent = visibleCount;
+        
+        if (visibleCount === 0 && rows.length > 0) {
+            if (noResults) noResults.classList.remove('hidden');
+            if (tableBody) tableBody.classList.add('hidden');
+        } else {
+            if (noResults) noResults.classList.add('hidden');
+            if (tableBody) tableBody.classList.remove('hidden');
+        }
+    }
+    
+    function openDeleteModal(routerId, routerName) {
+        const modal = document.getElementById('deleteModal');
+        const form = document.getElementById('deleteForm');
+        const nameSpan = document.getElementById('deleteRouterName');
+        
+        if (!modal || !form || !nameSpan) return;
+        
+        nameSpan.textContent = routerName;
+        form.action = '/organization/' + orgId + '/routers/' + routerId + '/delete';
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    
+    document.getElementById('statusFilter')?.addEventListener('change', filterRouters);
+    document.getElementById('radiusFilter')?.addEventListener('change', filterRouters);
+    document.getElementById('networkFilter')?.addEventListener('change', filterRouters);
+    document.getElementById('searchInput')?.addEventListener('input', filterRouters);
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDeleteModal();
     });
     
-    const visibleSpan = document.getElementById('visibleCount');
-    const noResults = document.getElementById('noResultsState');
-    const tableBody = document.getElementById('routersTableBody');
+    document.getElementById('deleteModal')?.addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
     
-    if (visibleSpan) visibleSpan.textContent = `(${visibleCount} device${visibleCount !== 1 ? 's' : ''})`;
-    
-    if (visibleCount === 0 && rows.length > 0) {
-        if (noResults) noResults.classList.remove('hidden');
-        if (tableBody) tableBody.classList.add('hidden');
-    } else {
-        if (noResults) noResults.classList.add('hidden');
-        if (tableBody) tableBody.classList.remove('hidden');
-    }
-}
-
-function resetAllFilters() {
-    document.getElementById('statusFilter').value = '';
-    document.getElementById('radiusStatusFilter').value = '';
-    document.getElementById('networkFilter').value = '';
-    document.getElementById('searchInput').value = '';
-    currentFilters = { status: '', radius: '', network: '', search: '' };
-    updateActiveFiltersDisplay();
     filterRouters();
-}
-
-function openDeleteModal(routerId, routerName) {
-    const modal = document.getElementById('deleteModal');
-    const deleteForm = document.getElementById('deleteForm');
-    const nameSpan = document.getElementById('deleteRouterName');
-    nameSpan.textContent = routerName;
-    deleteForm.action = `/organization/${orgId}/routers/${routerId}/delete`;
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function closeDeleteModal() {
-    const modal = document.getElementById('deleteModal');
-    modal.classList.remove('flex');
-    modal.classList.add('hidden');
-}
-
-// Event listeners
-document.getElementById('statusFilter')?.addEventListener('change', filterRouters);
-document.getElementById('radiusStatusFilter')?.addEventListener('change', filterRouters);
-document.getElementById('networkFilter')?.addEventListener('change', filterRouters);
-document.getElementById('searchInput')?.addEventListener('input', filterRouters);
-
-// Close modal on escape
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeDeleteModal();
-});
-
-// Initialize
-filterRouters();
 </script>
 {% endblock %}
