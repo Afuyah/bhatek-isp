@@ -36,7 +36,7 @@ from datetime import datetime, timedelta
 from uuid import UUID
 import hashlib
 import re
-
+from typing import Optional
 from app.core.logging.logger import logger
 from app.core.database.session import db
 from app.modules.subscriber.service import SubscriberService
