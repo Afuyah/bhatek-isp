@@ -307,6 +307,8 @@ class RouterService:
         finally:
             if key_path and _os.path.exists(key_path):
                 _os.unlink(key_path)
+
+                
     def _execute_client_method_via_vps(
         self,
         router: Router,
