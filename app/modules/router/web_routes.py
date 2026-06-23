@@ -334,9 +334,12 @@ def show(org_id, router_id, current_user=None, current_organization=None):
     """
     GET /organization/<org_id>/routers/<router_id>
 
-    Router detail page with hotspot/PPPoE servers, RADIUS status, and health.
+    Router detail page with WireGuard setup wizard, hotspot/PPPoE servers,
+    RADIUS status, and health monitoring.
     """
     try:
+        from flask import current_app
+        
         router_uuid = UUID(router_id)
         router = router_service.get_router(router_uuid, current_organization.id)
 
@@ -348,12 +351,12 @@ def show(org_id, router_id, current_user=None, current_organization=None):
             )
             network_name = network.name if network else None
 
-        # Get hotspot servers — use repository for org-scoped queries
+        # Get hotspot servers via repository (org-scoped)
         hotspot_servers = hotspot_repo.get_by_router(
             router_uuid, current_organization.id
         )
 
-        # Get PPPoE servers — use repository for org-scoped queries
+        # Get PPPoE servers via repository (org-scoped)
         pppoe_servers = pppoe_repo.get_by_router(
             router_uuid, current_organization.id
         )
@@ -362,6 +365,75 @@ def show(org_id, router_id, current_user=None, current_organization=None):
         connection_status = router_service.get_connection_status(
             router_uuid, current_organization.id
         )
+
+        # ═══════════════════════════════════════════════════════════
+        # BUILD WIREGUARD SETUP SCRIPT
+        # Shown when router needs WireGuard configuration
+        # ═══════════════════════════════════════════════════════════
+        setup_script = None
+
+        if router.status in ['pending_wireguard', 'unknown', 'offline', 'error'] or not router.wireguard_ip:
+            vps_pubkey = current_app.config.get(
+                'VPS_WIREGUARD_PUBLIC_KEY',
+                '274kTJCdNISjJEBMLP9SuqaMyQ8GkDSqjXLttDgNsz4='
+            )
+            vps_endpoint = current_app.config.get(
+                'VPS_WIREGUARD_ENDPOINT',
+                '163.245.217.16:51820'
+            )
+            wg_ip = router.wireguard_ip or '10.0.1.10'
+            radius_secret = router.radius_secret or 'YOUR_GENERATED_SECRET'
+
+            setup_script = {
+                'title': 'WireGuard VPN Setup',
+                'description': 'Copy and paste ALL commands below into your MikroTik terminal in order',
+                'steps': [
+                    {
+                        'step': 1,
+                        'title': 'Create WireGuard Interface',
+                        'description': 'Creates the VPN tunnel interface on your MikroTik',
+                        'commands': [
+                            '/interface wireguard',
+                            'add listen-port=51820 name=wg-to-vps'
+                        ]
+                    },
+                    {
+                        'step': 2,
+                        'title': 'Connect to ISP Platform (VPS)',
+                        'description': f'Establishes secure tunnel to the platform WireGuard server at {vps_endpoint}',
+                        'commands': [
+                            '/interface wireguard peers',
+                            f'add allowed-address=10.0.0.0/16 endpoint-address=163.245.217.16 endpoint-port=51820 interface=wg-to-vps persistent-keepalive=25 public-key="{vps_pubkey}"'
+                        ]
+                    },
+                    {
+                        'step': 3,
+                        'title': 'Assign Router IP Address',
+                        'description': f'This IP ({wg_ip}) is how the platform will reach your router through the VPN tunnel',
+                        'commands': [
+                            '/ip address',
+                            f'add address={wg_ip}/16 interface=wg-to-vps network=10.0.0.0'
+                        ]
+                    },
+                    {
+                        'step': 4,
+                        'title': 'Configure RADIUS Authentication',
+                        'description': 'Points your router to the platform RADIUS server at 10.0.0.1 through the VPN tunnel',
+                        'commands': [
+                            f'/radius add address=10.0.0.1 secret="{radius_secret}" service=hotspot,ppp authentication-port=1812 accounting-port=1813 timeout=3000',
+                            '/ip hotspot set [find] radius=yes',
+                            '/ip hotspot profile set [find] use-radius=yes',
+                            '/ppp profile set [find] use-radius=yes',
+                            '/radius incoming set accept=yes'
+                        ]
+                    },
+                    {
+                        'step': 99,
+                        'title': '✓ Setup Complete — Verify Connection',
+                        'description': 'After pasting all commands above, click "Test Connection" to verify the tunnel is active and your router is online.'
+                    }
+                ]
+            }
 
         # Check for one-time messages from session
         new_secret = session.pop('new_radius_secret', None)
@@ -377,6 +449,7 @@ def show(org_id, router_id, current_user=None, current_organization=None):
             pppoe_servers=pppoe_servers,
             connection_status=connection_status,
             context=_get_router_context(current_organization.id),
+            setup_script=setup_script,
             new_secret=new_secret,
             radius_instructions=radius_instructions,
         )
