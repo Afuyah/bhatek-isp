@@ -158,6 +158,10 @@ class RouterService:
         Flask/Railway cannot reach WireGuard IPs directly.
         The VPS is the WireGuard hub and can reach all routers.
         """
+        import os as _os
+        import tempfile as _tempfile
+        import paramiko as _paramiko
+
         password = self.encryption.decrypt(router.password_encrypted)
         host = str(router.ip_address)
         port = router.api_port or 8728
@@ -246,23 +250,63 @@ class RouterService:
 
         script = '\n'.join(script_lines)
 
-        # Execute via SSH on VPS
-        # Write script to temp file on VPS to avoid escaping issues
-        success, stdout, stderr = self.wireguard._run_ssh(
-            f"python3 << 'PYEOF'\n{script}\nPYEOF",
-            timeout=25
-        )
+        # Get SSH credentials from Flask config
+        vps_private_key = current_app.config.get('VPS_SSH_PRIVATE_KEY', '')
+        vps_host = current_app.config.get('VPS_HOST', '163.245.217.16')
+        vps_user = current_app.config.get('VPS_SSH_USER', 'root')
 
-        if success and stdout:
-            try:
-                return _json.loads(stdout)
-            except _json.JSONDecodeError:
-                logger.error(f"VPS response parse error: {stdout[:300]}")
-                raise BusinessError("VPS returned invalid response")
+        if not vps_private_key:
+            logger.error("VPS_SSH_PRIVATE_KEY not configured")
+            raise BusinessError("VPS SSH key not configured")
 
-        logger.error(f"VPS SSH command failed. Stderr: {stderr[:300]}")
-        raise BusinessError(f"Failed to reach router via VPS: {stderr[:200]}")
+        # Fix newline encoding from environment variable
+        if '\\n' in vps_private_key:
+            vps_private_key = vps_private_key.replace('\\n', '\n')
 
+        # Write key to temp file
+        key_path = None
+        try:
+            with _tempfile.NamedTemporaryFile(mode='w', suffix='.key', delete=False) as f:
+                f.write(vps_private_key)
+                key_path = f.name
+
+            _os.chmod(key_path, 0o600)
+
+            pkey = _paramiko.Ed25519Key.from_private_key_file(key_path)
+            client = _paramiko.SSHClient()
+            client.set_missing_host_key_policy(_paramiko.AutoAddPolicy())
+            client.connect(hostname=vps_host, username=vps_user, pkey=pkey, timeout=25)
+
+            stdin, stdout, stderr = client.exec_command(
+                f"python3 << 'PYEOF'\n{script}\nPYEOF"
+            )
+            stdout_str = stdout.read().decode('utf-8', errors='ignore').strip()
+            stderr_str = stderr.read().decode('utf-8', errors='ignore').strip()
+            exit_status = stdout.channel.recv_exit_status()
+            client.close()
+
+            if exit_status == 0 and stdout_str:
+                try:
+                    return _json.loads(stdout_str)
+                except _json.JSONDecodeError:
+                    logger.error(f"VPS response parse error: {stdout_str[:300]}")
+                    raise BusinessError("VPS returned invalid response")
+
+            logger.error(
+                f"VPS SSH command failed (exit {exit_status}). "
+                f"Stderr: {stderr_str[:300]}"
+            )
+            raise BusinessError(f"Failed to reach router via VPS: {stderr_str[:200]}")
+
+        except _paramiko.ssh_exception.AuthenticationException as e:
+            logger.error(f"SSH authentication failed: {e}")
+            raise BusinessError("VPS SSH authentication failed. Check private key.")
+        except Exception as e:
+            logger.error(f"VPS SSH error: {e}")
+            raise BusinessError(f"Failed to reach router via VPS: {str(e)[:200]}")
+        finally:
+            if key_path and _os.path.exists(key_path):
+                _os.unlink(key_path)
     def _execute_client_method_via_vps(
         self,
         router: Router,
