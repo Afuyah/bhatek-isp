@@ -4,14 +4,10 @@ Router Service Module
 Business logic for router management with WireGuard VPN and RADIUS integration.
 Orchestrates the complete router lifecycle for multi-tenant ISP operations.
 
-Flow:
-    1. Admin adds router → Flask generates WireGuard + RADIUS credentials
-    2. Flask creates DB records + adds VPS WireGuard peer via SSH
-    3. Flask returns MikroTik setup script (verified commands)
-    4. Admin pastes script in MikroTik terminal → WireGuard connects
-    5. Admin clicks "Test Connection" → Flask reaches router via WireGuard IP
-    6. System auto-configures RADIUS + discovers capabilities
-    7. Router fully managed — RADIUS auth, monitoring, sync all functional
+Architecture:
+    Flask (Railway) ──SSH──► VPS (163.245.217.16) ──WireGuard──► MikroTik Routers
+    All MikroTik API calls are proxied through the VPS since Flask cannot
+    directly reach WireGuard IPs (10.0.0.0/16).
 
 Verified MikroTik Commands (RouterOS v6.43+ / v7.x):
     - /ip hotspot profile set [find] use-radius=yes
@@ -23,6 +19,7 @@ Verified MikroTik Commands (RouterOS v6.43+ / v7.x):
 from typing import Dict, Any, List, Optional
 from uuid import UUID
 from datetime import datetime
+import json as _json
 import secrets
 import re
 
@@ -53,16 +50,12 @@ class RouterService:
     """
     Service for router management with WireGuard VPN and RADIUS integration.
 
+    All MikroTik API operations are proxied through the VPS via SSH
+    because the Flask app cannot directly reach WireGuard IPs (10.0.0.0/16).
     All operations are scoped to organization_id for multi-tenant isolation.
-    WireGuard IPs are allocated per-organization subnet.
     """
 
-    # VPS WireGuard IP — the RADIUS server address routers connect to
     DEFAULT_RADIUS_SERVER = '10.0.0.1'
-
-    # WireGuard subnet
-    WIREGUARD_SUBNET = '10.0.0.0/16'
-    VPS_WIREGUARD_IP = '10.0.0.1'
     VPS_ENDPOINT = '163.245.217.16:51820'
 
     def __init__(self):
@@ -115,13 +108,10 @@ class RouterService:
         return seconds
 
     def _build_router_data(self, router: Router) -> Dict[str, Any]:
-        """
-        Build router_data dictionary for MikroTikClient from ORM model.
-        Uses WireGuard IP for connectivity.
-        """
+        """Build router_data dictionary for MikroTikClient from ORM model."""
         return {
             'id': str(router.id),
-            'ip_address': str(router.ip_address),  # WireGuard IP
+            'ip_address': str(router.ip_address),
             'username': router.username,
             'password_encrypted': router.password_encrypted,
             'api_port': router.api_port or 8728,
@@ -131,42 +121,307 @@ class RouterService:
     def _allocate_wireguard_ip(self, organization_id: UUID) -> tuple:
         """
         Allocate the next available WireGuard IP for an organization.
-
         Each organization gets a /24 subnet within 10.0.0.0/16.
-        Organization index is derived from a hash of the org ID.
-        Returns: (wireguard_ip, subnet, org_index)
         """
         import hashlib
-
-        # Hash org ID to get a consistent subnet index
         org_hash = hashlib.md5(str(organization_id).encode()).hexdigest()
-        org_index = int(org_hash[:4], 16) % 200 + 1  # Range 1-200
-
+        org_index = int(org_hash[:4], 16) % 200 + 1
         subnet = f"10.0.{org_index}.0/24"
-
-        # Find existing IPs in this subnet
-        existing_routers = self.repository.get_by_organization(
-            organization_id, limit=10000
-        )
-        existing_ips = set()
-        for r in existing_routers:
-            if r.wireguard_ip and r.wireguard_ip.startswith(f"10.0.{org_index}."):
-                existing_ips.add(r.wireguard_ip)
-
-        # Find next available IP (start from .10, skip .1 which is reserved)
+        existing_routers = self.repository.get_by_organization(organization_id, limit=10000)
+        existing_ips = {
+            r.wireguard_ip for r in existing_routers
+            if r.wireguard_ip and r.wireguard_ip.startswith(f"10.0.{org_index}.")
+        }
         for host in range(10, 254):
             candidate = f"10.0.{org_index}.{host}"
             if candidate not in existing_ips:
                 return candidate, subnet, org_index
-
-        # If subnet full, fall back to a larger range
         for host in range(10, 254):
-            for fallback_index in range(201, 255):
-                candidate = f"10.0.{fallback_index}.{host}"
+            for fallback in range(201, 255):
+                candidate = f"10.0.{fallback}.{host}"
                 if candidate not in existing_ips:
-                    return candidate, f"10.0.{fallback_index}.0/24", fallback_index
-
+                    return candidate, f"10.0.{fallback}.0/24", fallback
         raise BusinessError("No available WireGuard IPs in subnet")
+
+    # =========================================================================
+    # VPS PROXY — ALL MikroTik API calls go through the VPS
+    # =========================================================================
+
+    def _execute_via_vps(
+        self,
+        router: Router,
+        command: str,
+        **kwargs
+    ) -> List[Dict[str, Any]]:
+        """
+        Execute a MikroTik API command via VPS SSH tunnel.
+        Flask/Railway cannot reach WireGuard IPs directly.
+        The VPS is the WireGuard hub and can reach all routers.
+        """
+        password = self.encryption.decrypt(router.password_encrypted)
+        host = str(router.ip_address)
+        port = router.api_port or 8728
+        username = router.username
+        kwargs_json_str = _json.dumps(kwargs)
+
+        # Build the Python script that runs on the VPS
+        script_lines = [
+            "import socket, struct, hashlib, binascii, json, sys",
+            "",
+            f"host = '{host}'",
+            f"port = {port}",
+            f"username = '{username}'",
+            f"password = b'{password}'",
+            f"command = '{command}'",
+            f"kwargs = json.loads('{kwargs_json_str}')",
+            "",
+            "sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)",
+            "sock.settimeout(20)",
+            "sock.connect((host, port))",
+            "",
+            "def send_cmd(*words):",
+            "    for w in words:",
+            "        if not w: continue",
+            "        wb = w.encode()",
+            "        sock.sendall(struct.pack('>I', len(wb)) + wb)",
+            "    sock.sendall(struct.pack('>I', 0))",
+            "",
+            "def read_resp():",
+            "    words = []",
+            "    while True:",
+            "        lb = b''",
+            "        while len(lb) < 4:",
+            "            c = sock.recv(4 - len(lb))",
+            "            if not c: return words",
+            "            lb += c",
+            "        length = struct.unpack('>I', lb)[0]",
+            "        if length == 0: return words",
+            "        wb = b''",
+            "        while len(wb) < length:",
+            "            c = sock.recv(length - len(wb))",
+            "            if not c: return words",
+            "            wb += c",
+            "        words.append(wb.decode('utf-8', errors='ignore'))",
+            "",
+            "# Authenticate",
+            "send_cmd('/login')",
+            "resp = read_resp()",
+            "for w in resp:",
+            "    if '=ret=' in w: break",
+            "    if '=challenge=' in w:",
+            "        challenge = w.split('=', 2)[2]",
+            "        cb = binascii.unhexlify(challenge)",
+            "        md5 = hashlib.md5()",
+            "        md5.update(b'\\x00')",
+            "        md5.update(password)",
+            "        md5.update(cb)",
+            "        rh = md5.hexdigest().upper()",
+            "        send_cmd('/login', '=name=' + username, '=response=' + rh)",
+            "        read_resp()",
+            "",
+            "# Execute command",
+            "words = [command]",
+            "for k, v in kwargs.items():",
+            "    if v is not None:",
+            "        words.append('=' + k.replace('_', '-') + '=' + str(v))",
+            "send_cmd(*words)",
+            "resp = read_resp()",
+            "",
+            "# Parse response",
+            "result = []",
+            "current = {}",
+            "for line in resp:",
+            "    if line.startswith('!') and '=message=' in line: break",
+            "    elif line.startswith('!'):",
+            "        if current and len(current) > 1: result.append(current)",
+            "        current = {'status': line[1:]}",
+            "    elif '=' in line:",
+            "        k, v = line.split('=', 1)",
+            "        current[k] = v",
+            "if current and len(current) > 1: result.append(current)",
+            "",
+            "print(json.dumps(result))",
+            "sock.close()",
+        ]
+
+        script = '\n'.join(script_lines)
+
+        # Execute via SSH on VPS
+        # Write script to temp file on VPS to avoid escaping issues
+        success, stdout, stderr = self.wireguard._run_ssh(
+            f"python3 << 'PYEOF'\n{script}\nPYEOF",
+            timeout=25
+        )
+
+        if success and stdout:
+            try:
+                return _json.loads(stdout)
+            except _json.JSONDecodeError:
+                logger.error(f"VPS response parse error: {stdout[:300]}")
+                raise BusinessError("VPS returned invalid response")
+
+        logger.error(f"VPS SSH command failed. Stderr: {stderr[:300]}")
+        raise BusinessError(f"Failed to reach router via VPS: {stderr[:200]}")
+
+    def _execute_client_method_via_vps(
+        self,
+        router: Router,
+        method_name: str,
+        *args,
+        **kwargs
+    ) -> Any:
+        """
+        Execute a MikroTikClient-equivalent method via VPS proxy.
+
+        This replaces direct calls to self.mikrotik_client.* methods
+        since Flask cannot reach WireGuard IPs directly.
+
+        Supported methods:
+            - get_router_info
+            - get_hotspot_servers
+            - get_pppoe_servers
+            - get_hotspot_users
+            - get_pppoe_secrets
+            - get_active_sessions
+            - get_pppoe_active_sessions
+            - get_hotspot_profiles
+            - get_interface_stats
+            - get_simple_queues
+            - configure_radius
+        """
+        if method_name == 'get_router_info':
+            resource = self._execute_via_vps(router, '/system/resource/print')
+            identity = self._execute_via_vps(router, '/system/identity/print')
+            r = resource[0] if resource else {}
+            i = identity[0] if identity else {}
+            return {
+                'hostname': i.get('name'),
+                'version': r.get('version'),
+                'build_time': r.get('build-time'),
+                'uptime': r.get('uptime'),
+                'cpu_load': r.get('cpu-load'),
+                'cpu_count': r.get('cpu-count'),
+                'free_memory': r.get('free-memory'),
+                'total_memory': r.get('total-memory'),
+                'free_hdd': r.get('free-hdd'),
+                'total_hdd': r.get('total-hdd'),
+                'architecture_name': r.get('architecture-name'),
+                'board_name': r.get('board-name'),
+                'platform': r.get('platform'),
+            }
+
+        elif method_name == 'get_hotspot_servers':
+            return self._execute_via_vps(router, '/ip/hotspot/print')
+
+        elif method_name == 'get_pppoe_servers':
+            return self._execute_via_vps(router, '/interface/pppoe-server/server/print')
+
+        elif method_name == 'get_hotspot_users':
+            params = kwargs.get('params', {})
+            return self._execute_via_vps(router, '/ip/hotspot/user/print', **params)
+
+        elif method_name == 'get_pppoe_secrets':
+            return self._execute_via_vps(router, '/ppp/secret/print')
+
+        elif method_name == 'get_active_sessions':
+            params = kwargs.get('params', {})
+            return self._execute_via_vps(router, '/ip/hotspot/active/print', **params)
+
+        elif method_name == 'get_pppoe_active_sessions':
+            return self._execute_via_vps(router, '/ppp/active/print')
+
+        elif method_name == 'get_hotspot_profiles':
+            return self._execute_via_vps(router, '/ip/hotspot/user/profile/print')
+
+        elif method_name == 'get_interface_stats':
+            return self._execute_via_vps(router, '/interface/print')
+
+        elif method_name == 'get_simple_queues':
+            return self._execute_via_vps(router, '/queue/simple/print')
+
+        elif method_name == 'configure_radius':
+            radius_server = kwargs.get('radius_server', self._get_radius_server())
+            radius_secret = kwargs.get('radius_secret', router.radius_secret)
+
+            # Check if RADIUS server already exists
+            existing = self._execute_via_vps(router, '/radius/print')
+            server_exists = False
+            for item in existing:
+                if item.get('address') == radius_server:
+                    server_exists = True
+                    # Update existing entry
+                    self._execute_via_vps(
+                        router, '/radius/set',
+                        numbers=item.get('.id'),
+                        secret=radius_secret,
+                        service='hotspot,ppp',
+                        authentication_port='1812',
+                        accounting_port='1813',
+                        timeout='3000',
+                        retries='3',
+                    )
+                    logger.info(f"RADIUS server updated: {radius_server}")
+                    break
+
+            if not server_exists:
+                # Add new RADIUS server
+                self._execute_via_vps(
+                    router, '/radius/add',
+                    address=radius_server,
+                    secret=radius_secret,
+                    service='hotspot,ppp',
+                    authentication_port='1812',
+                    accounting_port='1813',
+                    timeout='3000',
+                    retries='3',
+                )
+                logger.info(f"RADIUS server added: {radius_server}")
+
+            # Enable RADIUS for Hotspot (VERIFIED command)
+            try:
+                self._execute_via_vps(
+                    router,
+                    '/ip/hotspot/profile/set',
+                    numbers='[find]',
+                    **{'use-radius': 'yes'},
+                )
+                logger.info("Hotspot RADIUS enabled")
+            except Exception as e:
+                logger.warning(f"Could not enable hotspot RADIUS: {e}")
+
+            # Enable RADIUS for PPPoE (VERIFIED command)
+            try:
+                self._execute_via_vps(
+                    router,
+                    '/ppp/aaa/set',
+                    **{'use-radius': 'yes'},
+                )
+                logger.info("PPPoE RADIUS enabled")
+            except Exception as e:
+                logger.warning(f"Could not enable PPPoE RADIUS: {e}")
+
+            # Enable RADIUS Incoming for CoA/Disconnect
+            try:
+                self._execute_via_vps(
+                    router,
+                    '/radius/incoming/set',
+                    accept='yes',
+                )
+                logger.info("RADIUS incoming enabled")
+            except Exception as e:
+                logger.warning(f"Could not enable RADIUS incoming: {e}")
+
+            logger.info(
+                f"RADIUS fully configured on {router.ip_address} -> {radius_server}"
+            )
+            return {
+                'success': True,
+                'message': 'RADIUS configured successfully',
+                'radius_server': radius_server,
+            }
+
+        else:
+            raise ValueError(f"Unknown VPS proxy method: {method_name}")
 
     # =========================================================================
     # NAS ENTRY MANAGEMENT
@@ -174,15 +429,13 @@ class RouterService:
 
     def _create_nas_entry(self, router: Router, radius_secret: str) -> NAS:
         """
-        Create a NAS (Network Access Server) entry for FreeRADIUS.
-
-        The nasname is set to the router's WireGuard IP so FreeRADIUS
-        can match incoming RADIUS requests to the correct NAS client.
+        Create a NAS entry for FreeRADIUS with the router's WireGuard IP.
+        The nasname is the WireGuard IP so FreeRADIUS can match incoming requests.
         """
         try:
             nas_entry = NAS(
                 organization_id=router.organization_id,
-                nasname=str(router.ip_address),  # WireGuard IP
+                nasname=str(router.ip_address),
                 shortname=router.name,
                 type='mikrotik',
                 secret=radius_secret,
@@ -192,17 +445,13 @@ class RouterService:
             )
             db.session.add(nas_entry)
             db.session.flush()
-
-            # Link NAS entry back to router
             router.nas_entry_id = nas_entry.id
             db.session.commit()
-
             logger.info(
                 f"Created NAS entry for '{router.name}' "
                 f"(nasname={nas_entry.nasname})"
             )
             return nas_entry
-
         except Exception as e:
             db.session.rollback()
             logger.error(
@@ -224,103 +473,46 @@ class RouterService:
     ) -> str:
         """
         Generate the complete MikroTik setup script with verified commands.
-
-        Commands are compatible with RouterOS v6.43+ and v7.x.
-        Tested on RB951Ui-2HnD.
+        Compatible with RouterOS v6.43+ and v7.x. Tested on RB951Ui-2HnD.
         """
         vps_public_key = self._get_vps_public_key()
 
         script = f"""# =============================================================================
 # ISP Management Platform - MikroTik Setup Script
-# Router: {router_name}
-# Organization: {organization_name}
+# Router: {router_name} | Organization: {organization_name}
 # WireGuard IP: {wireguard_ip}
 # Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
 # =============================================================================
 
 # Step 1: Setup WireGuard VPN Tunnel
 /interface wireguard add listen-port=51820 name=wg-to-vps
-/interface wireguard peers add allowed-address=10.0.0.0/16 endpoint-address={self.VPS_ENDPOINT} endpoint-port=51820 interface=wg-to-vps persistent-keepalive=25 public-key="{vps_public_key}"
+/interface wireguard peers add allowed-address=10.0.0.1/32 endpoint-address={self.VPS_ENDPOINT} endpoint-port=51820 interface=wg-to-vps persistent-keepalive=25 public-key="{vps_public_key}"
 /ip address add address={wireguard_ip}/16 interface=wg-to-vps network=10.0.0.0
+/ip route add dst-address=10.0.0.1/32 gateway=wg-to-vps
 
-# Step 2: Configure RADIUS Authentication
+# Step 2: Firewall — Allow ISP Platform Access
+/ip firewall filter add chain=input src-address=10.0.0.0/16 action=accept comment="Allow ISP Platform"
+/interface list member add interface=wg-to-vps list=LAN
+/ip service set api address=10.0.0.0/16
+
+# Step 3: Configure RADIUS Authentication
 /radius add address=10.0.0.1 secret="{radius_secret}" service=hotspot,ppp authentication-port=1812 accounting-port=1813
 
-# Step 3: Enable RADIUS for Hotspot
+# Step 4: Enable RADIUS on Hotspot
 /ip hotspot profile set [find] use-radius=yes
 
-# Step 4: Enable RADIUS for PPPoE
+# Step 5: Enable RADIUS on PPPoE
 /ppp aaa set use-radius=yes
 
-# Step 5: Enable RADIUS Incoming for Remote Disconnects
+# Step 6: Enable RADIUS Incoming for Remote Disconnects
 /radius incoming set accept=yes
 
 # =============================================================================
 # Setup Complete!
-# Verify WireGuard: /ping 10.0.0.1 count=3
-# The router will now authenticate via the ISP platform.
+# Verify: /ping 10.0.0.1 count=3
 # =============================================================================
 """
         return script.strip()
-
-    # =========================================================================
-    # RADIUS AUTO-CONFIGURATION
-    # =========================================================================
-
-    def _auto_configure_router_radius(
-        self,
-        router: Router,
-        radius_secret: str,
-        organization: Organization = None,
-    ) -> Dict[str, Any]:
-        """
-        Auto-configure RADIUS on a MikroTik router via API.
-
-        Pushes RADIUS server settings using verified RouterOS commands.
-        """
-        try:
-            radius_server = self._get_radius_server()
-            router_data = self._build_router_data(router)
-
-            # Mark router with org slug for identification
-            if organization:
-                try:
-                    identity_name = f"{router.name}-{organization.slug}"
-                    self.mikrotik_client.execute(
-                        router_data=router_data,
-                        command='/system/identity/set',
-                        name=identity_name,
-                    )
-                except Exception as e:
-                    logger.warning(f"Failed to set router identity: {e}")
-
-            # Delegate RADIUS configuration to MikroTikClient
-            result = self.mikrotik_client.configure_radius(
-                router_data=router_data,
-                radius_server=radius_server,
-                radius_secret=radius_secret,
-                radius_port=1812,
-                radius_acct_port=1813,
-            )
-
-            if result.get('success'):
-                logger.info(
-                    f"RADIUS auto-configured on router '{router.name}' "
-                    f"→ {radius_server}"
-                )
-            else:
-                logger.warning(
-                    f"RADIUS auto-config failed for '{router.name}': "
-                    f"{result.get('error')}"
-                )
-
-            return result
-
-        except Exception as e:
-            logger.error(
-                f"Auto-configuration error for router '{router.name}': {e}"
-            )
-            return {'success': False, 'error': str(e)}
 
     # =========================================================================
     # CREATE ROUTER (COMPLETE WIREGUARD + RADIUS ONBOARDING)
@@ -335,9 +527,9 @@ class RouterService:
         """
         Create a new router with full WireGuard + RADIUS onboarding.
 
-        Flow:
+        Steps:
             1. Validate inputs
-            2. Generate WireGuard keypair + allocate IP
+            2. Generate WireGuard keypair + allocate IP in org subnet
             3. Generate RADIUS secret + encrypt passwords
             4. Create Router record in database
             5. Create NAS entry for FreeRADIUS
@@ -352,7 +544,7 @@ class RouterService:
             if not data.get(field):
                 raise ValidationError(f"'{field}' is required")
 
-        # Admin's local access IP (what they use to connect to the router)
+        # Admin's local access IP
         local_ip = data.get('ip_address') or data.get('local_ip')
         if not local_ip:
             raise ValidationError(
@@ -365,13 +557,11 @@ class RouterService:
         if not organization:
             raise ValidationError("Organization not found")
 
-        # Generate WireGuard credentials for this router
+        # Generate WireGuard credentials
         wg_private_key, wg_public_key = self.wireguard.generate_peer_keypair()
 
-        # Allocate a WireGuard IP in this org's subnet
-        wireguard_ip, subnet, org_index = self._allocate_wireguard_ip(
-            organization_id
-        )
+        # Allocate WireGuard IP in org's subnet
+        wireguard_ip, subnet, org_index = self._allocate_wireguard_ip(organization_id)
 
         # Generate RADIUS shared secret
         radius_secret = self._generate_radius_secret()
@@ -381,8 +571,6 @@ class RouterService:
         encrypted_wg_private_key = self.encryption.encrypt(wg_private_key)
 
         # Create router record
-        # ip_address = WireGuard IP (used for API access)
-        # local_ip = admin's local IP (reference only)
         router_record = {
             'organization_id': organization_id,
             'network_id': network_id,
@@ -411,9 +599,7 @@ class RouterService:
         nas_entry = self._create_nas_entry(router, radius_secret)
 
         # Add WireGuard peer on VPS via SSH
-        wg_added = self.wireguard.add_peer(
-            wg_public_key, f"{wireguard_ip}/32"
-        )
+        wg_added = self.wireguard.add_peer(wg_public_key, f"{wireguard_ip}/32")
 
         if not wg_added:
             logger.warning(
@@ -464,7 +650,7 @@ class RouterService:
         }
 
     # =========================================================================
-    # AUTO-CONFIGURE AFTER WIREGUARD IS UP
+    # AUTO-CONFIGURE AFTER WIREGUARD
     # =========================================================================
 
     def auto_configure_after_wireguard(
@@ -474,11 +660,9 @@ class RouterService:
     ) -> Dict[str, Any]:
         """
         Run after admin confirms WireGuard is connected.
-        Configures RADIUS and discovers router capabilities via API.
+        Configures RADIUS and discovers router capabilities via VPS proxy.
         """
         router = self.get_router(router_id, organization_id)
-        organization = Organization.query.get(organization_id)
-        router_data = self._build_router_data(router)
 
         result = {
             'success': True,
@@ -487,65 +671,47 @@ class RouterService:
             'steps': [],
         }
 
-        # Step 1: Configure RADIUS on the MikroTik via API
+        # Step 1: Configure RADIUS on MikroTik via VPS
         try:
-            radius_result = self.mikrotik_client.configure_radius(
-                router_data=router_data,
-                radius_server=self._get_radius_server(),
+            self._execute_client_method_via_vps(
+                router, 'configure_radius',
                 radius_secret=router.radius_secret,
             )
-            if radius_result.get('success'):
-                self.repository.update_radius_config_status(
-                    router_id, organization_id, 'configured'
-                )
-                result['radius_configured'] = True
-                result['steps'].append({
-                    'step': 'radius', 'status': 'success',
-                    'message': 'RADIUS configured successfully',
-                })
-            else:
-                self.repository.update_radius_config_status(
-                    router_id, organization_id, 'failed',
-                    error=radius_result.get('error'),
-                )
-                result['steps'].append({
-                    'step': 'radius', 'status': 'failed',
-                    'error': radius_result.get('error'),
-                })
-        except Exception as e:
+            self.repository.update_radius_config_status(
+                router_id, organization_id, 'configured'
+            )
+            result['radius_configured'] = True
             result['steps'].append({
-                'step': 'radius', 'status': 'error',
+                'step': 'radius',
+                'status': 'success',
+                'message': 'RADIUS configured successfully',
+            })
+        except Exception as e:
+            self.repository.update_radius_config_status(
+                router_id, organization_id, 'failed', error=str(e)
+            )
+            result['steps'].append({
+                'step': 'radius',
+                'status': 'error',
                 'error': str(e),
             })
 
-        # Step 2: Discover router capabilities
+        # Step 2: Discover router capabilities via VPS
         try:
-            info = self.mikrotik_client.get_router_info(router_data)
+            info = self._execute_client_method_via_vps(router, 'get_router_info')
             capabilities = ['api']
 
-            # Detect hotspot
             try:
-                hs = self.mikrotik_client.get_hotspot_servers(router_data)
+                hs = self._execute_client_method_via_vps(router, 'get_hotspot_servers')
                 if hs and len(hs) > 0:
                     capabilities.append('hotspot')
             except Exception:
                 pass
 
-            # Detect PPPoE
             try:
-                ps = self.mikrotik_client.get_pppoe_servers(router_data)
+                ps = self._execute_client_method_via_vps(router, 'get_pppoe_servers')
                 if ps and len(ps) > 0:
                     capabilities.append('pppoe')
-            except Exception:
-                pass
-
-            # Detect wireless
-            try:
-                wl = self.mikrotik_client.execute(
-                    router_data, '/interface/wireless/print'
-                )
-                if wl and len(wl) > 0:
-                    capabilities.append('wireless')
             except Exception:
                 pass
 
@@ -566,12 +732,14 @@ class RouterService:
                 'cpu_load': info.get('cpu_load'),
             }
             result['steps'].append({
-                'step': 'discovery', 'status': 'success',
+                'step': 'discovery',
+                'status': 'success',
                 'message': 'Router capabilities discovered',
             })
         except Exception as e:
             result['steps'].append({
-                'step': 'discovery', 'status': 'error',
+                'step': 'discovery',
+                'status': 'error',
                 'error': str(e),
             })
 
@@ -579,22 +747,16 @@ class RouterService:
         if result['radius_configured']:
             self.repository.update_status(router_id, organization_id, 'online')
         else:
-            self.repository.update_status(
-                router_id, organization_id, 'radius_pending'
-            )
+            self.repository.update_status(router_id, organization_id, 'radius_pending')
 
-        result['all_success'] = (
-            result['radius_configured'] and result['discovered']
-        )
+        result['all_success'] = result['radius_configured'] and result['discovered']
         return result
 
     # =========================================================================
     # READ OPERATIONS
     # =========================================================================
 
-    def get_router(
-        self, router_id: UUID, organization_id: UUID
-    ) -> Router:
+    def get_router(self, router_id: UUID, organization_id: UUID) -> Router:
         """Get a single router with tenant isolation."""
         router = self.repository.get_by_id(router_id, organization_id)
         if not router:
@@ -626,9 +788,7 @@ class RouterService:
         self, organization_id: UUID
     ) -> List[Router]:
         """Get routers awaiting RADIUS configuration."""
-        return self.repository.get_routers_pending_radius_config(
-            organization_id
-        )
+        return self.repository.get_routers_pending_radius_config(organization_id)
 
     def get_router_by_ip(
         self, ip_address: str, organization_id: UUID
@@ -651,9 +811,7 @@ class RouterService:
         Handles password re-encryption if a new password is provided.
         """
         if "password" in data and data["password"]:
-            data["password_encrypted"] = self.encryption.encrypt(
-                data.pop("password")
-            )
+            data["password_encrypted"] = self.encryption.encrypt(data.pop("password"))
         elif "password" in data:
             data.pop("password")
 
@@ -663,44 +821,6 @@ class RouterService:
 
         logger.info(f"Router updated: {router_id}")
         return router
-
-    def retry_radius_configuration(
-        self,
-        router_id: UUID,
-        organization_id: UUID,
-    ) -> Dict[str, Any]:
-        """
-        Retry RADIUS configuration on a router that previously failed.
-        Uses the stored RADIUS secret.
-        """
-        router = self.get_router(router_id, organization_id)
-        organization = Organization.query.get(organization_id)
-
-        if not router.radius_secret:
-            raise BusinessError("Router has no RADIUS secret configured")
-
-        config_result = self._auto_configure_router_radius(
-            router, router.radius_secret, organization
-        )
-
-        if config_result.get('success'):
-            self.repository.update_radius_config_status(
-                router.id, organization_id, 'configured'
-            )
-            return {
-                'success': True,
-                'message': 'RADIUS configured successfully',
-                'radius_server_ip': self._get_radius_server(),
-            }
-        else:
-            error_msg = config_result.get('error', 'Unknown error')
-            self.repository.update_radius_config_status(
-                router.id, organization_id, 'failed', error=error_msg
-            )
-            return {
-                'success': False,
-                'message': f'RADIUS configuration failed: {error_msg}',
-            }
 
     # =========================================================================
     # DELETE OPERATIONS
@@ -726,22 +846,14 @@ class RouterService:
         if router.wireguard_public_key:
             try:
                 self.wireguard.remove_peer(router.wireguard_public_key)
-                logger.info(
-                    f"Removed WireGuard peer for router '{router.name}'"
-                )
+                logger.info(f"Removed WireGuard peer for router '{router.name}'")
             except Exception as e:
-                logger.warning(
-                    f"Failed to remove WireGuard peer: {e}"
-                )
+                logger.warning(f"Failed to remove WireGuard peer: {e}")
 
         # Check for active services before hard delete
         if not soft_delete:
-            hotspot_servers = self.hotspot_repo.get_by_router(
-                router_id, organization_id
-            )
-            pppoe_servers = self.pppoe_repo.get_by_router(
-                router_id, organization_id
-            )
+            hotspot_servers = self.hotspot_repo.get_by_router(router_id, organization_id)
+            pppoe_servers = self.pppoe_repo.get_by_router(router_id, organization_id)
             if len(hotspot_servers) > 0 or len(pppoe_servers) > 0:
                 raise BusinessError(
                     "Cannot delete router with active services. "
@@ -755,7 +867,7 @@ class RouterService:
         )
 
     # =========================================================================
-    # CONNECTION TESTING (VIA WIREGUARD IP)
+    # CONNECTION TESTING (VIA VPS PROXY)
     # =========================================================================
 
     def test_connection(
@@ -765,10 +877,10 @@ class RouterService:
         method: str = 'api',
     ) -> Dict[str, Any]:
         """
-        Test connection to a router via its WireGuard IP.
+        Test connection to a router via VPS proxy.
 
-        Decrypts the stored password and attempts a connection.
-        Updates router status based on the result.
+        Since Flask cannot reach WireGuard IPs directly, this method
+        SSHs to the VPS and executes the MikroTik API command there.
         """
         router = self.get_router(router_id, organization_id)
 
@@ -776,27 +888,34 @@ class RouterService:
             raise ValidationError(f"Unsupported connection method: {method}")
 
         try:
-            # Decrypt password for the connection test
-            password = self.encryption.decrypt(router.password_encrypted)
+            # Execute /system/resource/print via VPS
+            result = self._execute_via_vps(router, '/system/resource/print')
 
-            result = self.mikrotik_client.test_connection(
-                host=str(router.ip_address),  # WireGuard IP
-                username=router.username,
-                password=password,
-                port=router.api_port or 8728,
-            )
+            if result and len(result) > 0:
+                resource = result[0]
+                status = 'online'
+                self.repository.update_status(router_id, organization_id, status)
+                return {
+                    'success': True,
+                    'connected': True,
+                    'router_info': {
+                        'version': resource.get('version', 'Unknown'),
+                        'board_name': resource.get('board-name', 'Unknown'),
+                        'cpu_load': resource.get('cpu-load', 'Unknown'),
+                        'uptime': resource.get('uptime', 'Unknown'),
+                        'free_memory': resource.get('free-memory', 'Unknown'),
+                        'total_memory': resource.get('total-memory', 'Unknown'),
+                        'architecture_name': resource.get('architecture-name', 'Unknown'),
+                    },
+                }
 
-            # Update router status based on result
-            status = 'online' if result.get('success') else 'offline'
-            self.repository.update_status(
-                router_id, organization_id, status,
-                error_message=(
-                    result.get('error')
-                    if not result.get('success') else None
-                ),
-            )
-
-            return result
+            status = 'offline'
+            self.repository.update_status(router_id, organization_id, status)
+            return {
+                'success': False,
+                'connected': False,
+                'error': 'No response from router via VPS',
+            }
 
         except Exception as e:
             self.repository.update_status(
@@ -806,7 +925,7 @@ class RouterService:
             raise BusinessError(f"Connection test failed: {str(e)}")
 
     # =========================================================================
-    # DISCOVERY
+    # DISCOVERY (VIA VPS PROXY)
     # =========================================================================
 
     def discover_router(
@@ -815,259 +934,63 @@ class RouterService:
         organization_id: UUID,
     ) -> Dict[str, Any]:
         """
-        Auto-discover router capabilities via API, SSH, SNMP, Telnet.
+        Auto-discover router capabilities via VPS proxy.
         Updates router with discovered model, version, and capabilities.
         """
         router = self.get_router(router_id, organization_id)
-        router_data = self._build_router_data(router)
 
-        discovery_methods = [
-            ('api', self._discover_via_api),
-            ('ssh', self._discover_via_ssh),
-            ('snmp', self._discover_via_snmp),
-            ('telnet', self._discover_via_telnet),
-        ]
-
-        attempts = []
-        for method_name, method_func in discovery_methods:
-            try:
-                logger.info(
-                    f"Attempting discovery via {method_name} "
-                    f"for router '{router.name}'"
-                )
-                result = method_func(router, router_data)
-
-                if result.get('success'):
-                    self.repository.update_discovery(
-                        router_id=router_id,
-                        organization_id=organization_id,
-                        model=result.get('model'),
-                        firmware_version=result.get('version'),
-                        capabilities=result.get('capabilities'),
-                        discovery_method=method_name,
-                    )
-                    self.repository.update_status(
-                        router_id, organization_id, 'online'
-                    )
-                    return {
-                        'success': True,
-                        'method': method_name,
-                        'info': result,
-                        'message': f'Router discovered via {method_name}',
-                    }
-
-                attempts.append({
-                    'method': method_name,
-                    'error': result.get('error', 'Unknown error'),
-                })
-
-            except Exception as e:
-                logger.warning(f"Discovery via {method_name} failed: {e}")
-                attempts.append({'method': method_name, 'error': str(e)})
-
-        self.repository.update_status(router_id, organization_id, 'offline')
-
-        return {
-            'success': False,
-            'message': 'Auto-discovery failed. Router may be offline.',
-            'attempts': attempts,
-        }
-
-    def _discover_via_api(
-        self, router: Router, router_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Discover router capabilities via MikroTik API."""
         try:
-            info = self.mikrotik_client.get_router_info(router_data)
+            info = self._execute_client_method_via_vps(router, 'get_router_info')
             capabilities = ['api']
 
+            # Detect hotspot
             try:
-                hotspot = self.mikrotik_client.get_hotspot_servers(router_data)
-                if hotspot and len(hotspot) > 0:
+                hs = self._execute_client_method_via_vps(router, 'get_hotspot_servers')
+                if hs and len(hs) > 0:
                     capabilities.append('hotspot')
             except Exception:
                 pass
 
+            # Detect PPPoE
             try:
-                pppoe = self.mikrotik_client.get_pppoe_servers(router_data)
-                if pppoe and len(pppoe) > 0:
+                ps = self._execute_client_method_via_vps(router, 'get_pppoe_servers')
+                if ps and len(ps) > 0:
                     capabilities.append('pppoe')
             except Exception:
                 pass
 
-            try:
-                wireless = self.mikrotik_client.execute(
-                    router_data, '/interface/wireless/print'
-                )
-                if wireless and len(wireless) > 0:
-                    capabilities.append('wireless')
-            except Exception:
-                pass
-
-            return {
-                'success': True,
-                'model': info.get('board_name'),
-                'version': info.get('version'),
-                'capabilities': capabilities,
-                'uptime': info.get('uptime'),
-                'cpu_load': info.get('cpu_load'),
-                'free_memory': info.get('free_memory'),
-                'total_memory': info.get('total_memory'),
-            }
-
-        except Exception as e:
-            return {'success': False, 'error': f"API discovery failed: {str(e)}"}
-
-    def _discover_via_ssh(
-        self, router: Router, router_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Discover via SSH (requires paramiko)."""
-        try:
-            import paramiko
-
-            password = self.encryption.decrypt(router.password_encrypted)
-
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect(
-                hostname=str(router.ip_address),
-                username=router.username,
-                password=password,
-                port=router.ssh_port or 22,
-                timeout=10,
+            self.repository.update_discovery(
+                router_id=router_id,
+                organization_id=organization_id,
+                model=info.get('board_name'),
+                firmware_version=info.get('version'),
+                capabilities=capabilities,
+                discovery_method='api',
             )
-
-            stdin, stdout, stderr = ssh.exec_command(
-                '/system resource print'
-            )
-            output = stdout.read().decode()
-
-            model = None
-            version = None
-            for line in output.split('\n'):
-                if 'board-name:' in line:
-                    model = line.split(':')[1].strip()
-                elif 'version:' in line:
-                    version = line.split(':')[1].strip()
-
-            ssh.close()
+            self.repository.update_status(router_id, organization_id, 'online')
 
             return {
                 'success': True,
-                'model': model,
-                'version': version,
-                'capabilities': ['ssh', 'api'],
-            }
-
-        except ImportError:
-            return {
-                'success': False,
-                'error': 'SSH discovery requires paramiko library',
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': f"SSH discovery failed: {str(e)}",
-            }
-
-    def _discover_via_snmp(
-        self, router: Router, router_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Discover via SNMP (requires pysnmp)."""
-        try:
-            from pysnmp.hlapi import (
-                getCmd, CommunityData, UdpTransportTarget,
-                ObjectIdentity, ObjectType,
-            )
-
-            community = 'public'
-            oids = {
-                'model': '1.3.6.1.4.1.14988.1.1.1.1.0',
-                'version': '1.3.6.1.4.1.14988.1.1.1.2.0',
-                'serial': '1.3.6.1.4.1.14988.1.1.1.3.0',
-            }
-
-            result = {}
-            for key, oid in oids.items():
-                errorIndication, errorStatus, errorIndex, varBinds = next(
-                    getCmd(
-                        CommunityData(community),
-                        UdpTransportTarget(
-                            (str(router.ip_address), 161)
-                        ),
-                        0,
-                        ObjectType(ObjectIdentity(oid)),
-                    )
-                )
-                if not errorIndication and not errorStatus:
-                    for varBind in varBinds:
-                        result[key] = str(varBind[1])
-
-            if not result:
-                return {'success': False, 'error': 'No SNMP response'}
-
-            return {
-                'success': True,
-                'model': result.get('model'),
-                'version': result.get('version'),
-                'capabilities': ['snmp'],
-            }
-
-        except ImportError:
-            return {
-                'success': False,
-                'error': 'SNMP discovery requires pysnmp library',
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': f"SNMP discovery failed: {str(e)}",
-            }
-
-    def _discover_via_telnet(
-        self, router: Router, router_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Discover via Telnet (fallback only)."""
-        try:
-            import telnetlib
-
-            password = self.encryption.decrypt(router.password_encrypted)
-
-            tn = telnetlib.Telnet(str(router.ip_address), port=23, timeout=10)
-            tn.read_until(b"Login: ")
-            tn.write(router.username.encode('ascii') + b"\n")
-            tn.read_until(b"Password: ")
-            tn.write(password.encode('ascii') + b"\n")
-
-            tn.write(b"/system resource print\n")
-            tn.write(b"quit\n")
-
-            output = tn.read_all().decode()
-            tn.close()
-
-            model = None
-            version = None
-            for line in output.split('\n'):
-                if 'board-name:' in line:
-                    model = line.split(':')[1].strip()
-                elif 'version:' in line:
-                    version = line.split(':')[1].strip()
-
-            return {
-                'success': True,
-                'model': model,
-                'version': version,
-                'capabilities': ['telnet'],
+                'method': 'api',
+                'info': {
+                    'model': info.get('board_name'),
+                    'version': info.get('version'),
+                    'capabilities': capabilities,
+                    'uptime': info.get('uptime'),
+                    'cpu_load': info.get('cpu_load'),
+                },
+                'message': 'Router discovered via VPS proxy',
             }
 
         except Exception as e:
+            self.repository.update_status(router_id, organization_id, 'offline')
             return {
                 'success': False,
-                'error': f"Telnet discovery failed: {str(e)}",
+                'message': f'Discovery failed: {str(e)}',
             }
 
     # =========================================================================
-    # HEALTH MONITORING
+    # HEALTH MONITORING (VIA VPS PROXY)
     # =========================================================================
 
     def update_health(
@@ -1076,14 +999,13 @@ class RouterService:
         organization_id: UUID,
     ) -> Dict[str, Any]:
         """
-        Update router health metrics from live router data.
-        Fetches system resource info via API.
+        Update router health metrics via VPS proxy.
+        Fetches system resource info from the router through the VPS.
         """
         router = self.get_router(router_id, organization_id)
-        router_data = self._build_router_data(router)
 
         try:
-            info = self.mikrotik_client.get_router_info(router_data)
+            info = self._execute_client_method_via_vps(router, 'get_router_info')
 
             cpu_load = None
             if info.get('cpu_load'):
@@ -1116,20 +1038,14 @@ class RouterService:
                 total_memory=total_memory,
                 uptime=uptime_str,
             )
-
-            self.repository.update_status(
-                router_id, organization_id, 'online'
-            )
+            self.repository.update_status(router_id, organization_id, 'online')
 
             return {
                 'cpu_load': cpu_load,
                 'free_memory': free_memory,
                 'total_memory': total_memory,
                 'uptime_seconds': uptime_seconds,
-                'uptime_hours': (
-                    round(uptime_seconds / 3600, 2)
-                    if uptime_seconds else 0
-                ),
+                'uptime_hours': round(uptime_seconds / 3600, 2) if uptime_seconds else 0,
                 'uptime_display': uptime_str,
                 'version': info.get('version'),
                 'board_name': info.get('board_name'),
@@ -1144,7 +1060,7 @@ class RouterService:
             raise BusinessError(f"Health check failed: {str(e)}")
 
     # =========================================================================
-    # SYNC (PULL FROM ROUTER)
+    # SYNC (VIA VPS PROXY)
     # =========================================================================
 
     def sync_router(
@@ -1153,11 +1069,10 @@ class RouterService:
         organization_id: UUID,
     ) -> Dict[str, Any]:
         """
-        Full sync of router configuration into the database.
+        Full sync of router configuration via VPS proxy.
         Pulls hotspot servers and PPPoE servers from the router.
         """
         router = self.get_router(router_id, organization_id)
-        router_data = self._build_router_data(router)
 
         results = {
             'success': True,
@@ -1166,45 +1081,12 @@ class RouterService:
             'errors': [],
         }
 
+        # Sync hotspot servers
         try:
-            results['hotspot_synced'] = self._sync_hotspot_servers(
-                router, router_data
+            hotspot_servers = self._execute_client_method_via_vps(
+                router, 'get_hotspot_servers'
             )
-            results['pppoe_synced'] = self._sync_pppoe_servers(
-                router, router_data
-            )
-
-            self.repository.update(router_id, organization_id, {
-                'last_sync_at': datetime.utcnow(),
-                'status': 'online',
-            })
-
-            logger.info(
-                f"Router '{router.name}' synced: "
-                f"{results['hotspot_synced']} hotspot, "
-                f"{results['pppoe_synced']} PPPoE"
-            )
-
-            return results
-
-        except Exception as e:
-            self.repository.update_status(
-                router_id, organization_id, 'error',
-                error_message=str(e),
-            )
-            raise BusinessError(f"Sync failed: {str(e)}")
-
-    def _sync_hotspot_servers(
-        self, router: Router, router_data: Dict[str, Any]
-    ) -> int:
-        """Sync hotspot servers from router to database."""
-        try:
-            hotspot_servers = self.mikrotik_client.get_hotspot_servers(
-                router_data
-            )
-            count = 0
-
-            for hs in hotspot_servers:
+            for hs in (hotspot_servers or []):
                 hotspot_name = hs.get('name', '')
                 if not hotspot_name:
                     continue
@@ -1221,41 +1103,27 @@ class RouterService:
                     'interface': hs.get('interface'),
                     'address_pool': hs.get('address-pool'),
                     'idle_timeout': int(hs.get('idle-timeout', 300)),
-                    'session_timeout': int(
-                        hs.get('session-timeout', 86400)
-                    ),
+                    'session_timeout': int(hs.get('session-timeout', 86400)),
                     'is_active': hs.get('disabled') != 'true',
                 }
 
                 if existing:
-                    self.hotspot_repo.update(
-                        existing.id, router.organization_id, hs_data
-                    )
+                    self.hotspot_repo.update(existing.id, router.organization_id, hs_data)
                 else:
                     self.hotspot_repo.create(hs_data)
 
-                count += 1
-
-            return count
+                results['hotspot_synced'] += 1
 
         except Exception as e:
-            logger.error(
-                f"Failed to sync hotspot servers for "
-                f"router '{router.name}': {e}"
-            )
-            return 0
+            logger.error(f"Hotspot sync failed for router '{router.name}': {e}")
+            results['errors'].append(f"Hotspot: {str(e)}")
 
-    def _sync_pppoe_servers(
-        self, router: Router, router_data: Dict[str, Any]
-    ) -> int:
-        """Sync PPPoE servers from router to database."""
+        # Sync PPPoE servers
         try:
-            pppoe_servers = self.mikrotik_client.get_pppoe_servers(
-                router_data
+            pppoe_servers = self._execute_client_method_via_vps(
+                router, 'get_pppoe_servers'
             )
-            count = 0
-
-            for ps in pppoe_servers:
+            for ps in (pppoe_servers or []):
                 server_name = ps.get('name', '')
                 if not server_name:
                     continue
@@ -1276,26 +1144,70 @@ class RouterService:
                 }
 
                 if existing:
-                    self.pppoe_repo.update(
-                        existing.id, router.organization_id, ps_data
-                    )
+                    self.pppoe_repo.update(existing.id, router.organization_id, ps_data)
                 else:
                     self.pppoe_repo.create(ps_data)
 
-                count += 1
-
-            return count
+                results['pppoe_synced'] += 1
 
         except Exception as e:
-            logger.error(
-                f"Failed to sync PPPoE servers for "
-                f"router '{router.name}': {e}"
-            )
-            return 0
+            logger.error(f"PPPoE sync failed for router '{router.name}': {e}")
+            results['errors'].append(f"PPPoE: {str(e)}")
+
+        # Update sync timestamp
+        self.repository.update(router_id, organization_id, {
+            'last_sync_at': datetime.utcnow(),
+            'status': 'online',
+        })
+
+        logger.info(
+            f"Router '{router.name}' synced: "
+            f"{results['hotspot_synced']} hotspot, "
+            f"{results['pppoe_synced']} PPPoE"
+        )
+
+        return results
 
     # =========================================================================
-    # MANUAL RADIUS CONFIGURATION
+    # RADIUS CONFIGURATION
     # =========================================================================
+
+    def retry_radius_configuration(
+        self,
+        router_id: UUID,
+        organization_id: UUID,
+    ) -> Dict[str, Any]:
+        """
+        Retry RADIUS configuration via VPS proxy.
+        Uses the stored RADIUS secret.
+        """
+        router = self.get_router(router_id, organization_id)
+
+        if not router.radius_secret:
+            raise BusinessError("Router has no RADIUS secret configured")
+
+        try:
+            self._execute_client_method_via_vps(
+                router, 'configure_radius',
+                radius_secret=router.radius_secret,
+            )
+            self.repository.update_radius_config_status(
+                router.id, organization_id, 'configured'
+            )
+            return {
+                'success': True,
+                'message': 'RADIUS configured successfully',
+                'radius_server_ip': self._get_radius_server(),
+            }
+        except Exception as e:
+            error_msg = str(e)
+            self.repository.update_radius_config_status(
+                router.id, organization_id, 'failed', error=error_msg
+            )
+            return {
+                'success': False,
+                'message': f'RADIUS configuration failed: {error_msg}',
+            }
 
     def configure_radius_manual(
         self,
@@ -1305,55 +1217,30 @@ class RouterService:
         radius_secret: str,
     ) -> Dict[str, Any]:
         """
-        Manually configure RADIUS on a router with explicit server/secret.
+        Manually configure RADIUS via VPS proxy.
         Used when admin wants to specify custom RADIUS settings.
         """
         router = self.get_router(router_id, organization_id)
-        organization = Organization.query.get(organization_id)
-        router_data = self._build_router_data(router)
 
         try:
-            result = self.mikrotik_client.configure_radius(
-                router_data=router_data,
+            self._execute_client_method_via_vps(
+                router, 'configure_radius',
                 radius_server=radius_server,
                 radius_secret=radius_secret,
-                radius_port=1812,
-                radius_acct_port=1813,
+            )
+            self.repository.update_radius_config_status(
+                router_id, organization_id, 'configured'
             )
 
-            if result.get('success'):
-                self.repository.update_radius_config_status(
-                    router_id, organization_id, 'configured'
-                )
+            # Persist RADIUS server in settings
+            settings = router.settings or {}
+            settings['radius_server'] = radius_server
+            settings['radius_configured_at'] = datetime.utcnow().isoformat()
+            self.repository.update(router_id, organization_id, {'settings': settings})
 
-                # Mark router with org identity
-                if organization:
-                    try:
-                        self.mikrotik_client.execute(
-                            router_data=router_data,
-                            command='/system/identity/set',
-                            name=f"{router.name}-{organization.slug}",
-                        )
-                    except Exception:
-                        pass
-
-                # Persist RADIUS server in settings
-                settings = router.settings or {}
-                settings['radius_server'] = radius_server
-                settings['radius_configured_at'] = (
-                    datetime.utcnow().isoformat()
-                )
-                self.repository.update(
-                    router_id, organization_id,
-                    {'settings': settings},
-                )
-
-            return result
-
+            return {'success': True, 'message': 'RADIUS configured successfully'}
         except Exception as e:
-            raise BusinessError(
-                f"RADIUS configuration failed: {str(e)}"
-            )
+            raise BusinessError(f"RADIUS configuration failed: {str(e)}")
 
     # =========================================================================
     # CONNECTION STATUS
@@ -1400,7 +1287,5 @@ class RouterService:
             },
             'has_error': bool(router.last_config_error),
             'last_error': router.last_config_error,
-            'organization_slug': (
-                organization.slug if organization else None
-            ),
+            'organization_slug': organization.slug if organization else None,
         }
