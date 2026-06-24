@@ -1,3 +1,4 @@
+from marshmallow import Schema, fields, validate
 class PaymentInitiateSchema(Schema):
     
     amount = fields.Float(
@@ -67,18 +68,15 @@ class PaymentVerifySchema(Schema):
 
 
 class PaymentListSchema(Schema):
-    """
-    Schema for filtering transaction lists.
-    """
     page = fields.Integer(
         required=False,
         validate=validate.Range(min=1),
-        missing=1,
+        load_default=1,  # Changed from 'missing'
     )
     per_page = fields.Integer(
         required=False,
         validate=validate.Range(min=1, max=100),
-        missing=20,
+        load_default=20,  # Changed from 'missing'
     )
     subscriber_id = fields.UUID(
         required=False,
