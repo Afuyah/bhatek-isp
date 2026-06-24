@@ -110,9 +110,10 @@ class Subscriber(BaseModel, OrganizationMixin, TimestampMixin):
             'last_name': self.last_name,
             'national_id': self.national_id,
             'status': self.status,
-            'total_spent': float(self.total_spent),
+            'total_spent': float(self.total_spent) if self.total_spent is not None else 0.0,
             'last_active_at': self.last_active_at.isoformat() if self.last_active_at else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
 
 
