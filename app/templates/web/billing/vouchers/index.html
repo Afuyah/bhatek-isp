@@ -1,283 +1,267 @@
 {% extends "web/organization/base.html" %}
 
-{% block title %}{{ organization.name }} - Vouchers{% endblock %}
+{% block title %}Vouchers — {{ organization.name }}{% endblock %}
+
+{% block head_extra %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { font-family: var(--font-sans); }
+    .mono, code, pre { font-family: var(--font-mono) !important; }
+    
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .animate-fade-up { animation: fadeUp 0.4s ease-out forwards; }
+    .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    .animate-slide { animation: slideIn 0.35s ease-out forwards; }
+    .delay-1 { animation-delay: 0.05s; opacity: 0; }
+    .delay-2 { animation-delay: 0.1s; opacity: 0; }
+    
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all 0.2s ease; }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    
+    .tab-btn { padding: 10px 18px; font-size: 13px; font-weight: 600; color: #6b7280; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.15s ease; background: none; white-space: nowrap; }
+    .tab-btn:hover { color: #374151; }
+    .tab-btn.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+    .tab-count { background: #f3f4f6; color: #6b7280; font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 700; margin-left: 6px; }
+    
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+    .badge-success { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .badge-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .badge-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .badge-neutral { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; }
+    
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; border: none; white-space: nowrap; text-decoration: none; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: #4f46e5; color: #fff; box-shadow: 0 1px 3px rgba(79,70,229,0.3); }
+    .btn-primary:hover { background: #4338ca; box-shadow: 0 4px 12px rgba(79,70,229,0.4); }
+    .btn-outline { background: #fff; color: #374151; border: 2px solid #e5e7eb; }
+    .btn-outline:hover { background: #f9fafb; border-color: #d1d5db; }
+    .btn-sm { padding: 5px 12px; font-size: 11px; border-radius: 8px; }
+    
+    .copy-btn { padding: 4px 8px; border-radius: 6px; color: #9ca3af; cursor: pointer; transition: all 0.15s ease; background: none; border: none; }
+    .copy-btn:hover { color: #4f46e5; background: #eef2ff; }
+    
+    .search-input { width: 100%; max-width: 320px; padding: 8px 12px 8px 36px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 13px; outline: none; transition: all 0.15s ease; }
+    .search-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 14px; font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.08em; background: #f9fafb; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+    td { padding: 12px 14px; font-size: 13px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    tr:hover td { background: #f9fafb; }
+    
+    .toast { position: fixed; bottom: 20px; right: 20px; z-index: 200; background: #111827; color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; opacity: 0; transform: translateY(12px); transition: all 0.3s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    
+    @media (max-width: 640px) {
+        .tab-btn { padding: 8px 12px; font-size: 11px; }
+        th, td { padding: 8px 10px; font-size: 11px; }
+        .hide-mobile { display: none !important; }
+        .btn { padding: 6px 12px; font-size: 11px; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="p-3 md:p-4 lg:p-6 space-y-4 md:space-y-5">
-    
-    <!-- Header -->
-    <div class="flex flex-wrap justify-between items-center gap-3">
+{% set active_tab = request.args.get('tab', 'singles') %}
+
+<div style="max-width: 1200px; margin: 0 auto; padding: 0 12px 60px 12px;">
+
+    {# Header #}
+    <div class="animate-fade-up delay-1" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 0;">
         <div>
-            <h1 class="text-xl md:text-2xl font-bold text-gray-900">Vouchers</h1>
-            <p class="text-xs md:text-sm text-gray-500 mt-0.5">Manage prepaid vouchers and batches</p>
+            <h1 style="font-size: 22px; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.02em;">Vouchers</h1>
+            <p style="font-size: 13px; color: #6b7280; margin: 2px 0 0 0;">Prepaid access codes and batches</p>
         </div>
-        <div class="flex gap-2">
-            <a href="{{ url_for('billing_web.voucher_create', org_id=organization.id) }}" 
-               class="inline-flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm rounded-lg transition-all duration-150 shadow-sm hover:shadow-md">
-                <i class="fas fa-plus text-xs"></i> Single Voucher
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="{{ url_for('billing_web.voucher_create', org_id=organization.id) }}" class="btn btn-primary btn-sm">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Single Voucher
             </a>
-            <a href="{{ url_for('billing_web.voucher_batch_create', org_id=organization.id) }}" 
-               class="inline-flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-all duration-150">
-                <i class="fas fa-layer-group"></i> Create Batch
+            <a href="{{ url_for('billing_web.voucher_batch_create', org_id=organization.id) }}" class="btn btn-outline btn-sm">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Batch
             </a>
         </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="border-b border-gray-200">
-        <div class="flex gap-0">
-            <button data-tab="batches" 
-                    class="tab-btn px-3 py-2 md:px-5 md:py-2.5 text-xs md:text-sm font-medium text-[#1a56db] border-b-2 border-[#1a56db] transition-colors">
-                Batches <span class="ml-1 text-xs text-gray-400">({{ batches|length }})</span>
-            </button>
-            <button data-tab="singles" 
-                    class="tab-btn px-3 py-2 md:px-5 md:py-2.5 text-xs md:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
-                Single Vouchers <span class="ml-1 text-xs text-gray-400">({{ single_vouchers|length }})</span>
-            </button>
-        </div>
+    {# Tabs #}
+    <div style="display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 16px; overflow-x: auto;" class="animate-fade-up delay-2">
+        <button onclick="switchTab('singles')" id="tab-singles" 
+                class="tab-btn {{ 'active' if active_tab == 'singles' else '' }}">
+            Single Vouchers<span class="tab-count">{{ single_vouchers|length }}</span>
+        </button>
+        <button onclick="switchTab('batches')" id="tab-batches" 
+                class="tab-btn {{ 'active' if active_tab == 'batches' else '' }}">
+            Batches<span class="tab-count">{{ batches|length }}</span>
+        </button>
     </div>
 
-    <!-- Batches Tab -->
-    <div id="batches-tab" class="tab-content space-y-3">
-        {% if batches %}
-            {% for batch in batches %}
-            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-150">
-                <div class="flex flex-wrap justify-between items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200">
-                    <span class="font-semibold text-gray-800">{{ batch.batch_name }}</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium
-                        {% if batch.status == 'active' %}bg-emerald-100 text-emerald-700
-                        {% elif batch.status == 'expired' %}bg-amber-100 text-amber-700
-                        {% else %}bg-gray-100 text-gray-600{% endif %}">
-                        {{ batch.status|capitalize }}
-                    </span>
-                </div>
-                <div class="p-4">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                        <div>
-                            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Plan</div>
-                            <div class="text-sm font-semibold text-gray-800">{{ batch.plan.name if batch.plan else 'N/A' }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Quantity</div>
-                            <div class="text-sm font-semibold text-gray-800">{{ batch.quantity }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Price / Voucher</div>
-                            <div class="text-sm font-semibold text-gray-800">KES {{ "%.2f"|format(batch.price_per_voucher) }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Total Amount</div>
-                            <div class="text-sm font-semibold text-gray-800">KES {{ "%.2f"|format(batch.total_amount) }}</div>
-                        </div>
-                    </div>
-                    <a href="{{ url_for('billing_web.voucher_batch_detail', org_id=organization.id, batch_id=batch.id) }}" 
-                       class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-150">
-                        <i class="fas fa-eye text-xs"></i> View Details
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="bg-white rounded-lg border border-gray-200 text-center py-8">
-                <i class="fas fa-layer-group text-3xl text-gray-300 mb-2 block"></i>
-                <p class="text-gray-500 text-sm">No voucher batches created yet</p>
-            </div>
-        {% endif %}
-    </div>
-
-    <!-- Single Vouchers Tab -->
-    <div id="singles-tab" class="tab-content hidden">
-        <!-- Search Bar -->
-        <div class="relative mb-4">
-            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-            <input type="text" id="searchInput" 
-                   class="w-full md:w-80 pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]"
-                   placeholder="Search by code or plan...">
+    {# Single Vouchers Tab #}
+    <div id="tab-content-singles" class="{{ 'hidden' if active_tab != 'singles' else '' }}" style="display: {{ 'none' if active_tab != 'singles' else 'block' }};">
+        {# Search #}
+        <div style="position: relative; margin-bottom: 14px; max-width: 320px;" class="animate-fade-up delay-2">
+            <svg style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by code or plan...">
         </div>
-        
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                <h3 class="text-sm font-semibold text-gray-700"><i class="fas fa-ticket-alt mr-2"></i> Single Vouchers</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm" id="vouchersTable">
-                    <thead class="bg-gray-50 border-b border-gray-200">
+
+        <div class="card animate-fade-up delay-2" style="overflow: hidden;">
+            {% if single_vouchers %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
                         <tr>
-                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Code</th>
-                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Plan</th>
-                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Validity</th>
-                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">Expires At</th>
-                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden xl:table-cell">Used By</th>
-                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center w-16">Actions</th>
+                            <th>Code</th>
+                            <th>Plan</th>
+                            <th style="text-align:center;">Status</th>
+                            <th class="hide-mobile">Validity</th>
+                            <th class="hide-mobile">Expires</th>
+                            <th style="text-align:center;width:50px;"></th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        {% if single_vouchers %}
-                            {% for voucher in single_vouchers %}
-                            <tr class="voucher-row hover:bg-gray-50 transition-colors duration-150" 
-                                data-code="{{ voucher.code.lower() }}" 
-                                data-plan="{{ voucher.plan.name.lower() if voucher.plan else '' }}">
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2">
-                                        <code class="font-mono text-sm font-semibold bg-gray-100 px-2 py-1 rounded text-gray-800">{{ voucher.code }}</code>
-                                        <button onclick="copyToClipboard('{{ voucher.code }}')" 
-                                                class="p-1 rounded-md text-gray-400 hover:text-[#1a56db] transition-colors duration-150" title="Copy code">
-                                            <i class="fas fa-copy text-xs"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-700">{{ voucher.plan.name if voucher.plan else 'N/A' }}</td>
-                                <td class="px-4 py-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium
-                                        {% if voucher.status == 'active' %}bg-emerald-100 text-emerald-700
-                                        {% elif voucher.status == 'used' %}bg-red-100 text-red-700
-                                        {% else %}bg-amber-100 text-amber-700{% endif %}">
-                                        <span class="w-1 h-1 rounded-full 
-                                            {% if voucher.status == 'active' %}bg-emerald-500
-                                            {% elif voucher.status == 'used' %}bg-red-500
-                                            {% else %}bg-amber-500{% endif %}"></span>
-                                        {{ voucher.status|capitalize }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-xs text-gray-500 hidden md:table-cell">{{ voucher.validity_display }}</td>
-                                <td class="px-4 py-3 text-xs text-gray-500 hidden lg:table-cell">{{ voucher.expires_at.strftime('%Y-%m-%d') if voucher.expires_at else 'N/A' }}</td>
-                                <td class="px-4 py-3 text-xs text-gray-500 hidden xl:table-cell">{{ voucher.used_by_subscriber.phone if voucher.used_by_subscriber else '-' }}</td>
-                                <td class="px-4 py-3 text-center">
-                                    {% if voucher.status == 'active' %}
-                                    <button onclick="copyToClipboard('{{ voucher.code }}')" 
-                                            class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150" title="Copy code">
-                                        <i class="fas fa-copy"></i>
+                    <tbody>
+                        {% for voucher in single_vouchers %}
+                        <tr class="voucher-row" data-code="{{ voucher.code.lower() }}" data-plan="{{ voucher.plan.name.lower() if voucher.plan else '' }}">
+                            <td>
+                                <div style="display:flex;align-items:center;gap:6px;">
+                                    <code class="mono" style="font-size:12px;font-weight:600;background:#f3f4f6;padding:3px 8px;border-radius:6px;color:#111827;">{{ voucher.code }}</code>
+                                    <button onclick="copyCode('{{ voucher.code }}')" class="copy-btn" title="Copy">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                     </button>
-                                    {% else %}
-                                    <span class="text-gray-300">-</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="7" class="text-center py-8 text-gray-400">
-                                    <i class="fas fa-ticket-alt text-3xl mb-2 block opacity-50"></i>
-                                    <p class="text-sm">No single vouchers created yet</p>
-                                </td>
-                            </tr>
-                        {% endif %}
+                                </div>
+                            </td>
+                            <td style="font-weight:500;">{{ voucher.plan.name if voucher.plan else '—' }}</td>
+                            <td style="text-align:center;">
+                                <span class="badge {{ 'badge-success' if voucher.status == 'active' else 'badge-danger' if voucher.status == 'used' else 'badge-warning' }}">
+                                    {{ voucher.status|capitalize }}
+                                </span>
+                            </td>
+                            <td class="hide-mobile" style="font-size:12px;color:#6b7280;">{{ voucher.validity_display }}</td>
+                            <td class="hide-mobile" style="font-size:12px;color:#6b7280;">{{ voucher.expires_at.strftime('%b %d, %Y') if voucher.expires_at else '—' }}</td>
+                            <td style="text-align:center;">
+                                {% if voucher.status == 'active' %}
+                                <button onclick="copyCode('{{ voucher.code }}')" class="copy-btn" title="Copy code">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
+            {% else %}
+            <div style="padding: 48px 20px; text-align: center;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" style="margin-bottom:12px;"><path d="M15 5v2M15 11v2M15 17v2M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>
+                <p style="font-size:14px;color:#9ca3af;margin:0;">No vouchers created yet</p>
+                <a href="{{ url_for('billing_web.voucher_create', org_id=organization.id) }}" class="btn btn-primary btn-sm" style="margin-top:12px;">Create First Voucher</a>
+            </div>
+            {% endif %}
         </div>
+    </div>
+
+    {# Batches Tab #}
+    <div id="tab-content-batches" class="{{ 'hidden' if active_tab != 'batches' else '' }}" style="display: {{ 'none' if active_tab != 'batches' else 'block' }};">
+        {% if batches %}
+        <div style="display:flex;flex-direction:column;gap:12px;" class="animate-fade-up delay-2">
+            {% for batch in batches %}
+            <div class="card" style="padding:16px 20px;">
+                <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;">
+                    <span style="font-weight:700;font-size:15px;color:#111827;">{{ batch.batch_name }}</span>
+                    <span class="badge {{ 'badge-success' if batch.status == 'generated' else 'badge-warning' if batch.status == 'partially_used' else 'badge-neutral' }}">
+                        {{ batch.status|replace('_', ' ')|title }}
+                    </span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:14px;">
+                    <div>
+                        <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;">Plan</div>
+                        <div style="font-size:13px;font-weight:600;color:#374151;">{{ batch.plan.name if batch.plan else '—' }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;">Quantity</div>
+                        <div style="font-size:13px;font-weight:600;color:#374151;">{{ batch.quantity }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;">Price/Voucher</div>
+                        <div style="font-size:13px;font-weight:600;color:#374151;">KES {{ "%.2f"|format(batch.price_per_voucher or 0) }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;">Total</div>
+                        <div style="font-size:13px;font-weight:600;color:#374151;">KES {{ "%.2f"|format(batch.total_amount or 0) }}</div>
+                    </div>
+                </div>
+                <a href="{{ url_for('billing_web.voucher_batch_detail', org_id=organization.id, batch_id=batch.id) }}" 
+                   class="btn btn-outline btn-sm">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    View Details
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card animate-fade-up delay-2" style="padding:48px 20px;text-align:center;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" style="margin-bottom:12px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <p style="font-size:14px;color:#9ca3af;margin:0;">No voucher batches created yet</p>
+            <a href="{{ url_for('billing_web.voucher_batch_create', org_id=organization.id) }}" class="btn btn-primary btn-sm" style="margin-top:12px;">Create First Batch</a>
+        </div>
+        {% endif %}
     </div>
 </div>
 
 <script>
-    // Tab switching
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tabId = btn.getAttribute('data-tab');
-            
-            // Update button styles
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('text-[#1a56db]', 'border-[#1a56db]');
-                b.classList.add('text-gray-500', 'border-transparent');
-            });
-            btn.classList.remove('text-gray-500', 'border-transparent');
-            btn.classList.add('text-[#1a56db]', 'border-[#1a56db]');
-            
-            // Update content visibility
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            document.getElementById(`${tabId}-tab`).classList.remove('hidden');
-            
-            // Clear search when switching to singles tab
-            if (tabId === 'singles') {
-                const searchInput = document.getElementById('searchInput');
-                if (searchInput) {
-                    searchInput.value = '';
-                    filterVouchers('');
-                }
-            }
-        });
-    });
-    
-    // Search functionality for single vouchers
-    const searchInput = document.getElementById('searchInput');
-    
-    function filterVouchers(searchTerm) {
-        const rows = document.querySelectorAll('#vouchersTable .voucher-row');
-        
-        rows.forEach(row => {
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    document.getElementById('tab-content-singles').style.display = tab === 'singles' ? 'block' : 'none';
+    document.getElementById('tab-content-batches').style.display = tab === 'batches' ? 'block' : 'none';
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tab);
+    history.replaceState({}, '', url);
+}
+
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        const term = this.value.toLowerCase();
+        document.querySelectorAll('.voucher-row').forEach(row => {
             const code = row.getAttribute('data-code') || '';
             const plan = row.getAttribute('data-plan') || '';
-            
-            if (code.includes(searchTerm) || plan.includes(searchTerm)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            row.style.display = (code.includes(term) || plan.includes(term)) ? '' : 'none';
         });
+    });
+}
+
+async function copyCode(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        toast('Voucher code copied!');
+    } catch(e) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        toast('Voucher code copied!');
     }
-    
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            filterVouchers(searchTerm);
-        });
-    }
-    
-    // Copy to clipboard function
-    async function copyToClipboard(text) {
-        try {
-            await navigator.clipboard.writeText(text);
-            showToast('Voucher code copied!', 'success');
-        } catch (err) {
-            // Fallback for older browsers
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            showToast('Voucher code copied!', 'success');
-        }
-    }
-    
-    // Toast notification (uses the global showToast from base template if available)
-    function showToast(message, type = 'success') {
-        if (typeof window.showToast === 'function') {
-            window.showToast(message, type);
-        } else {
-            // Fallback toast
-            const toast = document.createElement('div');
-            const colors = {
-                success: 'bg-emerald-500',
-                error: 'bg-red-500',
-                warning: 'bg-amber-500'
-            };
-            toast.className = `fixed bottom-5 right-5 z-50 ${colors[type] || colors.success} text-white px-4 py-2 rounded-lg shadow-lg text-sm animate-slide-in`;
-            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>${message}`;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-    }
-    
-    // Add animation style for fallback toast
-    if (typeof window.showToast !== 'function') {
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            .animate-slide-in {
-                animation: slideIn 0.3s ease-out;
-            }
-        `;
-        document.head.appendChild(style);
-    }
+}
+
+function toast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' + msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2500);
+}
 </script>
 {% endblock %}
