@@ -6,7 +6,7 @@ import uuid
 from app.modules.payment.repository import TransactionRepository, PaymentAccountRepository
 from app.models.payment import Transaction, PaymentWebhookLog
 from app.integrations.mpesa.client import MpesaClient
-from app.integrations.mpesa.callback_handler import MpesaCallbackHandler
+from app.integrations.mpesa.callbacks import MpesaCallbackHandler
 from app.core.logging.logger import logger
 from app.core.exceptions.handlers import BusinessError, NotFoundError, ValidationError
 from app.core.database.session import db
