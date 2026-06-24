@@ -1025,45 +1025,33 @@ class SubscriberService:
         """Get all PPPoE users."""
         return self.repository.get_pppoe_users(organization_id, skip, limit)
 
-    def get_subscriber_dashboard_stats(
-        self,
-        organization_id: UUID,
-    ) -> Dict[str, Any]:
-        """Get dashboard statistics for subscribers."""
+    def get_subscriber_dashboard_stats(self, organization_id: UUID) -> Dict[str, Any]:
+        """Get dashboard statistics for subscribers"""
         try:
             stats = self.repository.get_subscriber_stats(organization_id)
             recent = self.repository.get_recent_subscribers(organization_id, 5)
-            expiring = self.repository.get_subscribers_expiring_soon(
-                organization_id, 7
-            )
+            expiring = self.repository.get_subscribers_expiring_soon(organization_id, 7)
+
+            # Build expiring_soon list safely
+            expiring_list = []
+            for s in expiring:
+                active_sub = self.repository.get_active_subscription(s.id, organization_id)
+                expiring_list.append({
+                    'id': str(s.id),
+                    'phone': s.phone,
+                    'name': s.get_full_name(),
+                    'expiry': active_sub.expiry_time.isoformat() if active_sub else None,
+                })
 
             return {
                 **stats,
                 'recent_subscribers': [s.to_dict() for s in recent],
                 'expiring_soon_count': len(expiring),
-                'expiring_soon': [
-                    {
-                        'id': str(s.id),
-                        'phone': s.phone,
-                        'name': s.get_full_name(),
-                        'expiry': (
-                            self.repository.get_active_subscription(
-                                s.id, organization_id
-                            ).expiry_time.isoformat()
-                            if self.repository.get_active_subscription(
-                                s.id, organization_id
-                            ) else None
-                        ),
-                    }
-                    for s in expiring
-                ],
+                'expiring_soon': expiring_list,
             }
-
         except Exception as e:
             logger.error(f"Error getting dashboard stats: {e}", exc_info=True)
-            raise BusinessError(
-                f"Failed to get dashboard statistics: {str(e)}"
-            )
+            raise BusinessError(f"Failed to get dashboard statistics: {str(e)}")
 
     # =========================================================================
     # CACHE INVALIDATION
