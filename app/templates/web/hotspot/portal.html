@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>{{ theme.welcome_title }}</title>
+    <meta name="theme-color" content="{{ theme.primary_color }}">
+    <style>
+        :root {
+            --primary: {{ theme.primary_color }};
+            --primary-glow: {{ theme.primary_color }}40;
+            --primary-dark: {{ theme.primary_color }}ee;
+            --bg: #f6f7fb;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e8ecf1;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --error: #ef4444;
+            --error-bg: #fef2f2;
+            --warning: #f59e0b;
+            --warning-bg: #fffbeb;
+            --radius-sm: 10px;
+            --radius: 16px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 40px -10px rgba(0,0,0,0.1);
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            min-height: 100dvh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-tap-highlight-color: transparent;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 440px;
+            margin: 0 auto;
+            padding: 0 16px 32px;
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            text-align: center;
+            padding: 28px 8px 8px;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-glow);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 999px;
+            margin-bottom: 16px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .hero-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px var(--primary-glow);
+        }
+
+        .hero-icon svg { width: 30px; height: 30px; fill: white; }
+
+        .hero h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* ── TABS ── */
+        .tab-nav {
+            display: flex;
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 4px;
+            margin: 20px 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 6px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition);
+            color: var(--text-muted);
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px var(--primary-glow);
+        }
+
+        .tab-emoji { font-size: 16px; }
+
+        /* ── PLAN CARDS ── */
+        .plan-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .plan-card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .plan-card:active { transform: scale(0.985); }
+
+        .plan-card:hover, .plan-card:focus-visible {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md), 0 0 0 1px var(--primary);
+        }
+
+        .plan-card.popular {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f7ff 100%);
+        }
+
+        .plan-card.popular::before {
+            content: 'POPULAR';
+            position: absolute;
+            top: 12px;
+            right: -28px;
+            background: var(--primary);
+            color: white;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 4px 32px;
+            transform: rotate(45deg);
+            letter-spacing: 0.08em;
+        }
+
+        .plan-info { flex: 1; min-width: 0; }
+
+        .plan-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .plan-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .plan-meta span {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+        }
+
+        .plan-price-block { text-align: right; flex-shrink: 0; }
+
+        .plan-price {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .plan-price small { font-size: 12px; font-weight: 600; }
+
+        .plan-validity {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .buy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-top: 8px;
+            box-shadow: 0 2px 8px var(--primary-glow);
+        }
+
+        .buy-btn:active { transform: scale(0.95); }
+
+        /* ── VOUCHER & MPESA CARDS ── */
+        .action-card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .action-card .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 22px;
+        }
+
+        .action-card .icon-circle.voucher { background: #fef3c7; }
+        .action-card .icon-circle.mpesa { background: #dbeafe; }
+
+        .action-card h2 {
+            font-size: 17px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .action-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-weight: 500;
+            transition: all var(--transition);
+            background: var(--bg);
+            color: var(--text);
+            text-align: center;
+            letter-spacing: 0.04em;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .input-wrapper input::placeholder { color: var(--text-muted); }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-align: center;
+            letter-spacing: 0.01em;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(15,23,42,0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s;
+        }
+
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal {
+            background: var(--card);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            width: 100%;
+            max-width: 440px;
+            padding: 24px 20px 32px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-xl);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal { transform: translateY(0); }
+
+        .modal-handle {
+            width: 36px;
+            height: 4px;
+            background: #d1d5db;
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .modal h3 {
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .modal .plan-summary {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .modal .plan-summary strong { color: var(--primary); }
+
+        /* ── STATUS ── */
+        .status-card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            padding: 32px 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .status-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .status-icon.success { background: var(--success); }
+        .status-icon.error { background: var(--error); }
+
+        .status-icon svg { width: 26px; height: 26px; }
+        .status-icon.success svg { stroke: white; }
+        .status-icon.error svg { stroke: white; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes popIn { 0% { transform: scale(0); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+        .status-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .status-title.success { color: var(--success); }
+        .status-title.error { color: var(--error); }
+
+        .status-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* ── UTILITY ── */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mt-3 { margin-top: 12px; }
+        .mt-4 { margin-top: 16px; }
+        .mb-3 { margin-bottom: 12px; }
+
+        /* ── NOTIFICATION TOAST ── */
+        .toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120%);
+            background: var(--text);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 200;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--error); }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ═══════════ HERO ═══════════ -->
+        <div class="hero">
+            <div class="hero-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                PUBLIC WiFi
+            </div>
+            <div class="hero-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 21l-2-2.5c3.5-2.5 8-2.5 11.5 0L19.5 21c-2.5-2-5-2-7.5 0zM8.5 17.5l-2-2.5c4.5-3.5 10.5-3.5 15 0l-2 2.5c-3.5-2.5-7.5-2.5-11 0zM5 14l-2-2.5c6-4.5 14-4.5 20 0l-2 2.5c-5-3.5-11-3.5-16 0z"/></svg>
+            </div>
+            <h1>{{ theme.welcome_title }}</h1>
+            <p>{{ theme.welcome_subtitle }}</p>
+        </div>
+
+        <!-- ═══════════ TABS ═══════════ -->
+        <div class="tab-nav" id="tabNav">
+            {% if theme.show_plans %}
+            <button class="tab-btn active" onclick="switchTab('plans')" id="tab-plans">
+                <span class="tab-emoji">📶</span> Plans
+            </button>
+            {% endif %}
+            {% if theme.show_vouchers %}
+            <button class="tab-btn" onclick="switchTab('voucher')" id="tab-voucher">
+                <span class="tab-emoji">🎫</span> Voucher
+            </button>
+            {% endif %}
+            {% if theme.show_mpesa_code %}
+            <button class="tab-btn" onclick="switchTab('mpesa')" id="tab-mpesa">
+                <span class="tab-emoji">📱</span> M-Pesa
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- ═══════════ TAB: PLANS ═══════════ -->
+        <div id="tab-plans-content">
+            {% if plans %}
+            <div class="plan-grid" id="planGrid">
+                {% for plan in plans %}
+                <div class="plan-card {{ 'popular' if loop.first and plans|length > 1 else '' }}" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" data-plan-price="{{ plan.price }}">
+                    <div class="plan-info">
+                        <div class="plan-name">{{ plan.name }}</div>
+                        <div class="plan-meta">
+                            <span>⚡ {{ plan.bandwidth_down_mbps }} Mbps</span>
+                            <span>⏱ {{ plan.validity_display }}</span>
+                            <span>📱 {{ plan.device_limit }} device{{ 's' if plan.device_limit > 1 else '' }}</span>
+                        </div>
+                    </div>
+                    <div class="plan-price-block">
+                        <div class="plan-price">KES {{ plan.price }}</div>
+                        <div class="plan-validity">{{ plan.validity_display }}</div>
+                        <button class="buy-btn" onclick="openPaymentModal('{{ plan.id }}', '{{ plan.name }}', '{{ plan.price }}')">
+                            Buy Now →
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📶</div>
+                <p>No plans available at the moment.</p>
+                <p style="font-size:12px;">Please check back later or contact support.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ═══════════ TAB: VOUCHER ═══════════ -->
+        <div id="tab-voucher-content" class="hidden">
+            <div class="action-card">
+                <div class="icon-circle voucher">🎫</div>
+                <h2>Redeem Voucher</h2>
+                <p>Enter the voucher code you received</p>
+                <div class="input-wrapper">
+                    <input type="text" id="voucherCodeInput" placeholder="XXXX-XXXX-XXXX" maxlength="14" autocomplete="off" autocorrect="off" autocapitalize="characters" style="text-transform:uppercase;">
+                </div>
+                <button class="btn btn-primary" onclick="redeemVoucher()" id="voucherRedeemBtn">
+                    Redeem & Connect
+                </button>
+                <div id="voucherResult" class="hidden mt-3"></div>
+            </div>
+        </div>
+
+        <!-- ═══════════ TAB: M-PESA CODE ═══════════ -->
+        <div id="tab-mpesa-content" class="hidden">
+            <div class="action-card">
+                <div class="icon-circle mpesa">📱</div>
+                <h2>Already Paid?</h2>
+                <p>Enter your M-Pesa confirmation code to reconnect</p>
+                <div class="input-wrapper">
+                    <input type="text" id="mpesaCodeInput" placeholder="e.g. QK8H3X9P" maxlength="15" autocomplete="off" autocorrect="off" autocapitalize="characters" style="text-transform:uppercase;">
+                </div>
+                <button class="btn btn-primary" onclick="verifyMpesaCode()" id="mpesaVerifyBtn">
+                    Verify & Connect
+                </button>
+                <div id="mpesaResult" class="hidden mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ PAYMENT MODAL ═══════════ -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <h3>Complete Payment</h3>
+            <p class="plan-summary" id="modalPlanSummary">Plan: <strong id="modalPlanName"></strong> — KES <strong id="modalPlanPrice"></strong></p>
+            
+            <div class="input-wrapper">
+                <input type="tel" id="modalPhoneInput" placeholder="M-Pesa phone number e.g. 0712345678" maxlength="13" inputmode="tel">
+            </div>
+            <button class="btn btn-primary" onclick="initiatePayment()" id="modalPayBtn">
+                💳 Pay with M-Pesa
+            </button>
+            <button class="btn btn-ghost" onclick="closePaymentModal()">Cancel</button>
+            
+            <div id="modalStatus" class="hidden mt-4">
+                <div class="status-card">
+                    <div class="spinner" id="modalSpinner"></div>
+                    <div class="status-icon success hidden" id="modalSuccessIcon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div class="status-icon error hidden" id="modalErrorIcon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </div>
+                    <p class="status-title" id="modalStatusTitle"></p>
+                    <p class="status-subtitle" id="modalStatusSubtitle"></p>
+                    <button class="btn btn-primary mt-4 hidden" id="modalRetryBtn" onclick="resetPaymentModal()">Try Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ TOAST ═══════════ -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ── STATE ──
+        const ORG_SLUG = '{{ theme.org_slug }}';
+        const CLIENT_MAC = '{{ client_mac }}';
+        let activeTab = 'plans';
+        let selectedPlanId = null;
+        let pollingTimer = null;
+
+        // ── TAB SWITCHING ──
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('[id$="-content"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            const content = document.getElementById(`tab-${tab}-content`);
+            const btn = document.getElementById(`tab-${tab}`);
+            if (content) content.classList.remove('hidden');
+            if (btn) btn.classList.add('active');
+        }
+
+        // ── PHONE FORMATTING ──
+        function formatPhone(phone) {
+            let cleaned = phone.replace(/\D/g, '');
+            if (cleaned.startsWith('0') && cleaned.length === 10) cleaned = '254' + cleaned.substring(1);
+            if ((cleaned.startsWith('7') || cleaned.startsWith('1')) && cleaned.length === 9) cleaned = '254' + cleaned;
+            return cleaned;
+        }
+
+        // ── TOAST ──
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            requestAnimationFrame(() => toast.classList.add('show'));
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 2800);
+        }
+
+        // ── PAYMENT MODAL ──
+        function openPaymentModal(planId, planName, planPrice) {
+            selectedPlanId = planId;
+            document.getElementById('modalPlanName').textContent = planName;
+            document.getElementById('modalPlanPrice').textContent = planPrice;
+            document.getElementById('modalPhoneInput').value = '';
+            document.getElementById('modalStatus').classList.add('hidden');
+            document.getElementById('modalPayBtn').classList.remove('hidden');
+            document.getElementById('modalPhoneInput').parentElement.classList.remove('hidden');
+            document.getElementById('modalSpinner').classList.remove('hidden');
+            document.getElementById('modalSuccessIcon').classList.add('hidden');
+            document.getElementById('modalErrorIcon').classList.add('hidden');
+            document.getElementById('modalRetryBtn').classList.add('hidden');
+            document.getElementById('paymentModal').classList.add('active');
+            setTimeout(() => document.getElementById('modalPhoneInput').focus(), 300);
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('active');
+            if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
+        }
+
+        function resetPaymentModal() {
+            document.getElementById('modalStatus').classList.add('hidden');
+            document.getElementById('modalPayBtn').classList.remove('hidden');
+            document.getElementById('modalPhoneInput').parentElement.classList.remove('hidden');
+            document.getElementById('modalPhoneInput').value = '';
+            document.getElementById('modalPayBtn').disabled = false;
+            document.getElementById('modalPayBtn').textContent = '💳 Pay with M-Pesa';
+            document.getElementById('modalRetryBtn').classList.add('hidden');
+        }
+
+        // ── INITIATE PAYMENT ──
+        async function initiatePayment() {
+            const phoneInput = document.getElementById('modalPhoneInput');
+            const payBtn = document.getElementById('modalPayBtn');
+            const phone = phoneInput.value.trim();
+
+            if (!phone || phone.length < 9) {
+                showToast('Enter a valid phone number', 'error');
+                phoneInput.focus();
+                return;
+            }
+
+            payBtn.disabled = true;
+            payBtn.textContent = '⏳ Sending...';
+
+            try {
+                const res = await fetch(`/hotspot/${ORG_SLUG}/pay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: formatPhone(phone),
+                        plan_id: selectedPlanId,
+                        device_mac: CLIENT_MAC
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success && data.transaction_id) {
+                    document.getElementById('modalPayBtn').classList.add('hidden');
+                    document.getElementById('modalPhoneInput').parentElement.classList.add('hidden');
+                    document.getElementById('modalStatus').classList.remove('hidden');
+                    document.getElementById('modalStatusTitle').textContent = 'Check your phone';
+                    document.getElementById('modalStatusTitle').className = 'status-title';
+                    document.getElementById('modalStatusSubtitle').textContent = 'Enter your M-Pesa PIN to complete payment';
+                    startPolling(data.transaction_id);
+                } else {
+                    showToast(data.error || 'Payment failed', 'error');
+                    payBtn.disabled = false;
+                    payBtn.textContent = '💳 Pay with M-Pesa';
+                }
+            } catch (e) {
+                showToast('Network error. Try again.', 'error');
+                payBtn.disabled = false;
+                payBtn.textContent = '💳 Pay with M-Pesa';
+            }
+        }
+
+        // ── POLL PAYMENT STATUS ──
+        function startPolling(transactionId) {
+            let attempts = 0;
+            pollingTimer = setInterval(async () => {
+                attempts++;
+                try {
+                    const res = await fetch(`/hotspot/${ORG_SLUG}/status/${transactionId}`);
+                    const data = await res.json();
+
+                    if (data.status === 'success') {
+                        clearInterval(pollingTimer);
+                        showPaymentSuccess();
+                    } else if (data.status === 'failed' || attempts >= 30) {
+                        clearInterval(pollingTimer);
+                        showPaymentError('Payment was not completed. Please try again.');
+                    }
+                } catch (e) {
+                    if (attempts >= 30) {
+                        clearInterval(pollingTimer);
+                        showPaymentError('Connection lost. Please try again.');
+                    }
+                }
+            }, 3000);
+        }
+
+        function showPaymentSuccess() {
+            document.getElementById('modalSpinner').classList.add('hidden');
+            document.getElementById('modalSuccessIcon').classList.remove('hidden');
+            document.getElementById('modalStatusTitle').textContent = 'Connected!';
+            document.getElementById('modalStatusTitle').className = 'status-title success';
+            document.getElementById('modalStatusSubtitle').textContent = 'You now have internet access';
+            
+            setTimeout(() => {
+                window.location.href = 'http://captive.apple.com/hotspot-detect.html';
+            }, 2500);
+        }
+
+        function showPaymentError(msg) {
+            document.getElementById('modalSpinner').classList.add('hidden');
+            document.getElementById('modalErrorIcon').classList.remove('hidden');
+            document.getElementById('modalStatusTitle').textContent = 'Payment Failed';
+            document.getElementById('modalStatusTitle').className = 'status-title error';
+            document.getElementById('modalStatusSubtitle').textContent = msg;
+            document.getElementById('modalRetryBtn').classList.remove('hidden');
+        }
+
+        // ── REDEEM VOUCHER ──
+        async function redeemVoucher() {
+            const input = document.getElementById('voucherCodeInput');
+            const btn = document.getElementById('voucherRedeemBtn');
+            const resultDiv = document.getElementById('voucherResult');
+            const code = input.value.trim().toUpperCase();
+
+            if (!code || code.length < 8) {
+                showToast('Enter a valid voucher code', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Redeeming...';
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<div class="status-card"><div class="spinner"></div><p class="status-subtitle">Verifying voucher...</p></div>';
+
+            try {
+                const res = await fetch(`/hotspot/${ORG_SLUG}/redeem`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ voucher_code: code, device_mac: CLIENT_MAC })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="status-card">
+                            <div class="status-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                            <p class="status-title success">Connected!</p>
+                            <p class="status-subtitle">${data.plan_name || 'Voucher activated'}</p>
+                        </div>`;
+                    showToast('Voucher redeemed! Connecting...', 'success');
+                    setTimeout(() => window.location.href = 'http://captive.apple.com/hotspot-detect.html', 2500);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="status-card">
+                            <div class="status-icon error"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+                            <p class="status-title error">Invalid Voucher</p>
+                            <p class="status-subtitle">${data.error || 'This voucher cannot be redeemed'}</p>
+                            <button class="btn btn-primary mt-4" onclick="document.getElementById('voucherResult').classList.add('hidden');document.getElementById('voucherRedeemBtn').disabled=false;document.getElementById('voucherRedeemBtn').textContent='Redeem & Connect';">Try Again</button>
+                        </div>`;
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="status-card"><div class="status-icon error"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><p class="status-title error">Network Error</p><p class="status-subtitle">Please try again</p></div>';
+            }
+            btn.disabled = false;
+            btn.textContent = 'Redeem & Connect';
+        }
+
+        // ── VERIFY M-PESA CODE ──
+        async function verifyMpesaCode() {
+            const input = document.getElementById('mpesaCodeInput');
+            const btn = document.getElementById('mpesaVerifyBtn');
+            const resultDiv = document.getElementById('mpesaResult');
+            const code = input.value.trim().toUpperCase();
+
+            if (!code || code.length < 6) {
+                showToast('Enter a valid M-Pesa code', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Verifying...';
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<div class="status-card"><div class="spinner"></div><p class="status-subtitle">Verifying your payment...</p></div>';
+
+            try {
+                const res = await fetch(`/hotspot/${ORG_SLUG}/verify-mpesa`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mpesa_code: code, device_mac: CLIENT_MAC })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="status-card">
+                            <div class="status-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                            <p class="status-title success">Connected!</p>
+                            <p class="status-subtitle">${data.plan_name || 'Payment verified'}</p>
+                        </div>`;
+                    showToast('Verified! Connecting...', 'success');
+                    setTimeout(() => window.location.href = 'http://captive.apple.com/hotspot-detect.html', 2500);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="status-card">
+                            <div class="status-icon error"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+                            <p class="status-title error">Not Found</p>
+                            <p class="status-subtitle">${data.error || 'M-Pesa code not recognized'}</p>
+                            <button class="btn btn-primary mt-4" onclick="document.getElementById('mpesaResult').classList.add('hidden');document.getElementById('mpesaVerifyBtn').disabled=false;document.getElementById('mpesaVerifyBtn').textContent='Verify & Connect';">Try Again</button>
+                        </div>`;
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="status-card"><div class="status-icon error"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><p class="status-title error">Network Error</p><p class="status-subtitle">Please try again</p></div>';
+            }
+            btn.disabled = false;
+            btn.textContent = 'Verify & Connect';
+        }
+
+        // ── CLOSE MODAL ON BACKDROP CLICK ──
+        document.getElementById('paymentModal').addEventListener('click', function(e) {
+            if (e.target === this) closePaymentModal();
+        });
+
+        // ── CLOSE MODAL ON ESCAPE ──
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closePaymentModal();
+        });
+    </script>
+</body>
+</html>

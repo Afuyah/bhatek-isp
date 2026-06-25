@@ -241,7 +241,9 @@ def create_app(config_name=None):
     from app.modules.billing.routes import billing_bp
     from app.modules.payment.routes import payment_bp
     from app.modules.session.routes import session_bp
-
+    from app.modules.hotspot.routes import hotspot_bp
+    
+    app.register_blueprint(hotspot_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     app.register_blueprint(org_bp, url_prefix='/api/v1/organizations')
     app.register_blueprint(network_bp, url_prefix='/api/v1/networks')

@@ -309,96 +309,112 @@ class RouterService:
                 _os.unlink(key_path)
 
                 
-    def _execute_client_method_via_vps(
-        self,
-        router: Router,
-        method_name: str,
-        *args,
-        **kwargs
-    ) -> Any:
-        """
-        Execute a MikroTikClient-equivalent method via VPS proxy.
+        def _execute_client_method_via_vps(
+            self,
+            router: Router,
+            method_name: str,
+            *args,
+            **kwargs
+        ) -> Any:
+            """
+            Execute a MikroTikClient-equivalent method via VPS proxy.
 
-        This replaces direct calls to self.mikrotik_client.* methods
-        since Flask cannot reach WireGuard IPs directly.
+            This replaces direct calls to self.mikrotik_client.* methods
+            since Flask cannot reach WireGuard IPs directly.
 
-        Supported methods:
-            - get_router_info
-            - get_hotspot_servers
-            - get_pppoe_servers
-            - get_hotspot_users
-            - get_pppoe_secrets
-            - get_active_sessions
-            - get_pppoe_active_sessions
-            - get_hotspot_profiles
-            - get_interface_stats
-            - get_simple_queues
-            - configure_radius
-        """
-        if method_name == 'get_router_info':
-            resource = self._execute_via_vps(router, '/system/resource/print')
-            identity = self._execute_via_vps(router, '/system/identity/print')
-            r = resource[0] if resource else {}
-            i = identity[0] if identity else {}
-            return {
-                'hostname': i.get('name'),
-                'version': r.get('version'),
-                'build_time': r.get('build-time'),
-                'uptime': r.get('uptime'),
-                'cpu_load': r.get('cpu-load'),
-                'cpu_count': r.get('cpu-count'),
-                'free_memory': r.get('free-memory'),
-                'total_memory': r.get('total-memory'),
-                'free_hdd': r.get('free-hdd'),
-                'total_hdd': r.get('total-hdd'),
-                'architecture_name': r.get('architecture-name'),
-                'board_name': r.get('board-name'),
-                'platform': r.get('platform'),
-            }
+            Supported methods:
+                - get_router_info
+                - get_hotspot_servers
+                - get_pppoe_servers
+                - get_hotspot_users
+                - get_pppoe_secrets
+                - get_active_sessions
+                - get_pppoe_active_sessions
+                - get_hotspot_profiles
+                - get_interface_stats
+                - get_simple_queues
+                - configure_radius
+                - configure_walled_garden
+            """
+            if method_name == 'get_router_info':
+                resource = self._execute_via_vps(router, '/system/resource/print')
+                identity = self._execute_via_vps(router, '/system/identity/print')
+                r = resource[0] if resource else {}
+                i = identity[0] if identity else {}
+                return {
+                    'hostname': i.get('name'),
+                    'version': r.get('version'),
+                    'build_time': r.get('build-time'),
+                    'uptime': r.get('uptime'),
+                    'cpu_load': r.get('cpu-load'),
+                    'cpu_count': r.get('cpu-count'),
+                    'free_memory': r.get('free-memory'),
+                    'total_memory': r.get('total-memory'),
+                    'free_hdd': r.get('free-hdd'),
+                    'total_hdd': r.get('total-hdd'),
+                    'architecture_name': r.get('architecture-name'),
+                    'board_name': r.get('board-name'),
+                    'platform': r.get('platform'),
+                }
 
-        elif method_name == 'get_hotspot_servers':
-            return self._execute_via_vps(router, '/ip/hotspot/print')
+            elif method_name == 'get_hotspot_servers':
+                return self._execute_via_vps(router, '/ip/hotspot/print')
 
-        elif method_name == 'get_pppoe_servers':
-            return self._execute_via_vps(router, '/interface/pppoe-server/server/print')
+            elif method_name == 'get_pppoe_servers':
+                return self._execute_via_vps(router, '/interface/pppoe-server/server/print')
 
-        elif method_name == 'get_hotspot_users':
-            params = kwargs.get('params', {})
-            return self._execute_via_vps(router, '/ip/hotspot/user/print', **params)
+            elif method_name == 'get_hotspot_users':
+                params = kwargs.get('params', {})
+                return self._execute_via_vps(router, '/ip/hotspot/user/print', **params)
 
-        elif method_name == 'get_pppoe_secrets':
-            return self._execute_via_vps(router, '/ppp/secret/print')
+            elif method_name == 'get_pppoe_secrets':
+                return self._execute_via_vps(router, '/ppp/secret/print')
 
-        elif method_name == 'get_active_sessions':
-            params = kwargs.get('params', {})
-            return self._execute_via_vps(router, '/ip/hotspot/active/print', **params)
+            elif method_name == 'get_active_sessions':
+                params = kwargs.get('params', {})
+                return self._execute_via_vps(router, '/ip/hotspot/active/print', **params)
 
-        elif method_name == 'get_pppoe_active_sessions':
-            return self._execute_via_vps(router, '/ppp/active/print')
+            elif method_name == 'get_pppoe_active_sessions':
+                return self._execute_via_vps(router, '/ppp/active/print')
 
-        elif method_name == 'get_hotspot_profiles':
-            return self._execute_via_vps(router, '/ip/hotspot/user/profile/print')
+            elif method_name == 'get_hotspot_profiles':
+                return self._execute_via_vps(router, '/ip/hotspot/user/profile/print')
 
-        elif method_name == 'get_interface_stats':
-            return self._execute_via_vps(router, '/interface/print')
+            elif method_name == 'get_interface_stats':
+                return self._execute_via_vps(router, '/interface/print')
 
-        elif method_name == 'get_simple_queues':
-            return self._execute_via_vps(router, '/queue/simple/print')
+            elif method_name == 'get_simple_queues':
+                return self._execute_via_vps(router, '/queue/simple/print')
 
-        elif method_name == 'configure_radius':
-            radius_server = kwargs.get('radius_server', self._get_radius_server())
-            radius_secret = kwargs.get('radius_secret', router.radius_secret)
+            elif method_name == 'configure_radius':
+                radius_server = kwargs.get('radius_server', self._get_radius_server())
+                radius_secret = kwargs.get('radius_secret', router.radius_secret)
 
-            # Check if RADIUS server already exists
-            existing = self._execute_via_vps(router, '/radius/print')
-            server_exists = False
-            for item in existing:
-                if item.get('address') == radius_server:
-                    server_exists = True
-                    # Update existing entry
+                # Check if RADIUS server already exists
+                existing = self._execute_via_vps(router, '/radius/print')
+                server_exists = False
+                for item in existing:
+                    if item.get('address') == radius_server:
+                        server_exists = True
+                        # Update existing entry
+                        self._execute_via_vps(
+                            router, '/radius/set',
+                            numbers=item.get('.id'),
+                            secret=radius_secret,
+                            service='hotspot,ppp',
+                            authentication_port='1812',
+                            accounting_port='1813',
+                            timeout='3000',
+                            retries='3',
+                        )
+                        logger.info(f"RADIUS server updated: {radius_server}")
+                        break
+
+                if not server_exists:
+                    # Add new RADIUS server
                     self._execute_via_vps(
-                        router, '/radius/set',
-                        numbers=item.get('.id'),
+                        router, '/radius/add',
+                        address=radius_server,
                         secret=radius_secret,
                         service='hotspot,ppp',
                         authentication_port='1812',
@@ -406,68 +422,172 @@ class RouterService:
                         timeout='3000',
                         retries='3',
                     )
-                    logger.info(f"RADIUS server updated: {radius_server}")
-                    break
+                    logger.info(f"RADIUS server added: {radius_server}")
 
-            if not server_exists:
-                # Add new RADIUS server
-                self._execute_via_vps(
-                    router, '/radius/add',
-                    address=radius_server,
-                    secret=radius_secret,
-                    service='hotspot,ppp',
-                    authentication_port='1812',
-                    accounting_port='1813',
-                    timeout='3000',
-                    retries='3',
+                # Enable RADIUS for Hotspot (VERIFIED command)
+                try:
+                    self._execute_via_vps(
+                        router,
+                        '/ip/hotspot/profile/set',
+                        numbers='[find]',
+                        **{'use-radius': 'yes'},
+                    )
+                    logger.info("Hotspot RADIUS enabled")
+                except Exception as e:
+                    logger.warning(f"Could not enable hotspot RADIUS: {e}")
+
+                # Enable RADIUS for PPPoE (VERIFIED command)
+                try:
+                    self._execute_via_vps(
+                        router,
+                        '/ppp/aaa/set',
+                        **{'use-radius': 'yes'},
+                    )
+                    logger.info("PPPoE RADIUS enabled")
+                except Exception as e:
+                    logger.warning(f"Could not enable PPPoE RADIUS: {e}")
+
+                # Enable RADIUS Incoming for CoA/Disconnect
+                try:
+                    self._execute_via_vps(
+                        router,
+                        '/radius/incoming/set',
+                        accept='yes',
+                    )
+                    logger.info("RADIUS incoming enabled")
+                except Exception as e:
+                    logger.warning(f"Could not enable RADIUS incoming: {e}")
+
+                logger.info(
+                    f"RADIUS fully configured on {router.ip_address} -> {radius_server}"
                 )
-                logger.info(f"RADIUS server added: {radius_server}")
+                return {
+                    'success': True,
+                    'message': 'RADIUS configured successfully',
+                    'radius_server': radius_server,
+                }
 
-            # Enable RADIUS for Hotspot (VERIFIED command)
-            try:
-                self._execute_via_vps(
-                    router,
-                    '/ip/hotspot/profile/set',
-                    numbers='[find]',
-                    **{'use-radius': 'yes'},
+            elif method_name == 'configure_walled_garden':
+                platform_domain = kwargs.get(
+                    'platform_domain',
+                    current_app.config.get('PLATFORM_DOMAIN', 'isp.bhatek.space')
                 )
-                logger.info("Hotspot RADIUS enabled")
-            except Exception as e:
-                logger.warning(f"Could not enable hotspot RADIUS: {e}")
+                org_slug = kwargs.get('org_slug')
+                additional_domains = kwargs.get('additional_domains', [])
 
-            # Enable RADIUS for PPPoE (VERIFIED command)
-            try:
-                self._execute_via_vps(
-                    router,
-                    '/ppp/aaa/set',
-                    **{'use-radius': 'yes'},
-                )
-                logger.info("PPPoE RADIUS enabled")
-            except Exception as e:
-                logger.warning(f"Could not enable PPPoE RADIUS: {e}")
+                results = {
+                    'success': True,
+                    'dns_added': False,
+                    'domains_added': 0,
+                    'errors': [],
+                }
 
-            # Enable RADIUS Incoming for CoA/Disconnect
-            try:
-                self._execute_via_vps(
-                    router,
-                    '/radius/incoming/set',
-                    accept='yes',
-                )
-                logger.info("RADIUS incoming enabled")
-            except Exception as e:
-                logger.warning(f"Could not enable RADIUS incoming: {e}")
+                # Step 1: Allow DNS resolution (UDP port 53)
+                try:
+                    existing_dns = self._execute_via_vps(
+                        router,
+                        '/ip/hotspot/walled-garden/ip/print',
+                    )
+                    dns_exists = any(
+                        e.get('dst-port') == '53' and e.get('protocol') == 'udp'
+                        for e in existing_dns
+                    )
+                    if not dns_exists:
+                        self._execute_via_vps(
+                            router,
+                            '/ip/hotspot/walled-garden/ip/add',
+                            dst_port='53',
+                            protocol='udp',
+                            action='accept',
+                            comment='Allow DNS Resolution',
+                        )
+                    results['dns_added'] = True
+                    logger.info("Walled garden: DNS allowed")
+                except Exception as e:
+                    results['errors'].append(f"DNS: {str(e)}")
+                    logger.warning(f"Could not add DNS walled garden rule: {e}")
 
-            logger.info(
-                f"RADIUS fully configured on {router.ip_address} -> {radius_server}"
-            )
-            return {
-                'success': True,
-                'message': 'RADIUS configured successfully',
-                'radius_server': radius_server,
-            }
+                # Step 2: Add domain-based walled garden entries
+                allowed_domains = [
+                    {'host': platform_domain, 'comment': 'ISP Platform Portal'},
+                    {'host': '*.safaricom.co.ke', 'comment': 'M-Pesa API'},
+                    {'host': '*.daraja.co.ke', 'comment': 'M-Pesa Daraja API'},
+                    {'host': '*.googleapis.com', 'comment': 'Google Fonts API'},
+                    {'host': '*.gstatic.com', 'comment': 'Google Fonts CDN'},
+                    {'host': '*.cloudflare.com', 'comment': 'Cloudflare'},
+                ]
 
-        else:
-            raise ValueError(f"Unknown VPS proxy method: {method_name}")
+                # Add ISP-specific additional domains
+                if additional_domains:
+                    for domain in additional_domains:
+                        allowed_domains.append({
+                            'host': domain,
+                            'comment': 'ISP Custom Domain',
+                        })
+
+                # Get existing entries to avoid duplicates
+                try:
+                    existing_entries = self._execute_via_vps(
+                        router, '/ip/hotspot/walled-garden/ip/print'
+                    )
+                except Exception:
+                    existing_entries = []
+
+                for domain_entry in allowed_domains:
+                    host = domain_entry['host']
+                    comment = domain_entry['comment']
+
+                    # Check if this host already exists
+                    already_exists = any(
+                        e.get('dst-host') == host or e.get('comment') == comment
+                        for e in existing_entries
+                    )
+
+                    if not already_exists:
+                        try:
+                            self._execute_via_vps(
+                                router,
+                                '/ip/hotspot/walled-garden/ip/add',
+                                **{'dst-host': host},
+                                action='accept',
+                                comment=comment,
+                            )
+                            results['domains_added'] += 1
+                            logger.info(f"Walled garden: {host} allowed ({comment})")
+                        except Exception as e:
+                            results['errors'].append(f"{host}: {str(e)}")
+                            logger.warning(f"Could not add walled garden for {host}: {e}")
+                    else:
+                        logger.debug(f"Walled garden entry already exists: {host}")
+
+                # Step 3: Set hotspot DNS name for portal redirect
+                if org_slug:
+                    try:
+                        self._execute_via_vps(
+                            router,
+                            '/ip/hotspot/profile/set',
+                            numbers='[find]',
+                            **{'dns-name': platform_domain},
+                        )
+                        logger.info(
+                            f"Hotspot portal URL set to: "
+                            f"https://{platform_domain}/hotspot/{org_slug}"
+                        )
+                    except Exception as e:
+                        logger.warning(f"Could not set hotspot portal URL: {e}")
+
+                if results['domains_added'] > 0:
+                    logger.info(
+                        f"Walled garden configured: {results['domains_added']} domains added, "
+                        f"DNS: {results['dns_added']}"
+                    )
+                else:
+                    logger.info("Walled garden: all entries already configured")
+
+                return results
+
+            else:
+                raise ValueError(f"Unknown VPS proxy method: {method_name}")
 
     # =========================================================================
     # NAS ENTRY MANAGEMENT
