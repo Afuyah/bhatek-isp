@@ -70,21 +70,41 @@ class RouterService:
         }
 
     def _allocate_wireguard_ip(self, organization_id: UUID) -> tuple:
-        """Allocate WireGuard IP with retry on collision."""
+        """Allocate WireGuard IP — checks ALL used IPs across all orgs."""
         import hashlib
-        org_hash = hashlib.md5(str(organization_id).encode()).hexdigest()
-        org_index = int(org_hash[:4], 16) % 200 + 1
-
-        for attempt in range(self.WIREGUARD_IP_RETRIES):
-            subnet = f"10.0.{org_index}.0/24"
-            existing = self.repository.get_by_organization(organization_id, limit=10000)
-            used = {r.wireguard_ip for r in existing if r.wireguard_ip and r.wireguard_ip.startswith(f"10.0.{org_index}.")}
+        from app.models.router import Router
+        
+        # Get ALL used IPs from database
+        all_routers = Router.query.with_entities(Router.wireguard_ip).filter(
+            Router.wireguard_ip != None
+        ).all()
+        all_used_ips = {r.wireguard_ip for r in all_routers if r.wireguard_ip}
+        
+        # Get this org's IPs for org_index
+        org_existing = self.repository.get_by_organization(organization_id, limit=10000)
+        org_used = {r.wireguard_ip for r in org_existing if r.wireguard_ip}
+        
+        # Determine org index
+        org_index = None
+        for ip in org_used:
+            parts = ip.split('.')
+            if len(parts) == 4 and parts[0] == '10' and parts[1] == '0':
+                org_index = int(parts[2])
+                break
+        
+        if org_index is None:
+            org_hash = hashlib.md5(str(organization_id).encode()).hexdigest()
+            org_index = int(org_hash[:4], 16) % 200 + 1
+        
+        # Try up to 10 different org_index values
+        for attempt in range(10):
+            current_index = ((org_index - 1 + attempt) % 254) + 1
             for host in range(10, 254):
-                ip = f"10.0.{org_index}.{host}"
-                if ip not in used:
-                    return ip, subnet, org_index
-            org_index = (org_index % 254) + 1
-        raise BusinessError("No available WireGuard IPs after retries")
+                candidate = f"10.0.{current_index}.{host}"
+                if candidate not in all_used_ips:
+                    return candidate, f"10.0.{current_index}.0/24", current_index
+        
+        raise BusinessError("No available WireGuard IPs")
 
 # SSH HELPERS
     def _get_ssh_credentials(self) -> tuple:
