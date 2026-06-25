@@ -308,7 +308,7 @@ class RouterService:
             if key_path and _os.path.exists(key_path):
                 _os.unlink(key_path)
 
-                
+
         def _execute_client_method_via_vps(
             self,
             router: Router,
@@ -589,6 +589,80 @@ class RouterService:
             else:
                 raise ValueError(f"Unknown VPS proxy method: {method_name}")
 
+
+        def _execute_client_method_via_vps(
+            self,
+            router: Router,
+            method_name: str,
+            *args,
+            **kwargs
+        ) -> Any:
+            """
+            Execute a MikroTikClient-equivalent method via VPS proxy.
+            """
+            if method_name == 'get_router_info':
+                resource = self._execute_via_vps(router, '/system/resource/print')
+                identity = self._execute_via_vps(router, '/system/identity/print')
+                r = resource[0] if resource else {}
+                i = identity[0] if identity else {}
+                return {
+                    'hostname': i.get('name'), 'version': r.get('version'),
+                    'build_time': r.get('build-time'), 'uptime': r.get('uptime'),
+                    'cpu_load': r.get('cpu-load'), 'cpu_count': r.get('cpu-count'),
+                    'free_memory': r.get('free-memory'), 'total_memory': r.get('total-memory'),
+                    'free_hdd': r.get('free-hdd'), 'total_hdd': r.get('total-hdd'),
+                    'architecture_name': r.get('architecture-name'),
+                    'board_name': r.get('board-name'), 'platform': r.get('platform'),
+                }
+
+            elif method_name == 'get_hotspot_servers':
+                return self._execute_via_vps(router, '/ip/hotspot/print')
+
+            elif method_name == 'get_pppoe_servers':
+                return self._execute_via_vps(router, '/interface/pppoe-server/server/print')
+
+            elif method_name == 'configure_radius':
+                radius_server = kwargs.get('radius_server', self._get_radius_server())
+                radius_secret = kwargs.get('radius_secret', router.radius_secret)
+
+                existing = self._execute_via_vps(router, '/radius/print')
+                server_exists = False
+                for item in existing:
+                    if item.get('address') == radius_server:
+                        server_exists = True
+                        self._execute_via_vps(router, '/radius/set', numbers=item.get('.id'),
+                            secret=radius_secret, service='hotspot,ppp',
+                            authentication_port='1812', accounting_port='1813',
+                            timeout='3000', retries='3')
+                        logger.info(f"RADIUS server updated: {radius_server}")
+                        break
+
+                if not server_exists:
+                    self._execute_via_vps(router, '/radius/add', address=radius_server,
+                        secret=radius_secret, service='hotspot,ppp',
+                        authentication_port='1812', accounting_port='1813',
+                        timeout='3000', retries='3')
+                    logger.info(f"RADIUS server added: {radius_server}")
+
+                try:
+                    self._execute_via_vps(router, '/ip/hotspot/profile/set', numbers='[find]', **{'use-radius': 'yes'})
+                except Exception as e:
+                    logger.warning(f"Hotspot RADIUS: {e}")
+
+                try:
+                    self._execute_via_vps(router, '/ppp/aaa/set', **{'use-radius': 'yes'})
+                except Exception as e:
+                    logger.warning(f"PPPoE RADIUS: {e}")
+
+                try:
+                    self._execute_via_vps(router, '/radius/incoming/set', accept='yes')
+                except Exception as e:
+                    logger.warning(f"RADIUS incoming: {e}")
+
+                return {'success': True, 'message': 'RADIUS configured successfully', 'radius_server': radius_server}
+
+            else:
+                raise ValueError(f"Unknown VPS proxy method: {method_name}")    
     # =========================================================================
     # NAS ENTRY MANAGEMENT
     # =========================================================================
