@@ -369,13 +369,13 @@ class RouterService:
                 if item.get('address') == rs:
                     self._execute_via_vps(router, '/radius/set', numbers=item.get('.id'),
                         secret=secret, service='hotspot,ppp', authentication_port='1812',
-                        accounting_port='1813', timeout='3000', retries='3')
+                        accounting_port='1813', timeout='1s', retries='3')
                     found = True
                     break
             if not found:
                 self._execute_via_vps(router, '/radius/add', address=rs, secret=secret,
                     service='hotspot,ppp', authentication_port='1812',
-                    accounting_port='1813', timeout='3000', retries='3')
+                    accounting_port='1813', timeout='1s', retries='3')
 
             # Enable RADIUS on hotspot profiles (API-safe: resolve .id first)
             profile_ids = self._execute_via_vps(router, '/ip/hotspot/user/profile/print')
