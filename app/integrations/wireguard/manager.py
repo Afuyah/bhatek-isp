@@ -293,19 +293,119 @@ class WireGuardManager:
     # SETUP SCRIPT
     # =========================================================================
 
-    def generate_mikrotik_setup_script(self, wireguard_ip: str, mikrotik_private_key: str, radius_secret: str, vps_endpoint: str = None, vps_public_key: str = None, include_radius: bool = True) -> Dict[str, Any]:
+    def generate_mikrotik_setup_script(self, wireguard_ip: str, mikrotik_private_key: str,
+                                         radius_secret: str, vps_endpoint: str = None,
+                                         vps_public_key: str = None, include_radius: bool = True) -> Dict[str, Any]:
         endpoint = vps_endpoint or self.vps_endpoint
         pubkey = vps_public_key or self.vps_public_key
         ep_host, ep_port = (endpoint.split(':', 1) + ['51820'])[:2] if ':' in endpoint else (endpoint, '51820')
+        
         steps = [
-            {'step': 1, 'title': 'Create WireGuard Interface', 'commands': ['/interface wireguard add listen-port=51820 name=wg-to-vps'], 'single_line': '/interface wireguard add listen-port=51820 name=wg-to-vps'},
-            {'step': 2, 'title': 'Connect to ISP Platform', 'commands': [f'/interface wireguard peers add allowed-address=10.0.0.1/32 endpoint-address={ep_host} endpoint-port={ep_port} interface=wg-to-vps persistent-keepalive=25 public-key="{pubkey}"'], 'single_line': f'/interface wireguard peers add allowed-address=10.0.0.1/32 endpoint-address={ep_host} endpoint-port={ep_port} interface=wg-to-vps persistent-keepalive=25 public-key="{pubkey}"'},
-            {'step': 3, 'title': 'Assign VPN IP', 'commands': [f'/ip address add address={wireguard_ip}/16 interface=wg-to-vps network=10.0.0.0'], 'single_line': f'/ip address add address={wireguard_ip}/16 interface=wg-to-vps network=10.0.0.0'},
-            {'step': 4, 'title': 'Add Route to VPS', 'commands': ['/ip route add dst-address=10.0.0.1/32 gateway=wg-to-vps'], 'single_line': '/ip route add dst-address=10.0.0.1/32 gateway=wg-to-vps'},
-            {'step': 5, 'title': 'Firewall & API Access', 'commands': ['/ip firewall filter add chain=input src-address=10.0.0.0/16 action=accept comment="Allow ISP Platform"', '/interface list member add interface=wg-to-vps list=LAN', '/ip service set api address=10.0.0.0/16'], 'single_line': '/ip firewall filter add chain=input src-address=10.0.0.0/16 action=accept comment="Allow ISP Platform"; /interface list member add interface=wg-to-vps list=LAN; /ip service set api address=10.0.0.0/16'},
+            {
+                'step': 1,
+                'title': 'Create WireGuard Interface',
+                'description': 'Creates the secure tunnel interface with the generated private key.',
+                'commands': [
+                    '/interface wireguard',
+                    f'add listen-port=51820 private-key="{mikrotik_private_key}" name=wg-to-vps',
+                ],
+                'single_line': f'/interface wireguard add listen-port=51820 private-key="{mikrotik_private_key}" name=wg-to-vps',
+            },
+            {
+                'step': 2,
+                'title': 'Connect to ISP Platform VPN',
+                'description': 'Adds the VPS as a WireGuard peer for secure communication.',
+                'commands': [
+                    '/interface wireguard peers',
+                    f'add allowed-address=10.0.0.1/32 endpoint-address={ep_host} endpoint-port={ep_port} interface=wg-to-vps persistent-keepalive=25 public-key="{pubkey}"',
+                ],
+                'single_line': f'/interface wireguard peers add allowed-address=10.0.0.1/32 endpoint-address={ep_host} endpoint-port={ep_port} interface=wg-to-vps persistent-keepalive=25 public-key="{pubkey}"',
+            },
+            {
+                'step': 3,
+                'title': 'Assign VPN IP Address',
+                'description': f'Assigns your router\'s private VPN IP: {wireguard_ip}',
+                'commands': [
+                    '/ip address',
+                    f'add address={wireguard_ip}/16 interface=wg-to-vps network=10.0.0.0',
+                ],
+                'single_line': f'/ip address add address={wireguard_ip}/16 interface=wg-to-vps network=10.0.0.0',
+            },
+            {
+                'step': 4,
+                'title': 'Add Route to VPS',
+                'description': 'Ensures return traffic goes through the secure tunnel.',
+                'commands': [
+                    '/ip route',
+                    'add dst-address=10.0.0.1/32 gateway=wg-to-vps',
+                ],
+                'single_line': '/ip route add dst-address=10.0.0.1/32 gateway=wg-to-vps',
+            },
+            {
+                'step': 5,
+                'title': 'Firewall & API Access',
+                'description': 'Allows ISP platform to manage this router and enables API.',
+                'commands': [
+                    '/ip firewall filter add chain=input src-address=10.0.0.0/16 action=accept comment="Allow ISP Platform" place-before=0',
+                    '/interface list member add interface=wg-to-vps list=LAN',
+                    '/ip service enable api',
+                    '/ip service set api address=0.0.0.0/0',
+                    '/ip service enable winbox',
+                    '/ip service set winbox address=0.0.0.0/0',
+                ],
+                'single_line': '/ip firewall filter add chain=input src-address=10.0.0.0/16 action=accept comment="Allow ISP Platform" place-before=0; /interface list member add interface=wg-to-vps list=LAN; /ip service enable api; /ip service set api address=0.0.0.0/0; /ip service enable winbox; /ip service set winbox address=0.0.0.0/0',
+            },
         ]
+        
         if include_radius and radius_secret:
-            steps.append({'step': 6, 'title': 'Configure RADIUS', 'commands': [f'/radius add address=10.0.0.1 secret="{radius_secret}" service=hotspot,ppp authentication-port=1812 accounting-port=1813 timeout=3000'], 'single_line': f'/radius add address=10.0.0.1 secret="{radius_secret}" service=hotspot,ppp authentication-port=1812 accounting-port=1813 timeout=3000'})
-            steps.append({'step': 7, 'title': 'Enable RADIUS', 'commands': ['/ip hotspot profile set [find] use-radius=yes', '/ppp aaa set use-radius=yes', '/radius incoming set accept=yes'], 'single_line': '/ip hotspot profile set [find] use-radius=yes; /ppp aaa set use-radius=yes; /radius incoming set accept=yes'})
-        steps.append({'step': 99, 'title': 'Verify', 'commands': ['/ping 10.0.0.1 count=3'], 'single_line': '/ping 10.0.0.1 count=3'})
-        return {'vps_endpoint': endpoint, 'vps_public_key': pubkey, 'wireguard_ip': wireguard_ip, 'steps': steps, 'total_steps': len(steps)}
+            steps.append({
+                'step': 6,
+                'title': 'Configure RADIUS Authentication',
+                'description': 'Points router to the ISP platform RADIUS server for user authentication.',
+                'commands': [
+                    '/radius',
+                    f'add address=10.0.0.1 secret="{radius_secret}" service=hotspot,ppp authentication-port=1812 accounting-port=1813 timeout=3000',
+                ],
+                'single_line': f'/radius add address=10.0.0.1 secret="{radius_secret}" service=hotspot,ppp authentication-port=1812 accounting-port=1813 timeout=3000',
+            })
+            steps.append({
+                'step': 7,
+                'title': 'Enable RADIUS on Services',
+                'description': 'Enables RADIUS authentication on hotspot and PPPoE.',
+                'commands': [
+                    '/ip hotspot profile set [find] use-radius=yes',
+                    '/ppp aaa set use-radius=yes',
+                    '/radius incoming set accept=yes',
+                ],
+                'single_line': '/ip hotspot profile set [find] use-radius=yes; /ppp aaa set use-radius=yes; /radius incoming set accept=yes',
+            })
+            steps.append({
+                'step': 8,
+                'title': 'Walled Garden (Captive Portal)',
+                'description': 'Allows unauthenticated users to reach the payment portal and M-Pesa.',
+                'commands': [
+                    '/ip hotspot walled-garden ip add dst-port=53 protocol=udp action=accept comment="Allow DNS"',
+                    '/ip hotspot walled-garden ip add dst-host=isp.bhatek.space action=accept comment="ISP Portal"',
+                    '/ip hotspot walled-garden ip add dst-host=*.safaricom.co.ke action=accept comment="M-Pesa API"',
+                    '/ip hotspot walled-garden ip add dst-host=*.googleapis.com action=accept comment="Google Fonts"',
+                    '/ip hotspot walled-garden ip add dst-host=*.gstatic.com action=accept comment="Google CDN"',
+                ],
+                'single_line': '/ip hotspot walled-garden ip add dst-port=53 protocol=udp action=accept comment="DNS"; /ip hotspot walled-garden ip add dst-host=isp.bhatek.space action=accept comment="ISP Portal"; /ip hotspot walled-garden ip add dst-host=*.safaricom.co.ke action=accept comment="M-Pesa API"',
+            })
+        
+        steps.append({
+            'step': 99,
+            'title': 'Verify Connection',
+            'description': 'Run this to confirm the tunnel is working.',
+            'commands': ['/ping 10.0.0.1 count=3'],
+            'single_line': '/ping 10.0.0.1 count=3',
+        })
+        
+        return {
+            'vps_endpoint': endpoint,
+            'vps_public_key': pubkey,
+            'wireguard_ip': wireguard_ip,
+            'mikrotik_private_key': mikrotik_private_key,
+            'steps': steps,
+            'total_steps': len(steps),
+        }
