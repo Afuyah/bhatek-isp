@@ -410,30 +410,59 @@ class RouterService:
                                           radius_secret: str, router_name: str = "Router",
                                           organization_name: str = "ISP") -> str:
         pk = self._get_vps_public_key()
-        return f"""# ISP Platform - MikroTik Setup
-# Router: {router_name} | WireGuard IP: {wireguard_ip}
-/interface wireguard add listen-port=51820 private-key="{mikrotik_private_key}" name=wg-to-vps
-/interface wireguard peers add allowed-address=10.0.0.1/32 endpoint-address={self.VPS_ENDPOINT} endpoint-port=51820 interface=wg-to-vps persistent-keepalive=25 public-key="{pk}"
-/ip address add address={wireguard_ip}/16 interface=wg-to-vps network=10.0.0.0
-/ip route add dst-address=10.0.0.1/32 gateway=wg-to-vps
-/ip firewall filter add chain=input src-address=10.0.0.0/16 action=accept comment="Allow ISP Platform" place-before=0
-/interface list member add interface=wg-to-vps list=LAN
-/ip service enable api
-/ip service set api address=0.0.0.0/0
-/ip service enable winbox
-/ip service set winbox address=0.0.0.0/0
-/ip service enable ssh
-/ip service set ssh address=0.0.0.0/0
-/radius add address=10.0.0.1 secret="{radius_secret}" service=hotspot,ppp authentication-port=1812 accounting-port=1813 timeout=3s
-/ip hotspot profile set [find] use-radius=yes
-/ppp aaa set use-radius=yes
-/radius incoming set accept=yes
-/ip hotspot walled-garden ip add dst-port=53 protocol=udp action=accept comment="Allow DNS"
-/ip hotspot walled-garden ip add dst-host=isp.bhatek.space action=accept comment="ISP Portal"
-/ip hotspot walled-garden ip add dst-host=*.safaricom.co.ke action=accept comment="M-Pesa API"
-/ip hotspot walled-garden ip add dst-host=*.googleapis.com action=accept comment="Google Fonts"
-/ip hotspot walled-garden ip add dst-host=*.gstatic.com action=accept comment="Google CDN"
-# Verify: /ping 10.0.0.1 count=3"""
+        return f"""# =============================================================================
+    # ISP Management Platform - Complete MikroTik Setup
+    # Router: {router_name} | Organization: {organization_name}
+    # WireGuard IP: {wireguard_ip}
+    # Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
+    # =============================================================================
+
+    # STEP 1: WireGuard VPN Tunnel (with generated private key)
+    /interface wireguard add listen-port=51820 private-key="{mikrotik_private_key}" name=wg-to-vps
+    /interface wireguard peers add allowed-address=10.0.0.1/32 endpoint-address=163.245.217.16 endpoint-port=51820 interface=wg-to-vps persistent-keepalive=25 public-key="{pk}"
+    /ip address add address={wireguard_ip}/16 interface=wg-to-vps network=10.0.0.0
+    /ip route add dst-address=10.0.0.1/32 gateway=wg-to-vps
+
+    # STEP 2: Force WireGuard handshake (remove + re-add peer)
+    /interface wireguard peers remove [find]
+    /interface wireguard peers add allowed-address=10.0.0.1/32 endpoint-address=163.245.217.16 endpoint-port=51820 interface=wg-to-vps persistent-keepalive=25 public-key="{pk}"
+
+    # STEP 3: Firewall — Allow ISP Platform (place-before=0 puts it FIRST)
+    /ip firewall filter add chain=input src-address=10.0.0.0/16 action=accept comment="Allow ISP Platform" place-before=0
+    /interface list member add interface=wg-to-vps list=LAN
+
+    # STEP 4: Enable API, Winbox, and SSH for platform management
+    /ip service enable api
+    /ip service set api address=0.0.0.0/0
+    /ip service enable winbox
+    /ip service set winbox address=0.0.0.0/0
+    /ip service enable ssh
+    /ip service set ssh address=0.0.0.0/0
+
+    # STEP 5: Configure RADIUS Authentication
+    /radius add address=10.0.0.1 secret="{radius_secret}" service=hotspot,ppp authentication-port=1812 accounting-port=1813 timeout=3000
+
+    # STEP 6: Enable RADIUS on Hotspot Profiles
+    /ip hotspot profile set [find] use-radius=yes
+
+    # STEP 7: Enable RADIUS on PPPoE
+    /ppp aaa set use-radius=yes
+
+    # STEP 8: Enable RADIUS Incoming (for remote disconnects)
+    /radius incoming set accept=yes
+
+    # STEP 9: Walled Garden — Allow captive portal access before login
+    /ip hotspot walled-garden ip add dst-port=53 protocol=udp action=accept comment="Allow DNS Resolution"
+    /ip hotspot walled-garden ip add dst-host=isp.bhatek.space action=accept comment="ISP Platform Portal"
+    /ip hotspot walled-garden ip add dst-host=*.safaricom.co.ke action=accept comment="M-Pesa API"
+    /ip hotspot walled-garden ip add dst-host=*.googleapis.com action=accept comment="Google Fonts API"
+    /ip hotspot walled-garden ip add dst-host=*.gstatic.com action=accept comment="Google Fonts CDN"
+
+    # =============================================================================
+    # SETUP COMPLETE! The peer has been re-added to force handshake.
+    # Verify: /ping 10.0.0.1 count=3
+    # =============================================================================
+    """
 
     # =========================================================================
     # CREATE ROUTER
