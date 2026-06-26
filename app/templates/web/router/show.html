@@ -2,71 +2,28 @@
 
 {% block title %}{{ router.name }} — {{ organization.name }}{% endblock %}
 
-{% block head_extra %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{% block extra_css %}
 <style>
-    :root {
-        --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-        --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-        --radius-sm: 0.5rem; --radius-md: 0.75rem; --radius-lg: 1rem; --radius-xl: 1.25rem; --radius-2xl: 1.5rem;
-        --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
-        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
-        --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
-        --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1);
-    }
-    * { font-family: var(--font-sans); }
-    .font-mono, code, pre, kbd, .mono { font-family: var(--font-mono) !important; }
-    
-    /* Dark mode support */
-    @media (prefers-color-scheme: dark) {
-        .card-dark { background: #1e293b; border-color: #334155; }
-        .text-dark { color: #f1f5f9; }
-        .text-dark-secondary { color: #94a3b8; }
-        .bg-dark { background: #0f172a; }
-        .bg-dark-secondary { background: #1e293b; }
-        .border-dark { border-color: #334155; }
-    }
-    
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); } 50% { box-shadow: 0 0 0 8px rgba(99,102,241,0); } }
-    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes checkmark { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-    
-    .animate-fade-up { animation: fadeInUp 0.5s ease-out forwards; }
-    .animate-slide { animation: slideIn 0.4s ease-out forwards; }
-    .stagger-1 { animation-delay: 0.05s; }
-    .stagger-2 { animation-delay: 0.1s; }
-    .stagger-3 { animation-delay: 0.15s; }
-    
-    .card-hover { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-    .card-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-    
     .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .status-dot.online { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
     .status-dot.offline { background: #ef4444; }
-    .status-dot.pending { background: #f59e0b; animation: pulse-glow 2s infinite; }
-    
-    .setup-step { transition: all 0.3s ease; position: relative; }
-    .setup-step:hover { border-color: #6366f1; }
-    .step-number { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; z-index: 1; }
-    .step-connector { position: absolute; left: 15px; top: 40px; bottom: -8px; width: 2px; }
-    
-    .copy-btn { transition: all 0.15s ease; }
-    .copy-btn:active { transform: scale(0.9); }
-    .glow-pulse { animation: pulse-glow 2s infinite; }
-    
-    .tab-active { color: #6366f1; border-bottom: 2px solid #6366f1; }
-    
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
-    
+    .status-dot.pending { background: #f59e0b; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); } 50% { box-shadow: 0 0 0 8px rgba(245,158,11,0); } }
+    .code-block { background: #0f172a; border-radius: 12px; padding: 16px 20px; position: relative; overflow-x: auto; }
+    .code-block pre { color: #34d399; font-size: 13px; line-height: 1.7; margin: 0; white-space: pre-wrap; word-break: break-all; font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+    .copy-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+    .copy-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .tab-btn { padding: 10px 18px; font-size: 13px; font-weight: 600; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; transition: all 0.15s; white-space: nowrap; background: none; border-top: none; border-left: none; border-right: none; }
+    .tab-btn:hover { color: #374151; }
+    .tab-btn.active { color: #2d6a4f; border-bottom-color: #2d6a4f; }
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 9999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.025em; }
+    .badge-success { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .badge-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .badge-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .badge-info { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
     @media (max-width: 640px) {
-        .mobile-stack { flex-direction: column; }
-        .mobile-full { width: 100%; }
-        .mobile-text-sm { font-size: 0.8125rem; }
+        .tab-btn { padding: 8px 12px; font-size: 11px; }
+        .code-block pre { font-size: 11px; }
     }
 </style>
 {% endblock %}
@@ -80,205 +37,186 @@
 {% set wireguard_pending = router.status == 'pending_wireguard' %}
 {% set active_tab = request.args.get('tab', 'overview') %}
 {% set has_wireguard = router.wireguard_ip is not none %}
+{% set wg_ip = router.wireguard_ip or router.ip_address %}
 
-<div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pb-24">
+<div class="max-w-7xl mx-auto pb-20">
 
-    {# ═══════════ BREADCRUMB ═══════════ #}
-    <nav class="flex items-center gap-2 py-3 text-xs sm:text-sm text-slate-500 animate-fade-up overflow-x-auto whitespace-nowrap">
-        <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="hover:text-indigo-600 transition-colors flex items-center gap-1.5 flex-shrink-0">
+    {# Breadcrumb #}
+    <nav class="flex items-center gap-2 py-3 text-xs text-gray-500 overflow-x-auto whitespace-nowrap">
+        <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="hover:text-gray-700 transition-colors flex items-center gap-1 flex-shrink-0">
             <i class="fas fa-server text-[10px]"></i> Routers
         </a>
-        <i class="fas fa-chevron-right text-[8px] text-slate-400 flex-shrink-0"></i>
-        <span class="text-slate-900 font-semibold truncate">{{ router.name }}</span>
+        <i class="fas fa-chevron-right text-[8px] text-gray-400 flex-shrink-0"></i>
+        <span class="text-gray-900 font-semibold truncate">{{ router.name }}</span>
     </nav>
 
-    {# ═══════════ HEADER ═══════════ #}
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 animate-fade-up">
+    {# Header #}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex items-start gap-3 sm:gap-4 min-w-0">
-                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/25">
+            <div class="flex items-start gap-3 min-w-0">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#2d6a4f] flex items-center justify-center flex-shrink-0">
                     <i class="fas fa-server text-white text-base sm:text-lg"></i>
                 </div>
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 truncate">{{ router.name }}</h1>
+                        <h1 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{ router.name }}</h1>
                         <span class="status-dot {{ 'online' if is_online else 'offline' }}{{ ' pending' if wireguard_pending else '' }}" 
                               title="{{ router.status|replace('_', ' ')|title if router.status else 'Unknown' }}"></span>
                     </div>
-                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-slate-500 mt-1">
-                        <code class="mono text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-medium">{{ wireguard_ip }}</code>
-                        <span class="hidden sm:inline text-slate-300">|</span>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-500 mt-1">
+                        <code class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-medium">{{ wg_ip }}</code>
+                        <span class="hidden sm:inline text-gray-300">|</span>
                         <span>API :{{ router.api_port }}</span>
-                        {% if router.model %}<span class="hidden sm:inline text-slate-300">|</span><span>{{ router.model }}</span>{% endif %}
+                        {% if router.model %}<span class="hidden sm:inline text-gray-300">|</span><span>{{ router.model }}</span>{% endif %}
                     </div>
                 </div>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
                 <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" 
-                   class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-white border-2 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all">
-                    <i class="fas fa-pen-to-square text-[10px]"></i> <span class="hidden sm:inline">Edit</span>
+                   class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all">
+                    <i class="fas fa-pen-to-square text-[10px]"></i> Edit
                 </a>
                 <button onclick="openModal('deleteModal')" 
-                        class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-white border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all">
-                    <i class="fas fa-trash-can text-[10px]"></i> <span class="hidden sm:inline">Delete</span>
+                        class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border-2 border-red-200 text-red-600 hover:bg-red-50 transition-all">
+                    <i class="fas fa-trash-can text-[10px]"></i> Delete
                 </button>
             </div>
         </div>
         
-        {# STATUS CHIPS #}
+        {# Status Badges #}
         <div class="flex flex-wrap items-center gap-1.5 mt-4">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-wide
-                {% if is_online %}bg-emerald-50 text-emerald-700 border border-emerald-200
-                {% elif router.status == 'offline' %}bg-red-50 text-red-700 border border-red-200
-                {% elif router.status == 'error' %}bg-amber-50 text-amber-700 border border-amber-200
-                {% elif wireguard_pending %}bg-indigo-50 text-indigo-700 border border-indigo-200
-                {% else %}bg-slate-100 text-slate-500 border border-slate-200{% endif %}">
-                <span class="w-1.5 h-1.5 rounded-full {% if is_online %}bg-emerald-500{% elif router.status == 'offline' %}bg-red-500{% elif wireguard_pending %}bg-amber-400 animate-pulse{% else %}bg-slate-400{% endif %}"></span>
+            <span class="badge {{ 'badge-success' if is_online else 'badge-danger' if router.status == 'offline' else 'badge-warning' if wireguard_pending else 'badge-info' }}">
+                <span class="w-1.5 h-1.5 rounded-full {{ 'bg-green-500' if is_online else 'bg-red-500' if router.status == 'offline' else 'bg-yellow-500' if wireguard_pending else 'bg-gray-400' }}"></span>
                 {{ router.status|replace('_', ' ')|title if router.status else 'Unknown' }}
             </span>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-wide
-                {% if radius_ok %}bg-emerald-50 text-emerald-700 border border-emerald-200
-                {% elif radius_failed %}bg-red-50 text-red-700 border border-red-200
-                {% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
+            <span class="badge {{ 'badge-success' if radius_ok else 'badge-danger' if radius_failed else 'badge-warning' }}">
                 <i class="fas fa-shield-halved text-[9px]"></i>
                 RADIUS: {{ router.radius_config_status|replace('_', ' ')|title if router.radius_config_status else 'None' }}
             </span>
             {% if has_wireguard %}
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-wide bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span class="badge badge-info">
                 <i class="fas fa-lock text-[9px]"></i> Secure Tunnel
             </span>
             {% endif %}
         </div>
     </div>
 
-    {# ═══════════ SETUP WIZARD ═══════════ #}
-{% if setup_script %}
-<div class="mb-4 sm:mb-6 animate-fade-up stagger-1">
-    <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-2xl shadow-xl overflow-hidden">
-        <div class="px-4 sm:px-6 py-4 border-b border-white/10 flex items-center gap-3 sm:gap-4">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/30 flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-bolt text-white text-sm sm:text-base"></i>
-            </div>
-            <div>
-                <h2 class="text-sm sm:text-base font-bold text-white">Router Setup — Paste into MikroTik Terminal</h2>
-                <p class="text-xs text-slate-400 hidden sm:block">Copy ALL commands below and paste into your MikroTik terminal</p>
-            </div>
-        </div>
-        <div class="p-4 sm:p-6">
-            <div class="relative">
-                <div class="bg-black/50 rounded-xl p-3 sm:p-4 overflow-x-auto">
-                    <pre class="text-xs sm:text-sm font-mono text-emerald-400 leading-relaxed whitespace-pre-wrap">{{ setup_script }}</pre>
+    {# Setup Wizard — Shows when router needs setup #}
+    {% if setup_script %}
+    <div class="mb-4">
+        <div class="bg-[#0f172a] rounded-xl shadow-xl overflow-hidden">
+            <div class="px-4 sm:px-6 py-4 border-b border-white/10 flex items-center gap-3">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-green-600/30 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-terminal text-white text-sm"></i>
                 </div>
-                <button onclick="copySetupScript(this)" 
-                        class="copy-btn absolute top-2 right-2 sm:top-3 sm:right-3 flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white text-[10px] sm:text-xs font-semibold rounded-lg backdrop-blur transition-all">
-                    <i class="fas fa-copy text-[9px]"></i> Copy All
-                </button>
+                <div>
+                    <h2 class="text-sm sm:text-base font-bold text-white">Router Setup — Paste into MikroTik Terminal</h2>
+                    <p class="text-xs text-gray-400 hidden sm:block">Copy ALL commands below and paste into your MikroTik terminal</p>
+                </div>
             </div>
-        </div>
-        <div class="px-4 sm:px-6 py-3 sm:py-4 bg-black/30 border-t border-white/10 flex flex-wrap gap-2">
-            <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-                <button type="submit" class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-white hover:bg-indigo-50 text-indigo-700 text-xs sm:text-sm font-bold rounded-xl shadow-lg transition-all active:scale-[0.97]">
-                    <i class="fas fa-plug text-[10px]"></i> Test Connection
-                </button>
-            </form>
-            <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-                <button type="submit" class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg transition-all active:scale-[0.97]">
-                    <i class="fas fa-wand-magic-sparkles text-[10px]"></i> Auto-Configure
-                </button>
-            </form>
+            <div class="p-4 sm:p-6">
+                <div class="code-block">
+                    <pre>{{ setup_script }}</pre>
+                    <button onclick="copySetupScript(this)" class="copy-btn">
+                        <i class="fas fa-copy text-[10px]"></i> Copy All
+                    </button>
+                </div>
+            </div>
+            <div class="px-4 sm:px-6 py-3 bg-black/20 border-t border-white/10 flex flex-wrap gap-2">
+                <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 text-gray-900 text-xs font-bold rounded-lg shadow transition-all active:scale-[0.97]">
+                        <i class="fas fa-plug text-[10px]"></i> Test Connection
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-{% endif %}
+    {% endif %}
 
-    {# ═══════════ SUCCESS BANNER ═══════════ #}
+    {# Success Banner — Online but RADIUS not confirmed #}
     {% if is_online and not radius_ok %}
-    <div class="mb-4 sm:mb-6 animate-slide">
-        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-2xl p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/25">
+    <div class="mb-4">
+        <div class="bg-green-50 border-2 border-green-200 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
                 <i class="fas fa-check-circle text-white text-sm sm:text-lg"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <h3 class="text-sm sm:text-base font-bold text-emerald-800">Tunnel Connected — Router Online</h3>
-                <p class="text-xs sm:text-sm text-emerald-600">Configure authentication to enable automatic user login.</p>
+                <h3 class="text-sm font-bold text-green-800">Tunnel Connected — Router Online</h3>
+                <p class="text-xs text-green-600">Check RADIUS to confirm authentication is working.</p>
             </div>
-            <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0 w-full sm:w-auto">
-                <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg transition-all active:scale-[0.97] glow-pulse">
-                    <i class="fas fa-wand-magic-sparkles text-[10px]"></i> Auto-Configure
+            <form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0 w-full sm:w-auto">
+                <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg shadow transition-all active:scale-[0.97]">
+                    <i class="fas fa-shield-halved text-[10px]"></i> Check RADIUS
                 </button>
             </form>
         </div>
     </div>
     {% endif %}
 
-    {# ═══════════ QUICK ACTIONS BAR ═══════════ #}
-    <div class="flex flex-wrap gap-2 mb-4 sm:mb-6 animate-fade-up stagger-2">
+    {# Quick Actions #}
+    <div class="flex flex-wrap gap-2 mb-4">
         <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-            <button class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-all active:scale-[0.97]">
+            <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-xs font-semibold rounded-lg shadow transition-all active:scale-[0.97]">
                 <i class="fas fa-plug text-[10px]"></i> Test
             </button>
         </form>
+        <form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
+            <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg transition-all active:scale-[0.97]">
+                <i class="fas fa-shield-halved text-[10px]"></i> Check RADIUS
+            </button>
+        </form>
+        {% if radius_failed %}
+        <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
+            <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg shadow transition-all active:scale-[0.97]">
+                <i class="fas fa-rotate text-[10px]"></i> Retry RADIUS
+            </button>
+        </form>
+        {% endif %}
         <form method="POST" action="{{ url_for('router_web.sync', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-            <button class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold rounded-xl transition-all active:scale-[0.97]">
+            <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg transition-all active:scale-[0.97]">
                 <i class="fas fa-rotate text-[10px]"></i> Sync
             </button>
         </form>
         <form method="POST" action="{{ url_for('router_web.discover', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-            <button class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold rounded-xl transition-all active:scale-[0.97]">
+            <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg transition-all active:scale-[0.97]">
                 <i class="fas fa-magnifying-glass text-[10px]"></i> Discover
             </button>
         </form>
     </div>
 
-    {# ═══════════ TABS ═══════════ #}
-    <div class="flex items-center gap-1 border-b-2 border-slate-100 overflow-x-auto mb-0 animate-fade-up stagger-2">
-        {% set tabs = [
-            ('overview', 'fas fa-eye', 'Overview'),
-            ('hotspot', 'fas fa-wifi', 'Hotspot'),
-            ('pppoe', 'fas fa-network-wired', 'PPPoE'),
-            ('radius', 'fas fa-shield-halved', 'RADIUS'),
-        ] %}
-        {% for tab_id, icon, label in tabs %}
+    {# Tabs #}
+    <div class="flex items-center gap-0 border-b-2 border-gray-100 overflow-x-auto mb-0">
+        {% for tab_id, icon, label in [('overview', 'fa-eye', 'Overview'), ('hotspot', 'fa-wifi', 'Hotspot'), ('pppoe', 'fa-network-wired', 'PPPoE'), ('radius', 'fa-shield-halved', 'RADIUS')] %}
         <button onclick="switchTab('{{ tab_id }}')" id="tab-{{ tab_id }}"
-                class="tab-btn px-3 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap border-b-2 -mb-0.5 transition-all duration-200 flex-shrink-0
-                {{ 'tab-active' if active_tab == tab_id else 'text-slate-500 border-transparent hover:text-slate-700 hover:border-slate-300' }}">
-            <i class="{{ icon }} text-[10px] sm:text-xs mr-1 sm:mr-1.5"></i> 
+                class="tab-btn {{ 'active' if active_tab == tab_id else '' }}">
+            <i class="fas {{ icon }} text-[10px] sm:text-xs mr-1"></i>
             <span class="hidden sm:inline">{{ label }}</span>
-            {% if tab_id == 'hotspot' %}<span class="ml-1.5 text-[10px] bg-slate-100 text-slate-500 px-1.5 sm:px-2 py-0.5 rounded-full">{{ hotspot_servers|length }}</span>{% endif %}
-            {% if tab_id == 'pppoe' %}<span class="ml-1.5 text-[10px] bg-slate-100 text-slate-500 px-1.5 sm:px-2 py-0.5 rounded-full">{{ pppoe_servers|length }}</span>{% endif %}
+            {% if tab_id == 'hotspot' %}<span class="ml-1.5 text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{{ hotspot_servers|length }}</span>{% endif %}
+            {% if tab_id == 'pppoe' %}<span class="ml-1.5 text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{{ pppoe_servers|length }}</span>{% endif %}
         </button>
         {% endfor %}
     </div>
 
-    {# ═══════════ OVERVIEW TAB ═══════════ #}
-    <div id="content-overview" class="tab-content {{ 'hidden' if active_tab != 'overview' }}">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div class="lg:col-span-2 space-y-4 sm:space-y-6">
-                {# ROUTER DETAILS #}
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-up stagger-2">
-                    <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center gap-3">
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-server text-blue-600 text-xs sm:text-sm"></i>
-                        </div>
-                        <h2 class="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">Router Information</h2>
+    {# Overview Tab #}
+    <div id="tab-overview" class="tab-content {{ 'hidden' if active_tab != 'overview' }}" style="padding-top: 16px;">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="lg:col-span-2 space-y-4">
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="px-4 sm:px-6 py-3 border-b border-gray-100">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">Router Information</h3>
                     </div>
                     <div class="p-4 sm:p-6">
                         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                            {% for label, value, icon in [
-                                ('Name', router.name, 'fas fa-tag'),
-                                ('Network', network_name or '—', 'fas fa-diagram-project'),
-                                ('Tunnel IP', wireguard_ip, 'fas fa-lock'),
-                                ('API Port', router.api_port|string, 'fas fa-plug'),
-                                ('Username', router.username, 'fas fa-user'),
-                                ('Model', router.model or '—', 'fas fa-microchip'),
-                                ('Firmware', router.firmware_version or '—', 'fas fa-code-branch'),
-                                ('Location', router.location or '—', 'fas fa-location-dot'),
-                                ('Last Seen', router.last_seen_at.strftime('%b %d, %Y %H:%M') if router.last_seen_at else 'Never', 'fas fa-clock'),
-                                ('Last Sync', router.last_sync_at.strftime('%b %d, %Y %H:%M') if router.last_sync_at else 'Never', 'fas fa-rotate'),
+                            {% for label, value in [
+                                ('Name', router.name), ('Network', network_name or '—'), ('Tunnel IP', wg_ip),
+                                ('API Port', router.api_port|string), ('Username', router.username), ('Model', router.model or '—'),
+                                ('Firmware', router.firmware_version or '—'), ('Location', router.location or '—'),
+                                ('Last Seen', router.last_seen_at.strftime('%b %d, %H:%M') if router.last_seen_at else 'Never'),
+                                ('Last Sync', router.last_sync_at.strftime('%b %d, %H:%M') if router.last_sync_at else 'Never'),
                             ] %}
                             <div>
-                                <dt class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{{ label }}</dt>
-                                <dd class="text-sm text-slate-800 font-medium break-all">{{ value }}</dd>
+                                <dt class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ label }}</dt>
+                                <dd class="text-sm text-gray-800 font-medium break-all">{{ value }}</dd>
                             </div>
                             {% endfor %}
                         </dl>
@@ -286,52 +224,43 @@
                 </div>
             </div>
             
-            {# HEALTH + DISCOVERY #}
-            <div class="space-y-4 sm:space-y-6 animate-fade-up stagger-3">
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center gap-3">
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-gauge-high text-violet-600 text-xs sm:text-sm"></i>
-                        </div>
-                        <h2 class="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">System Health</h2>
+            <div class="space-y-4">
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="px-4 sm:px-6 py-3 border-b border-gray-100">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">System Health</h3>
                     </div>
-                    <div class="p-3 sm:p-4 grid grid-cols-2 gap-2 sm:gap-3">
-                        <div class="card-hover bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 text-center">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">CPU</span>
-                            <span class="text-xl sm:text-2xl font-extrabold text-slate-800">{{ health.get('cpu_load', '—') }}{% if health.get('cpu_load') != None %}%{% endif %}</span>
+                    <div class="p-3 grid grid-cols-2 gap-2">
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase block mb-1">CPU</span>
+                            <span class="text-xl font-extrabold text-gray-800">{{ health.get('cpu_load', '—') }}{% if health.get('cpu_load') != None %}%{% endif %}</span>
                         </div>
-                        <div class="card-hover bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 text-center">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Uptime</span>
-                            <span class="text-base sm:text-lg font-extrabold text-slate-800 truncate block">{{ health.get('uptime', '—') }}</span>
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Uptime</span>
+                            <span class="text-base font-extrabold text-gray-800 truncate block">{{ health.get('uptime', '—') }}</span>
                         </div>
-                        <div class="col-span-2 card-hover bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4">
+                        {% if health.get('free_memory') and health.get('total_memory') %}
+                        <div class="col-span-2 bg-gray-50 rounded-lg p-3">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Memory</span>
-                                {% if health.get('free_memory') and health.get('total_memory') %}
-                                <span class="text-xs font-bold text-slate-700">{{ ((health.total_memory - health.free_memory) / health.total_memory * 100)|round(1) }}%</span>
-                                {% endif %}
+                                <span class="text-[10px] font-bold text-gray-400 uppercase">Memory</span>
+                                <span class="text-xs font-bold text-gray-700">{{ ((health.total_memory - health.free_memory) / health.total_memory * 100)|round(1) }}%</span>
                             </div>
-                            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                                {% if health.get('free_memory') and health.get('total_memory') %}
-                                <div class="h-full bg-gradient-to-r from-violet-500 to-purple-600 rounded-full" 
-                                     style="width: {{ ((health.total_memory - health.free_memory) / health.total_memory * 100)|round(1) }}%"></div>
-                                {% endif %}
+                            <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-[#2d6a4f] rounded-full" style="width: {{ ((health.total_memory - health.free_memory) / health.total_memory * 100)|round(1) }}%"></div>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
                 
                 {% if discovery.get('capabilities') %}
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100">
-                        <h2 class="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">Capabilities</h2>
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="px-4 sm:px-6 py-3 border-b border-gray-100">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">Capabilities</h3>
                     </div>
-                    <div class="p-3 sm:p-4">
-                        <div class="flex flex-wrap gap-1.5">
-                            {% for cap in discovery.capabilities %}
-                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200">{{ cap }}</span>
-                            {% endfor %}
-                        </div>
+                    <div class="p-3 flex flex-wrap gap-1.5">
+                        {% for cap in discovery.capabilities %}
+                        <span class="badge badge-info" style="text-transform:none;">{{ cap }}</span>
+                        {% endfor %}
                     </div>
                 </div>
                 {% endif %}
@@ -339,43 +268,36 @@
         </div>
     </div>
 
-    {# ═══════════ HOTSPOT TAB ═══════════ #}
-    <div id="content-hotspot" class="tab-content {{ 'hidden' if active_tab != 'hotspot' }}">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-up">
-            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between">
-                <h2 class="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
-                    Hotspot Servers <span class="text-slate-400 font-normal">({{ hotspot_servers|length }})</span>
-                </h2>
+    {# Hotspot Tab #}
+    <div id="tab-hotspot" class="tab-content {{ 'hidden' if active_tab != 'hotspot' }}" style="padding-top: 16px;">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-4 sm:px-6 py-3 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">Hotspot Servers <span class="text-gray-400 font-normal">({{ hotspot_servers|length }})</span></h3>
                 <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}" 
-                   class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-slate-900 hover:bg-black text-white text-[10px] sm:text-xs font-bold rounded-xl transition-all active:scale-[0.97]">
+                   class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-[10px] font-bold rounded-lg transition-all">
                     <i class="fas fa-plus text-[9px]"></i> Add
                 </a>
             </div>
             {% if hotspot_servers %}
-            <div class="overflow-x-auto">
+            <div class="table-container">
                 <table class="w-full">
-                    <thead><tr class="bg-slate-50">
-                        <th class="text-left px-4 sm:px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Name</th>
-                        <th class="text-left px-4 sm:px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden md:table-cell">Hotspot ID</th>
-                        <th class="text-center px-4 sm:px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                    <thead><tr class="bg-gray-50">
+                        <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase">Name</th>
+                        <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase hidden md:table-cell">Hotspot ID</th>
+                        <th class="text-center px-4 py-3 text-[10px] font-bold text-gray-400 uppercase">Status</th>
                         <th class="w-10"></th>
                     </tr></thead>
-                    <tbody class="divide-y divide-slate-50">
+                    <tbody class="divide-y divide-gray-50">
                         {% for hs in hotspot_servers %}
-                        <tr class="table-row hover:bg-slate-50 transition-colors group">
-                            <td class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-xs sm:text-sm text-slate-800">{{ hs.name }}</td>
-                            <td class="px-4 sm:px-6 py-3 sm:py-4 hidden md:table-cell"><code class="text-xs mono bg-slate-100 px-2 py-1 rounded-md text-slate-600">{{ hs.hotspot_id }}</code></td>
-                            <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold {% if hs.is_active %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">
-                                    <span class="w-1.5 h-1.5 rounded-full {% if hs.is_active %}bg-emerald-500{% else %}bg-slate-400{% endif %}"></span>
-                                    {{ 'Active' if hs.is_active else 'Off' }}
-                                </span>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3 font-semibold text-xs sm:text-sm text-gray-800">{{ hs.name }}</td>
+                            <td class="px-4 py-3 hidden md:table-cell"><code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{{ hs.hotspot_id }}</code></td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="badge {{ 'badge-success' if hs.is_active else 'badge-danger' }}">{{ 'Active' if hs.is_active else 'Off' }}</span>
                             </td>
-                            <td class="px-4 sm:px-6 py-3 sm:py-4 text-right">
+                            <td class="px-4 py-3 text-right">
                                 <a href="{{ url_for('router_web.edit_hotspot', org_id=organization.id, hotspot_id=hs.id) }}" 
-                                   class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100">
-                                    <i class="fas fa-pen text-[10px]"></i>
-                                </a>
+                                   class="text-gray-400 hover:text-gray-700 text-xs">Edit</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -383,11 +305,11 @@
                 </table>
             </div>
             {% else %}
-            <div class="py-12 sm:py-16 text-center">
-                <i class="fas fa-wifi text-3xl text-slate-200 mb-3 block"></i>
-                <p class="text-sm text-slate-500 mb-4">No hotspot servers configured</p>
+            <div class="py-12 text-center text-gray-400">
+                <i class="fas fa-wifi text-2xl mb-2 block"></i>
+                <p class="text-xs mb-3">No hotspot servers configured</p>
                 <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all">
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-xs font-bold rounded-lg transition-all">
                     <i class="fas fa-plus text-[10px]"></i> Add Server
                 </a>
             </div>
@@ -395,43 +317,36 @@
         </div>
     </div>
 
-    {# ═══════════ PPPoE TAB ═══════════ #}
-    <div id="content-pppoe" class="tab-content {{ 'hidden' if active_tab != 'pppoe' }}">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-up">
-            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between">
-                <h2 class="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
-                    PPPoE Servers <span class="text-slate-400 font-normal">({{ pppoe_servers|length }})</span>
-                </h2>
+    {# PPPoE Tab #}
+    <div id="tab-pppoe" class="tab-content {{ 'hidden' if active_tab != 'pppoe' }}" style="padding-top: 16px;">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-4 sm:px-6 py-3 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">PPPoE Servers <span class="text-gray-400 font-normal">({{ pppoe_servers|length }})</span></h3>
                 <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}" 
-                   class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-slate-900 hover:bg-black text-white text-[10px] sm:text-xs font-bold rounded-xl transition-all active:scale-[0.97]">
+                   class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-[10px] font-bold rounded-lg transition-all">
                     <i class="fas fa-plus text-[9px]"></i> Add
                 </a>
             </div>
             {% if pppoe_servers %}
-            <div class="overflow-x-auto">
+            <div class="table-container">
                 <table class="w-full">
-                    <thead><tr class="bg-slate-50">
-                        <th class="text-left px-4 sm:px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Name</th>
-                        <th class="text-left px-4 sm:px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden md:table-cell">Service</th>
-                        <th class="text-center px-4 sm:px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                    <thead><tr class="bg-gray-50">
+                        <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase">Name</th>
+                        <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase hidden md:table-cell">Service</th>
+                        <th class="text-center px-4 py-3 text-[10px] font-bold text-gray-400 uppercase">Status</th>
                         <th class="w-10"></th>
                     </tr></thead>
-                    <tbody class="divide-y divide-slate-50">
+                    <tbody class="divide-y divide-gray-50">
                         {% for ps in pppoe_servers %}
-                        <tr class="table-row hover:bg-slate-50 transition-colors group">
-                            <td class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-xs sm:text-sm text-slate-800">{{ ps.name }}</td>
-                            <td class="px-4 sm:px-6 py-3 sm:py-4 hidden md:table-cell"><code class="text-xs mono bg-slate-100 px-2 py-1 rounded-md text-slate-600">{{ ps.service_name or '—' }}</code></td>
-                            <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold {% if ps.is_active %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">
-                                    <span class="w-1.5 h-1.5 rounded-full {% if ps.is_active %}bg-emerald-500{% else %}bg-slate-400{% endif %}"></span>
-                                    {{ 'Active' if ps.is_active else 'Off' }}
-                                </span>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3 font-semibold text-xs sm:text-sm text-gray-800">{{ ps.name }}</td>
+                            <td class="px-4 py-3 hidden md:table-cell"><code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{{ ps.service_name or '—' }}</code></td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="badge {{ 'badge-success' if ps.is_active else 'badge-danger' }}">{{ 'Active' if ps.is_active else 'Off' }}</span>
                             </td>
-                            <td class="px-4 sm:px-6 py-3 sm:py-4 text-right">
+                            <td class="px-4 py-3 text-right">
                                 <a href="{{ url_for('router_web.edit_pppoe', org_id=organization.id, pppoe_id=ps.id) }}" 
-                                   class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100">
-                                    <i class="fas fa-pen text-[10px]"></i>
-                                </a>
+                                   class="text-gray-400 hover:text-gray-700 text-xs">Edit</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -439,11 +354,11 @@
                 </table>
             </div>
             {% else %}
-            <div class="py-12 sm:py-16 text-center">
-                <i class="fas fa-network-wired text-3xl text-slate-200 mb-3 block"></i>
-                <p class="text-sm text-slate-500 mb-4">No PPPoE servers configured</p>
+            <div class="py-12 text-center text-gray-400">
+                <i class="fas fa-network-wired text-2xl mb-2 block"></i>
+                <p class="text-xs mb-3">No PPPoE servers configured</p>
                 <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all">
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-xs font-bold rounded-lg transition-all">
                     <i class="fas fa-plus text-[10px]"></i> Add Server
                 </a>
             </div>
@@ -451,87 +366,78 @@
         </div>
     </div>
 
-    {# ═══════════ RADIUS TAB ═══════════ #}
-    <div id="content-radius" class="tab-content {{ 'hidden' if active_tab != 'radius' }}">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-up">
-            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg {% if radius_ok %}bg-emerald-100{% elif radius_failed %}bg-red-100{% else %}bg-amber-100{% endif %} flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-shield-halved {% if radius_ok %}text-emerald-600{% elif radius_failed %}text-red-600{% else %}text-amber-600{% endif %} text-xs sm:text-sm"></i>
-                    </div>
-                    <h2 class="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">RADIUS Configuration</h2>
+    {# RADIUS Tab #}
+    <div id="tab-radius" class="tab-content {{ 'hidden' if active_tab != 'radius' }}" style="padding-top: 16px;">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-4 sm:px-6 py-3 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">RADIUS Configuration</h3>
+                <div class="flex gap-2">
+                    <form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}">
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-[10px] font-bold rounded-lg transition-all">
+                            <i class="fas fa-shield-halved text-[9px]"></i> Check
+                        </button>
+                    </form>
+                    {% if radius_failed %}
+                    <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}">
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold rounded-lg transition-all">
+                            <i class="fas fa-rotate text-[9px]"></i> Retry
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
-                {% if not radius_ok %}
-                <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}">
-                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] sm:text-xs font-bold rounded-xl transition-all active:scale-[0.97]">
-                        <i class="fas fa-rotate text-[9px]"></i> Retry
-                    </button>
-                </form>
-                {% endif %}
             </div>
             <div class="p-4 sm:p-6">
                 {% if router.radius_secret %}
-                <div class="space-y-4 sm:space-y-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">RADIUS Server</span>
-                            <code class="mono text-sm sm:text-base font-bold text-indigo-700">10.0.0.1</code>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase block mb-2">RADIUS Server</span>
+                            <code class="text-sm font-bold text-[#2d6a4f]">10.0.0.1</code>
                         </div>
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Status</span>
-                            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold
-                                {% if radius_ok %}bg-emerald-50 text-emerald-700{% elif radius_failed %}bg-red-50 text-red-700{% else %}bg-amber-50 text-amber-700{% endif %}">
-                                <span class="w-2 h-2 rounded-full {% if radius_ok %}bg-emerald-500{% elif radius_failed %}bg-red-500{% else %}bg-amber-500{% endif %}"></span>
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase block mb-2">Status</span>
+                            <span class="badge {{ 'badge-success' if radius_ok else 'badge-danger' if radius_failed else 'badge-warning' }}">
                                 {{ router.radius_config_status|replace('_', ' ')|title if router.radius_config_status else 'Unknown' }}
                             </span>
                         </div>
                     </div>
                     
-                    {# SECRET #}
+                    {# Secret #}
                     <div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Shared Secret</span>
-                        <div class="relative">
-                            <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
-                                <i class="fas fa-key text-slate-500 text-xs sm:text-sm flex-shrink-0"></i>
-                                <code id="radiusSecret" class="mono text-xs sm:text-sm text-transparent blur-[6px] select-none flex-1 break-all cursor-pointer" onclick="toggleSecret()">{{ router.radius_secret }}</code>
-                                <button onclick="toggleSecret()" class="text-slate-400 hover:text-white transition-colors flex-shrink-0">
-                                    <i class="fas fa-eye text-xs sm:text-sm"></i>
-                                </button>
-                                <button onclick="copySecret()" class="text-slate-400 hover:text-white transition-colors flex-shrink-0">
-                                    <i class="fas fa-copy text-xs"></i>
-                                </button>
-                            </div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase block mb-2">Shared Secret</span>
+                        <div class="flex items-center gap-2 bg-[#0f172a] rounded-lg px-3 py-2.5">
+                            <i class="fas fa-key text-gray-500 text-xs flex-shrink-0"></i>
+                            <code id="radiusSecret" class="text-xs text-transparent blur-[5px] select-none flex-1 break-all cursor-pointer" onclick="toggleSecret()">{{ router.radius_secret }}</code>
+                            <button onclick="toggleSecret()" class="text-gray-400 hover:text-white transition-colors flex-shrink-0"><i class="fas fa-eye text-xs"></i></button>
+                            <button onclick="copySecret()" class="text-gray-400 hover:text-white transition-colors flex-shrink-0"><i class="fas fa-copy text-xs"></i></button>
                         </div>
                     </div>
                     
-                    {# MANUAL SETUP COMMANDS (VERIFIED) #}
+                    {# Manual Commands #}
                     <div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Manual Setup Commands</span>
-                        <div class="bg-slate-900 rounded-xl p-3 sm:p-4 overflow-x-auto relative">
-                            <pre class="mono text-xs sm:text-sm text-emerald-400 leading-relaxed whitespace-pre-wrap">/radius add address=10.0.0.1 secret={{ router.radius_secret }} service=hotspot,ppp authentication-port=1812 accounting-port=1813
+                        <span class="text-[10px] font-bold text-gray-400 uppercase block mb-2">Manual Setup Commands</span>
+                        <div class="code-block">
+                            <pre>/radius add address=10.0.0.1 secret={{ router.radius_secret }} service=hotspot,ppp authentication-port=1812 accounting-port=1813
 /ip hotspot profile set [find] use-radius=yes
 /ppp aaa set use-radius=yes
 /radius incoming set accept=yes</pre>
-                            <button onclick="copyCommands(this)" 
-                                    class="copy-btn absolute top-2 right-2 sm:top-3 sm:right-3 flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white text-[10px] sm:text-xs font-semibold rounded-lg backdrop-blur transition-all">
-                                <i class="fas fa-copy text-[9px]"></i> Copy All
-                            </button>
+                            <button onclick="copyCommands(this)" class="copy-btn"><i class="fas fa-copy text-[10px]"></i> Copy</button>
                         </div>
                     </div>
                     
                     {% if radius_failed %}
-                    <div class="p-3 sm:p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                    <div class="p-3 bg-red-50 border-2 border-red-200 rounded-lg">
                         <p class="text-xs font-bold text-red-700">Failed after {{ router.auto_config_attempts }} attempt(s)</p>
-                        {% if router.last_config_error %}<p class="text-xs text-red-600 mt-1 mono">{{ router.last_config_error[:200] }}</p>{% endif %}
+                        {% if router.last_config_error %}<p class="text-xs text-red-600 mt-1" style="font-family:monospace;">{{ router.last_config_error[:200] }}</p>{% endif %}
                     </div>
                     {% endif %}
                 </div>
                 {% else %}
-                <div class="py-12 sm:py-16 text-center">
-                    <i class="fas fa-key text-3xl text-slate-200 mb-3 block"></i>
-                    <p class="text-sm text-slate-500 mb-4">No RADIUS secret configured</p>
+                <div class="py-12 text-center text-gray-400">
+                    <i class="fas fa-key text-2xl mb-2 block"></i>
+                    <p class="text-xs mb-3">No RADIUS secret configured</p>
                     <form method="POST" action="{{ url_for('router_web.regenerate_radius_secret', org_id=organization.id, router_id=router.id) }}">
-                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow-lg transition-all">
+                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0f172a] hover:bg-black text-white text-xs font-bold rounded-lg shadow transition-all">
                             <i class="fas fa-key text-[10px]"></i> Generate Secret
                         </button>
                     </form>
@@ -542,25 +448,25 @@
     </div>
 </div>
 
-{# ═══════════ DELETE MODAL ═══════════ #}
+{# Delete Modal #}
 <div id="deleteModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" role="dialog">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('deleteModal')"></div>
     <div id="deleteModalContent" class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 sm:p-6 scale-95 opacity-0 transition-all duration-200">
         <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
                 <i class="fas fa-exclamation-triangle text-red-500"></i>
             </div>
             <div>
-                <h3 class="text-base sm:text-lg font-bold text-slate-900">Delete Router</h3>
-                <p class="text-xs sm:text-sm text-slate-500">Tunnel and authentication will also be removed</p>
+                <h3 class="text-base font-bold text-gray-900">Delete Router</h3>
+                <p class="text-xs text-gray-500">Tunnel and authentication will also be removed</p>
             </div>
         </div>
-        <p class="text-xs sm:text-sm text-slate-600 mb-5">Delete <strong>{{ router.name }}</strong>? This can be reversed.</p>
+        <p class="text-xs text-gray-600 mb-5">Delete <strong>{{ router.name }}</strong>? This can be reversed.</p>
         <div class="flex gap-3 justify-end">
-            <button onclick="closeModal('deleteModal')" class="px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 transition-all">Cancel</button>
+            <button onclick="closeModal('deleteModal')" class="px-4 py-2.5 text-xs font-semibold rounded-lg bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all">Cancel</button>
             <form method="POST" action="{{ url_for('router_web.delete', org_id=organization.id, router_id=router.id) }}">
                 <input type="hidden" name="soft" value="true">
-                <button type="submit" class="px-5 py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-lg transition-all active:scale-[0.97]">Delete</button>
+                <button type="submit" class="px-5 py-2.5 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white shadow transition-all active:scale-[0.97]">Delete</button>
             </form>
         </div>
     </div>
@@ -569,15 +475,14 @@
 <script>
 function switchTab(tab) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.tab-btn').forEach(el => { el.classList.remove('tab-active'); el.classList.add('text-slate-500', 'border-transparent'); });
-    const content = document.getElementById('content-' + tab);
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    const content = document.getElementById('tab-' + tab);
     const btn = document.getElementById('tab-' + tab);
     if (content) content.classList.remove('hidden');
-    if (btn) { btn.classList.add('tab-active'); btn.classList.remove('text-slate-500', 'border-transparent'); }
-    const url = new URL(window.location);
-    url.searchParams.set('tab', tab);
-    window.history.replaceState({}, '', url);
+    if (btn) btn.classList.add('active');
+    try { const u = new URL(window.location); u.searchParams.set('tab', tab); history.replaceState({}, '', u); } catch(e) {}
 }
+
 function openModal(id) {
     const m = document.getElementById(id);
     const c = document.getElementById(id + 'Content');
@@ -585,6 +490,7 @@ function openModal(id) {
     m.classList.remove('hidden'); m.classList.add('flex');
     requestAnimationFrame(() => { c.classList.remove('scale-95', 'opacity-0'); c.classList.add('scale-100', 'opacity-100'); });
 }
+
 function closeModal(id) {
     const m = document.getElementById(id);
     const c = document.getElementById(id + 'Content');
@@ -592,44 +498,40 @@ function closeModal(id) {
     c.classList.add('scale-95', 'opacity-0'); c.classList.remove('scale-100', 'opacity-100');
     setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
 }
+
 function toggleSecret() {
     const d = document.getElementById('radiusSecret');
     if (!d) return;
-    const hidden = d.classList.contains('blur-[6px]');
-    if (hidden) { d.classList.remove('blur-[6px]', 'text-transparent', 'select-none'); d.classList.add('text-emerald-400'); }
-    else { d.classList.add('blur-[6px]', 'text-transparent', 'select-none'); d.classList.remove('text-emerald-400'); }
+    if (d.style.filter === 'none') { d.style.filter = 'blur(5px)'; d.style.color = 'transparent'; d.style.userSelect = 'none'; }
+    else { d.style.filter = 'none'; d.style.color = '#34d399'; d.style.userSelect = 'text'; }
 }
+
 function copySecret() {
     const d = document.getElementById('radiusSecret');
     if (!d) return;
-    navigator.clipboard.writeText(d.innerText.trim()).then(() => toast('Secret copied!'));
+    navigator.clipboard.writeText(d.innerText.trim()).then(() => showToast('Secret copied!', 'success'));
 }
-function copyStep(btn, text) {
-    navigator.clipboard.writeText(text).then(() => {
-        btn.innerHTML = '<i class="fas fa-check text-[9px]"></i> Copied!';
-        btn.classList.add('bg-emerald-500/30');
-        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy text-[9px]"></i> Copy'; btn.classList.remove('bg-emerald-500/30'); }, 2000);
-        toast('Copied!');
+
+function copySetupScript(btn) {
+    const pre = btn.parentElement.querySelector('pre');
+    if (!pre) return;
+    navigator.clipboard.writeText(pre.innerText.trim()).then(() => {
+        btn.innerHTML = '<i class="fas fa-check text-[10px]"></i> Copied!';
+        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy text-[10px]"></i> Copy All'; }, 2000);
+        showToast('Setup script copied!', 'success');
     });
 }
+
 function copyCommands(btn) {
     const pre = btn.parentElement.querySelector('pre');
     if (!pre) return;
     navigator.clipboard.writeText(pre.innerText.trim()).then(() => {
-        btn.innerHTML = '<i class="fas fa-check text-[9px]"></i> Copied!';
-        btn.classList.add('bg-emerald-500/30');
-        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy text-[9px]"></i> Copy All'; btn.classList.remove('bg-emerald-500/30'); }, 2000);
-        toast('Commands copied!');
+        btn.innerHTML = '<i class="fas fa-check text-[10px]"></i> Copied!';
+        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy text-[10px]"></i> Copy'; }, 2000);
+        showToast('Commands copied!', 'success');
     });
 }
-function toast(msg) {
-    const t = document.createElement('div');
-    t.className = 'fixed bottom-4 right-4 z-[200] bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl shadow-2xl flex items-center gap-2 opacity-0 translate-y-4 transition-all duration-300';
-    t.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-sm"></i>' + msg;
-    document.body.appendChild(t);
-    requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateY(0)'; });
-    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(12px)'; setTimeout(() => t.remove(), 300); }, 2500);
-}
+
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal('deleteModal'); });
 </script>
 {% endblock %}

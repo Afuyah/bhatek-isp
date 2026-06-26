@@ -545,3 +545,35 @@ def edit_pppoe(org_id, pppoe_id, current_user=None, current_organization=None):
     except ValueError: flash('Invalid ID format', 'danger'); return redirect(url_for('router_web.index', org_id=org_id))
     except Exception as e: logger.error(f"Error editing PPPoE server: {e}", exc_info=True); flash(f'Error: {str(e)}', 'danger')
     return redirect(url_for('router_web.show', org_id=org_id, router_id=pppoe.router_id))
+
+# =============================================================================
+# RADIUS — CHECK STATUS (no reconfiguration)
+# =============================================================================
+
+@router_web_bp.route('/<router_id>/radius/check', methods=['POST'])
+@web_router_access_required
+def check_radius(org_id, router_id, current_user=None, current_organization=None):
+    """POST /organization/<org_id>/routers/<router_id>/radius/check — Check RADIUS without reconfiguring."""
+    try:
+        router_uuid = UUID(router_id)
+        result = router_service.check_radius_status(router_uuid, current_organization.id)
+        
+        if result.get('radius_configured'):
+            flash('✅ RADIUS is configured and working!', 'success')
+        elif result.get('api_reachable'):
+            flash('⚠️ API reachable but RADIUS server not found. Click "Retry RADIUS" to configure.', 'warning')
+        elif result.get('nas_exists'):
+            flash('⚠️ NAS entry exists but router API not reachable. Check WireGuard connection.', 'warning')
+        else:
+            flash('❌ RADIUS not configured. Click "Retry RADIUS" to configure.', 'danger')
+            
+    except ValueError:
+        flash('Invalid router ID format', 'danger')
+    except Exception as e:
+        logger.error(f"Error checking RADIUS: {e}", exc_info=True)
+        flash(f'RADIUS check failed: {str(e)}', 'danger')
+    
+    return redirect(url_for('router_web.show', org_id=org_id, router_id=router_id))
+
+
+    
