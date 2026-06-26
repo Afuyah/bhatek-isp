@@ -53,10 +53,22 @@ class RouterService:
         return secrets.token_urlsafe(32)
 
     def _get_radius_server(self) -> str:
-        return current_app.config.get('RADIUS_SERVER_IP', self.DEFAULT_RADIUS_SERVER)
+        server = _os.environ.get('RADIUS_SERVER_IP', '')
+        if not server:
+            try:
+                server = current_app.config.get('RADIUS_SERVER_IP', '')
+            except RuntimeError:
+                pass
+        return server or self.DEFAULT_RADIUS_SERVER
 
     def _get_vps_public_key(self) -> str:
-        return current_app.config.get('VPS_WIREGUARD_PUBLIC_KEY', '274kTJCdNISjJEBMLP9SuqaMyQ8GkDSqjXLttDgNsz4=')
+        key = _os.environ.get('VPS_WIREGUARD_PUBLIC_KEY', '')
+        if not key:
+            try:
+                key = current_app.config.get('VPS_WIREGUARD_PUBLIC_KEY', '')
+            except RuntimeError:
+                pass
+        return key or '274kTJCdNISjJEBMLP9SuqaMyQ8GkDSqjXLttDgNsz4='
 
     def _parse_uptime(self, uptime_str: str) -> int:
         if not uptime_str: return 0

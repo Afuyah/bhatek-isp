@@ -27,7 +27,6 @@ from app.modules.organization.service import OrganizationService
 from app.modules.auth.repository import UserRepository
 from app.core.database.session import db
 from app.models.nas import NAS
-from app.integrations.wireguard.manager import WireGuardManager
 
 
 router_web_bp = Blueprint(
@@ -42,7 +41,7 @@ pppoe_repo = PPPoeServerRepository()
 network_service = NetworkService()
 organization_service = OrganizationService()
 user_repo = UserRepository()
-wg_manager = WireGuardManager()
+
 
 
 # =============================================================================
@@ -214,17 +213,30 @@ def show(org_id, router_id, current_user=None, current_organization=None):
         pppoe_servers = pppoe_repo.get_by_router(router_uuid, current_organization.id)
         connection_status = router_service.get_connection_status(router_uuid, current_organization.id)
 
-        # ═══════════════════════════════════════════════════════════
-        # BUILD SETUP SCRIPT — Uses WireGuardManager for CORRECT commands
-        # ═══════════════════════════════════════════════════════════
+        
+        # BUILD SETUP SCRIPT 
+       
         setup_script = None
 
         if router.status in ['pending_wireguard', 'unknown', 'offline', 'error'] or not router.wireguard_ip:
-            setup_script = wg_manager.generate_mikrotik_setup_script(
-                wireguard_ip=router.wireguard_ip or 'PENDING',
-                mikrotik_private_key='YOUR_PRIVATE_KEY_FROM_CREATION',
-                radius_secret=router.radius_secret or 'PENDING',
-                include_radius=True,
+            # Decrypt the stored private key
+            from app.core.security.encryption import EncryptionService
+            encryption = EncryptionService()
+            
+            wg_private_key = ''
+            if router.wireguard_private_key_encrypted:
+                try:
+                    wg_private_key = encryption.decrypt(router.wireguard_private_key_encrypted)
+                except Exception as e:
+                    logger.error(f"Failed to decrypt WireGuard private key: {e}")
+            
+            # Use the service's script generator with the real key
+            setup_script = router_service._generate_mikrotik_setup_script(
+                wireguard_ip=router.wireguard_ip or '10.0.0.0',
+                mikrotik_private_key=wg_private_key or 'KEY_NOT_AVAILABLE',
+                radius_secret=router.radius_secret or 'SECRET_NOT_AVAILABLE',
+                router_name=router.name,
+                organization_name=current_organization.name,
             )
 
         return render_template(
