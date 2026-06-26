@@ -676,6 +676,73 @@ class RouterService:
     def configure_walled_garden(self, router_id: UUID, organization_id: UUID, **kwargs) -> Dict[str, Any]:
         return self._execute_client_method_via_vps(self.get_router(router_id, organization_id), 'configure_walled_garden', **kwargs)
 
+
+
+    # =========================================================================
+    # HOTSPOT SERVER CREATION
+    # =========================================================================
+
+    def create_hotspot_server(self, router_id: UUID, organization_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a hotspot server on the MikroTik via VPS proxy."""
+        r = self.get_router(router_id, organization_id)
+        name = data.get('name', 'hotspot1')
+        interface = data.get('interface', 'bridge')
+        address_pool = data.get('address_pool', 'dhcp_pool1')
+
+        try:
+            # Create on MikroTik
+            params = {'name': name, 'interface': interface}
+            if address_pool:
+                params['address-pool'] = address_pool
+            self._execute_via_vps(r, '/ip/hotspot/add', **params)
+
+            # Save to database
+            hs = self.hotspot_repo.create({
+                'organization_id': organization_id, 'router_id': router_id,
+                'name': name, 'hotspot_id': name, 'interface': interface,
+                'address_pool': address_pool, 'is_active': True,
+            })
+            logger.info(f"Hotspot server created: {name} on {r.name}")
+            return {'success': True, 'hotspot': hs}
+        except Exception as e:
+            logger.error(f"Failed to create hotspot server: {e}")
+            raise BusinessError(f"Failed to create hotspot server: {e}")
+
+    # =========================================================================
+    # PPPoE SERVER CREATION
+    # =========================================================================
+
+    def create_pppoe_server(self, router_id: UUID, organization_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a PPPoE server on the MikroTik via VPS proxy."""
+        r = self.get_router(router_id, organization_id)
+        name = data.get('name', 'pppoe1')
+        interface = data.get('interface', 'ether1')
+        service_name = data.get('service_name', 'pppoe-service')
+        mtu = data.get('mtu', 1492)
+        max_sessions = data.get('max_sessions', 100)
+
+        try:
+            # Create on MikroTik
+            self._execute_via_vps(r, '/interface/pppoe-server/server/add',
+                name=name, interface=interface,
+                service_name=service_name,
+                **({'max-sessions': str(max_sessions), 'mtu': str(mtu)})
+            )
+
+            # Save to database
+            ps = self.pppoe_repo.create({
+                'organization_id': organization_id, 'router_id': router_id,
+                'name': name, 'interface': interface,
+                'service_name': service_name, 'mtu': mtu,
+                'max_sessions': max_sessions, 'is_active': True,
+            })
+            logger.info(f"PPPoE server created: {name} on {r.name}")
+            return {'success': True, 'pppoe': ps}
+        except Exception as e:
+            logger.error(f"Failed to create PPPoE server: {e}")
+            raise BusinessError(f"Failed to create PPPoE server: {e}")
+
+
     def get_connection_status(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
         r = self.get_router(router_id, organization_id); s = r.settings or {}; h = s.get('health', {})
         return {'router_id': str(r.id), 'name': r.name, 'ip_address': str(r.ip_address),

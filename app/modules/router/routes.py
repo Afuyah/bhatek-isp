@@ -49,9 +49,7 @@ router_bp = Blueprint('router', __name__, url_prefix='/api/v1/routers')
 controller = RouterController()
 
 
-# =============================================================================
 # PUBLIC ENDPOINTS (no authentication required)
-# =============================================================================
 
 @router_bp.route('/test', methods=['POST'])
 def test_connection():
@@ -92,9 +90,7 @@ def test_connection():
         }), 500
 
 
-# =============================================================================
 # DASHBOARD & SUMMARY
-# =============================================================================
 
 @router_bp.route('/stats', methods=['GET'])
 @token_required
@@ -110,9 +106,7 @@ def get_issues():
     return controller.get_issues()
 
 
-# =============================================================================
 # BULK OPERATIONS (must be before <router_id> routes)
-# =============================================================================
 
 @router_bp.route('/bulk/delete', methods=['POST'])
 @token_required
@@ -135,9 +129,7 @@ def bulk_retry_radius():
     return controller.bulk_retry_radius()
 
 
-# =============================================================================
 # COLLECTION ROUTES
-# =============================================================================
 
 @router_bp.route('', methods=['POST'])
 @token_required
@@ -153,9 +145,7 @@ def list_routers():
     return controller.list()
 
 
-# =============================================================================
 # FILTERED COLLECTION ROUTES
-# =============================================================================
 
 @router_bp.route('/active', methods=['GET'])
 @token_required
@@ -178,9 +168,7 @@ def get_by_network(network_id):
     return controller.get_by_network(network_id)
 
 
-# =============================================================================
 # SINGLE RESOURCE ROUTES
-# =============================================================================
 
 @router_bp.route('/<router_id>', methods=['GET'])
 @token_required
@@ -203,9 +191,7 @@ def delete(router_id):
     return controller.delete(router_id)
 
 
-# =============================================================================
 # CONNECTION & DISCOVERY
-# =============================================================================
 
 @router_bp.route('/<router_id>/test', methods=['POST'])
 @token_required
@@ -256,9 +242,7 @@ def status(router_id):
     return controller.status(router_id)
 
 
-# =============================================================================
 # RADIUS CONFIGURATION
-# =============================================================================
 
 @router_bp.route('/<router_id>/radius', methods=['POST'])
 @token_required
@@ -272,6 +256,22 @@ def configure_radius(router_id):
 def retry_radius_config(router_id):
     """POST /api/v1/routers/<router_id>/radius/retry — Retry RADIUS auto-config."""
     return controller.retry_radius_config(router_id)
+
+
+# HOTSPOT & PPPoE SERVER CREATION
+
+@router_bp.route('/<router_id>/hotspot-servers', methods=['POST'])
+@token_required
+def create_hotspot_server(router_id):
+    """POST /api/v1/routers/<router_id>/hotspot-servers — Create hotspot server on router."""
+    return controller.create_hotspot_server(router_id)
+
+
+@router_bp.route('/<router_id>/pppoe-servers', methods=['POST'])
+@token_required
+def create_pppoe_server(router_id):
+    """POST /api/v1/routers/<router_id>/pppoe-servers — Create PPPoE server on router."""
+    return controller.create_pppoe_server(router_id)
 
 
 @router_bp.route('/<router_id>/radius/secret', methods=['GET'])

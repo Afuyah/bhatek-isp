@@ -290,6 +290,153 @@ class RouterController:
                 'error_code': 'INTERNAL_ERROR',
             }), 500
 
+
+    # =========================================================================
+    # HOTSPOT & PPPoE SERVER CREATION
+    # =========================================================================
+
+    @token_required
+    def create_hotspot_server(self, router_id):
+        """
+        POST /api/v1/routers/<router_id>/hotspot-servers
+
+        Create a hotspot server on the MikroTik router.
+
+        Request body:
+            {
+                "name": "Office Hotspot",
+                "interface": "bridge",
+                "address_pool": "dhcp_pool1"
+            }
+        """
+        try:
+            router_uuid = UUID(router_id)
+            data = request.get_json() or {}
+            
+            if not data.get('name'):
+                return jsonify({
+                    'success': False,
+                    'error': 'Hotspot server name is required',
+                    'error_code': 'MISSING_NAME',
+                }), 400
+            
+            if not data.get('interface'):
+                return jsonify({
+                    'success': False,
+                    'error': 'Interface is required',
+                    'error_code': 'MISSING_INTERFACE',
+                }), 400
+
+            result = self.service.create_hotspot_server(
+                router_id=router_uuid,
+                organization_id=g.organization_id,
+                data=data,
+            )
+
+            return jsonify({
+                'success': True,
+                'message': 'Hotspot server created successfully',
+                'hotspot': result.get('hotspot'),
+            }), 201
+
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid router ID format',
+                'error_code': 'INVALID_UUID',
+            }), 400
+        except NotFoundError as e:
+            return jsonify({
+                'success': False,
+                'error': str(e),
+                'error_code': 'NOT_FOUND',
+            }), 404
+        except BusinessError as e:
+            return jsonify({
+                'success': False,
+                'error': str(e),
+                'error_code': 'HOTSPOT_CREATE_FAILED',
+            }), 500
+        except Exception as e:
+            logger.error(f"Create hotspot server error: {e}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'error': 'Internal server error',
+                'error_code': 'INTERNAL_ERROR',
+            }), 500
+
+    @token_required
+    def create_pppoe_server(self, router_id):
+        """
+        POST /api/v1/routers/<router_id>/pppoe-servers
+
+        Create a PPPoE server on the MikroTik router.
+
+        Request body:
+            {
+                "name": "PPPoE Server 1",
+                "interface": "ether1",
+                "service_name": "pppoe-service",
+                "mtu": 1492,
+                "max_sessions": 100
+            }
+        """
+        try:
+            router_uuid = UUID(router_id)
+            data = request.get_json() or {}
+            
+            if not data.get('name'):
+                return jsonify({
+                    'success': False,
+                    'error': 'PPPoE server name is required',
+                    'error_code': 'MISSING_NAME',
+                }), 400
+            
+            if not data.get('interface'):
+                return jsonify({
+                    'success': False,
+                    'error': 'Interface is required',
+                    'error_code': 'MISSING_INTERFACE',
+                }), 400
+
+            result = self.service.create_pppoe_server(
+                router_id=router_uuid,
+                organization_id=g.organization_id,
+                data=data,
+            )
+
+            return jsonify({
+                'success': True,
+                'message': 'PPPoE server created successfully',
+                'pppoe': result.get('pppoe'),
+            }), 201
+
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid router ID format',
+                'error_code': 'INVALID_UUID',
+            }), 400
+        except NotFoundError as e:
+            return jsonify({
+                'success': False,
+                'error': str(e),
+                'error_code': 'NOT_FOUND',
+            }), 404
+        except BusinessError as e:
+            return jsonify({
+                'success': False,
+                'error': str(e),
+                'error_code': 'PPPOE_CREATE_FAILED',
+            }), 500
+        except Exception as e:
+            logger.error(f"Create PPPoE server error: {e}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'error': 'Internal server error',
+                'error_code': 'INTERNAL_ERROR',
+            }), 500        
+
     # =========================================================================
     # READ — SINGLE
     # =========================================================================
