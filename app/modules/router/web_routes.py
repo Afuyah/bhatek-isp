@@ -43,7 +43,6 @@ organization_service = OrganizationService()
 user_repo = UserRepository()
 
 
-
 # =============================================================================
 # DECORATOR
 # =============================================================================
@@ -88,7 +87,6 @@ def web_router_access_required(f):
 
 
 def _get_router_context(organization_id):
-    """Get summary counts for the router sidebar."""
     return {
         'total': router_repo.count_by_organization(organization_id),
         'online': router_repo.count_by_organization(organization_id, status='online'),
@@ -105,7 +103,6 @@ def _get_router_context(organization_id):
 @router_web_bp.route('/')
 @web_router_access_required
 def index(org_id, current_user=None, current_organization=None):
-    """GET /organization/<org_id>/routers/ — List all routers."""
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 20, type=int), 100)
     skip = (page - 1) * per_page
@@ -148,7 +145,6 @@ def index(org_id, current_user=None, current_organization=None):
 @router_web_bp.route('/create', methods=['GET', 'POST'])
 @web_router_access_required
 def create(org_id, current_user=None, current_organization=None):
-    """GET/POST /organization/<org_id>/routers/create"""
     networks = network_service.get_organization_networks(current_organization.id, 0, 100)
 
     if request.method == 'GET':
@@ -199,7 +195,6 @@ def create(org_id, current_user=None, current_organization=None):
 @router_web_bp.route('/<router_id>')
 @web_router_access_required
 def show(org_id, router_id, current_user=None, current_organization=None):
-    """GET /organization/<org_id>/routers/<router_id> — Router detail page."""
     try:
         router_uuid = UUID(router_id)
         router = router_service.get_router(router_uuid, current_organization.id)
@@ -213,24 +208,16 @@ def show(org_id, router_id, current_user=None, current_organization=None):
         pppoe_servers = pppoe_repo.get_by_router(router_uuid, current_organization.id)
         connection_status = router_service.get_connection_status(router_uuid, current_organization.id)
 
-        
-        # BUILD SETUP SCRIPT 
-       
         setup_script = None
-
         if router.status in ['pending_wireguard', 'unknown', 'offline', 'error'] or not router.wireguard_ip:
-            # Decrypt the stored private key
             from app.core.security.encryption import EncryptionService
             encryption = EncryptionService()
-            
             wg_private_key = ''
             if router.wireguard_private_key_encrypted:
                 try:
                     wg_private_key = encryption.decrypt(router.wireguard_private_key_encrypted)
                 except Exception as e:
                     logger.error(f"Failed to decrypt WireGuard private key: {e}")
-            
-            # Use the service's script generator with the real key
             setup_script = router_service._generate_mikrotik_setup_script(
                 wireguard_ip=router.wireguard_ip or '10.0.0.0',
                 mikrotik_private_key=wg_private_key or 'KEY_NOT_AVAILABLE',
@@ -266,7 +253,6 @@ def show(org_id, router_id, current_user=None, current_organization=None):
 @router_web_bp.route('/<router_id>/edit', methods=['GET', 'POST'])
 @web_router_access_required
 def edit(org_id, router_id, current_user=None, current_organization=None):
-    """GET/POST /organization/<org_id>/routers/<router_id>/edit"""
     try:
         router_uuid = UUID(router_id)
         router = router_service.get_router(router_uuid, current_organization.id)
@@ -310,7 +296,6 @@ def edit(org_id, router_id, current_user=None, current_organization=None):
 @router_web_bp.route('/<router_id>/delete', methods=['POST'])
 @web_router_access_required
 def delete(org_id, router_id, current_user=None, current_organization=None):
-    """POST /organization/<org_id>/routers/<router_id>/delete"""
     try:
         router_uuid = UUID(router_id)
         soft = request.form.get('soft', 'true') == 'true'
@@ -330,12 +315,11 @@ def delete(org_id, router_id, current_user=None, current_organization=None):
 @router_web_bp.route('/<router_id>/test', methods=['POST'])
 @web_router_access_required
 def test_connection(org_id, router_id, current_user=None, current_organization=None):
-    """POST /organization/<org_id>/routers/<router_id>/test"""
     try:
         router_uuid = UUID(router_id)
         result = router_service.test_connection(router_uuid, current_organization.id)
         if result.get('success'):
-            flash(f'Connection test successful! Router is online. Version: {result.get("router_info", {}).get("version", "Unknown")}', 'success')
+            flash(f'Connection test successful! Router is online.', 'success')
         else:
             flash(f'Connection test failed: {result.get("error", "Unknown error")}', 'danger')
     except ValueError: flash('Invalid router ID format', 'danger')
@@ -352,12 +336,11 @@ def test_connection(org_id, router_id, current_user=None, current_organization=N
 @router_web_bp.route('/<router_id>/discover', methods=['POST'])
 @web_router_access_required
 def discover(org_id, router_id, current_user=None, current_organization=None):
-    """POST /organization/<org_id>/routers/<router_id>/discover"""
     try:
         router_uuid = UUID(router_id)
         result = router_service.discover_router(router_uuid, current_organization.id)
         if result.get('success'):
-            flash(f'Discovery successful! Model: {result.get("info", {}).get("board_name", "Unknown")}', 'success')
+            flash(f'Discovery successful!', 'success')
         else:
             flash('Discovery failed. Router may be offline.', 'warning')
     except ValueError: flash('Invalid router ID format', 'danger')
@@ -374,7 +357,6 @@ def discover(org_id, router_id, current_user=None, current_organization=None):
 @router_web_bp.route('/<router_id>/sync', methods=['POST'])
 @web_router_access_required
 def sync(org_id, router_id, current_user=None, current_organization=None):
-    """POST /organization/<org_id>/routers/<router_id>/sync"""
     try:
         router_uuid = UUID(router_id)
         result = router_service.sync_router(router_uuid, current_organization.id)
@@ -393,7 +375,6 @@ def sync(org_id, router_id, current_user=None, current_organization=None):
 @router_web_bp.route('/<router_id>/radius/regenerate', methods=['POST'])
 @web_router_access_required
 def regenerate_radius_secret(org_id, router_id, current_user=None, current_organization=None):
-    """POST /organization/<org_id>/routers/<router_id>/radius/regenerate"""
     try:
         router_uuid = UUID(router_id)
         router = router_service.get_router(router_uuid, current_organization.id)
@@ -406,7 +387,7 @@ def regenerate_radius_secret(org_id, router_id, current_user=None, current_organ
             nas = NAS.query.filter_by(id=router.nas_entry_id, organization_id=current_organization.id).first()
             if nas: nas.secret = new_secret; db.session.commit()
         session['new_radius_secret'] = new_secret
-        flash('New RADIUS secret generated successfully! Please reconfigure your MikroTik router.', 'success')
+        flash('New RADIUS secret generated successfully!', 'success')
         logger.warning(f"RADIUS secret regenerated for router {router_id} by user {current_user.id}")
     except ValueError: flash('Invalid router ID format', 'danger')
     except Exception as e:
@@ -422,12 +403,11 @@ def regenerate_radius_secret(org_id, router_id, current_user=None, current_organ
 @router_web_bp.route('/<router_id>/radius/retry', methods=['POST'])
 @web_router_access_required
 def retry_radius_config(org_id, router_id, current_user=None, current_organization=None):
-    """POST /organization/<org_id>/routers/<router_id>/radius/retry"""
     try:
         router_uuid = UUID(router_id)
         result = router_service.retry_radius_configuration(router_uuid, current_organization.id)
         if result.get('success'): flash('RADIUS configuration successful!', 'success')
-        else: flash(f'RADIUS configuration failed: {result.get("message")}. Please configure manually.', 'warning')
+        else: flash(f'RADIUS configuration failed: {result.get("message")}.', 'warning')
     except ValueError: flash('Invalid router ID format', 'danger')
     except Exception as e:
         logger.error(f"Error retrying RADIUS config: {e}", exc_info=True)
@@ -436,50 +416,96 @@ def retry_radius_config(org_id, router_id, current_user=None, current_organizati
 
 
 # =============================================================================
-# HOTSPOT SERVER — CREATE
+# RADIUS — CHECK STATUS
+# =============================================================================
+
+@router_web_bp.route('/<router_id>/radius/check', methods=['POST'])
+@web_router_access_required
+def check_radius(org_id, router_id, current_user=None, current_organization=None):
+    try:
+        router_uuid = UUID(router_id)
+        result = router_service.check_radius_status(router_uuid, current_organization.id)
+        if result.get('radius_configured'):
+            flash('RADIUS is configured and working!', 'success')
+        elif result.get('api_reachable'):
+            flash('API reachable but RADIUS server not found. Click Retry RADIUS to configure.', 'warning')
+        else:
+            flash('RADIUS not configured. Click Retry RADIUS to configure.', 'danger')
+    except ValueError: flash('Invalid router ID format', 'danger')
+    except Exception as e:
+        logger.error(f"Error checking RADIUS: {e}", exc_info=True)
+        flash(f'RADIUS check failed: {str(e)}', 'danger')
+    return redirect(url_for('router_web.show', org_id=org_id, router_id=router_id))
+
+
+# =============================================================================
+# HOTSPOT SERVER — CREATE (on MikroTik via VPS + database)
 # =============================================================================
 
 @router_web_bp.route('/hotspot-servers/create', methods=['GET', 'POST'])
 @web_router_access_required
 def create_hotspot(org_id, current_user=None, current_organization=None):
-    """GET/POST — Create hotspot server."""
+    """GET/POST — Create hotspot server on router + database."""
     router_id = request.args.get('router_id')
-    if not router_id: flash('Router ID is required', 'danger'); return redirect(url_for('router_web.index', org_id=org_id))
+    if not router_id:
+        flash('Router ID is required', 'danger')
+        return redirect(url_for('router_web.index', org_id=org_id))
+
     try:
         router_uuid = UUID(router_id)
         router = router_service.get_router(router_uuid, current_organization.id)
-        if request.method == 'GET': return render_template('web/router/hotspot_create.html', organization=current_organization, user=current_user, router=router)
-        hs_data = {
-            'organization_id': current_organization.id, 'router_id': router_uuid,
-            'name': request.form.get('name', '').strip(), 'hotspot_id': request.form.get('hotspot_id', '').strip(),
-            'interface': request.form.get('interface', '').strip() or None,
-            'address_pool': request.form.get('address_pool', '').strip() or None,
-            'dns_name': request.form.get('dns_name', '').strip() or None,
-            'idle_timeout': request.form.get('idle_timeout', 300, type=int),
-            'session_timeout': request.form.get('session_timeout', 86400, type=int),
-            'keepalive_timeout': request.form.get('keepalive_timeout', 120, type=int),
-            'is_active': request.form.get('is_active') == 'true',
+
+        if request.method == 'GET':
+            return render_template('web/router/hotspot_create.html',
+                                   organization=current_organization, user=current_user, router=router)
+
+        # Build data from form
+        data = {
+            'name': request.form.get('name', '').strip(),
+            'interface': request.form.get('interface', 'bridge'),
+            'address_pool': request.form.get('address_pool', 'dhcp_pool1'),
         }
-        if not hs_data['name'] or not hs_data['hotspot_id']: flash('Name and Hotspot ID are required', 'danger'); return render_template('web/router/hotspot_create.html', organization=current_organization, user=current_user, router=router)
-        hotspot_repo.create(hs_data)
-        flash('Hotspot server created successfully!', 'success')
-    except ValueError: flash('Invalid router ID format', 'danger'); return redirect(url_for('router_web.index', org_id=org_id))
-    except Exception as e: logger.error(f"Error creating hotspot server: {e}", exc_info=True); flash(f'Error: {str(e)}', 'danger')
+
+        if not data['name']:
+            flash('Hotspot server name is required', 'danger')
+            return render_template('web/router/hotspot_create.html',
+                                   organization=current_organization, user=current_user, router=router)
+
+        # Create on MikroTik via VPS + save to database
+        result = router_service.create_hotspot_server(
+            router_id=router_uuid,
+            organization_id=current_organization.id,
+            data=data,
+        )
+        flash('Hotspot server created on router!', 'success')
+
+    except ValueError:
+        flash('Invalid router ID format', 'danger')
+        return redirect(url_for('router_web.index', org_id=org_id))
+    except Exception as e:
+        logger.error(f"Error creating hotspot server: {e}", exc_info=True)
+        flash(f'Error: {str(e)}', 'danger')
+
     return redirect(url_for('router_web.show', org_id=org_id, router_id=router_id))
 
 
 @router_web_bp.route('/hotspot-servers/<hotspot_id>/edit', methods=['GET', 'POST'])
 @web_router_access_required
 def edit_hotspot(org_id, hotspot_id, current_user=None, current_organization=None):
-    """GET/POST — Edit hotspot server."""
     try:
         hotspot_uuid = UUID(hotspot_id)
         hotspot = hotspot_repo.get_by_id(hotspot_uuid, current_organization.id)
-        if not hotspot: flash('Hotspot server not found', 'danger'); return redirect(url_for('router_web.index', org_id=org_id))
+        if not hotspot:
+            flash('Hotspot server not found', 'danger')
+            return redirect(url_for('router_web.index', org_id=org_id))
         router = router_service.get_router(hotspot.router_id, current_organization.id)
-        if request.method == 'GET': return render_template('web/router/hotspot_edit.html', organization=current_organization, user=current_user, router=router, hotspot=hotspot)
+        if request.method == 'GET':
+            return render_template('web/router/hotspot_edit.html',
+                                   organization=current_organization, user=current_user,
+                                   router=router, hotspot=hotspot)
         update_data = {
-            'name': request.form.get('name', '').strip(), 'hotspot_id': request.form.get('hotspot_id', '').strip(),
+            'name': request.form.get('name', '').strip(),
+            'hotspot_id': request.form.get('hotspot_id', '').strip(),
             'interface': request.form.get('interface', '').strip() or None,
             'address_pool': request.form.get('address_pool', '').strip() or None,
             'dns_name': request.form.get('dns_name', '').strip() or None,
@@ -489,91 +515,97 @@ def edit_hotspot(org_id, hotspot_id, current_user=None, current_organization=Non
             'is_active': request.form.get('is_active') == 'true',
         }
         hotspot_repo.update(hotspot_uuid, current_organization.id, update_data)
-        flash('Hotspot server updated successfully!', 'success')
-    except ValueError: flash('Invalid ID format', 'danger'); return redirect(url_for('router_web.index', org_id=org_id))
-    except Exception as e: logger.error(f"Error editing hotspot server: {e}", exc_info=True); flash(f'Error: {str(e)}', 'danger')
+        flash('Hotspot server updated!', 'success')
+    except ValueError:
+        flash('Invalid ID format', 'danger')
+        return redirect(url_for('router_web.index', org_id=org_id))
+    except Exception as e:
+        logger.error(f"Error editing hotspot: {e}", exc_info=True)
+        flash(f'Error: {str(e)}', 'danger')
     return redirect(url_for('router_web.show', org_id=org_id, router_id=hotspot.router_id))
 
 
 # =============================================================================
-# PPPoE SERVER — CREATE
+# PPPoE SERVER — CREATE (on MikroTik via VPS + database)
 # =============================================================================
 
 @router_web_bp.route('/pppoe-servers/create', methods=['GET', 'POST'])
 @web_router_access_required
 def create_pppoe(org_id, current_user=None, current_organization=None):
-    """GET/POST — Create PPPoE server."""
+    """GET/POST — Create PPPoE server on router + database."""
     router_id = request.args.get('router_id')
-    if not router_id: flash('Router ID is required', 'danger'); return redirect(url_for('router_web.index', org_id=org_id))
+    if not router_id:
+        flash('Router ID is required', 'danger')
+        return redirect(url_for('router_web.index', org_id=org_id))
+
     try:
         router_uuid = UUID(router_id)
         router = router_service.get_router(router_uuid, current_organization.id)
-        if request.method == 'GET': return render_template('web/router/pppoe_create.html', organization=current_organization, user=current_user, router=router)
-        ps_data = {
-            'organization_id': current_organization.id, 'router_id': router_uuid,
-            'name': request.form.get('name', '').strip(), 'interface': request.form.get('interface', '').strip(),
-            'service_name': request.form.get('service_name', '').strip(),
-            'mtu': request.form.get('mtu', 1492, type=int), 'max_sessions': request.form.get('max_sessions', 100, type=int),
-            'authentication_protocols': ['chap', 'mschapv2'], 'is_active': request.form.get('is_active') == 'true',
+
+        if request.method == 'GET':
+            return render_template('web/router/pppoe_create.html',
+                                   organization=current_organization, user=current_user, router=router)
+
+        # Build data from form
+        data = {
+            'name': request.form.get('name', '').strip(),
+            'interface': request.form.get('interface', 'ether1'),
+            'service_name': request.form.get('service_name', 'pppoe-service'),
+            'mtu': request.form.get('mtu', 1492, type=int),
+            'max_sessions': request.form.get('max_sessions', 100, type=int),
         }
-        if not ps_data['name']: flash('PPPoE server name is required', 'danger'); return render_template('web/router/pppoe_create.html', organization=current_organization, user=current_user, router=router)
-        pppoe_repo.create(ps_data)
-        flash('PPPoE server created successfully!', 'success')
-    except ValueError: flash('Invalid router ID format', 'danger'); return redirect(url_for('router_web.index', org_id=org_id))
-    except Exception as e: logger.error(f"Error creating PPPoE server: {e}", exc_info=True); flash(f'Error: {str(e)}', 'danger')
+
+        if not data['name']:
+            flash('PPPoE server name is required', 'danger')
+            return render_template('web/router/pppoe_create.html',
+                                   organization=current_organization, user=current_user, router=router)
+
+        # Create on MikroTik via VPS + save to database
+        result = router_service.create_pppoe_server(
+            router_id=router_uuid,
+            organization_id=current_organization.id,
+            data=data,
+        )
+        flash('PPPoE server created on router!', 'success')
+
+    except ValueError:
+        flash('Invalid router ID format', 'danger')
+        return redirect(url_for('router_web.index', org_id=org_id))
+    except Exception as e:
+        logger.error(f"Error creating PPPoE server: {e}", exc_info=True)
+        flash(f'Error: {str(e)}', 'danger')
+
     return redirect(url_for('router_web.show', org_id=org_id, router_id=router_id))
 
 
 @router_web_bp.route('/pppoe-servers/<pppoe_id>/edit', methods=['GET', 'POST'])
 @web_router_access_required
 def edit_pppoe(org_id, pppoe_id, current_user=None, current_organization=None):
-    """GET/POST — Edit PPPoE server."""
     try:
         pppoe_uuid = UUID(pppoe_id)
         pppoe = pppoe_repo.get_by_id(pppoe_uuid, current_organization.id)
-        if not pppoe: flash('PPPoE server not found', 'danger'); return redirect(url_for('router_web.index', org_id=org_id))
+        if not pppoe:
+            flash('PPPoE server not found', 'danger')
+            return redirect(url_for('router_web.index', org_id=org_id))
         router = router_service.get_router(pppoe.router_id, current_organization.id)
-        if request.method == 'GET': return render_template('web/router/pppoe_edit.html', organization=current_organization, user=current_user, router=router, pppoe=pppoe)
+        if request.method == 'GET':
+            return render_template('web/router/pppoe_edit.html',
+                                   organization=current_organization, user=current_user,
+                                   router=router, pppoe=pppoe)
         update_data = {
-            'name': request.form.get('name', '').strip(), 'interface': request.form.get('interface', '').strip(),
+            'name': request.form.get('name', '').strip(),
+            'interface': request.form.get('interface', '').strip(),
             'service_name': request.form.get('service_name', '').strip(),
-            'mtu': request.form.get('mtu', 1492, type=int), 'max_sessions': request.form.get('max_sessions', 100, type=int),
+            'mtu': request.form.get('mtu', 1492, type=int),
+            'max_sessions': request.form.get('max_sessions', 100, type=int),
             'is_active': request.form.get('is_active') == 'true',
         }
         pppoe_repo.update(pppoe_uuid, current_organization.id, update_data)
-        flash('PPPoE server updated successfully!', 'success')
-    except ValueError: flash('Invalid ID format', 'danger'); return redirect(url_for('router_web.index', org_id=org_id))
-    except Exception as e: logger.error(f"Error editing PPPoE server: {e}", exc_info=True); flash(f'Error: {str(e)}', 'danger')
-    return redirect(url_for('router_web.show', org_id=org_id, router_id=pppoe.router_id))
-
-# =============================================================================
-# RADIUS — CHECK STATUS (no reconfiguration)
-# =============================================================================
-
-@router_web_bp.route('/<router_id>/radius/check', methods=['POST'])
-@web_router_access_required
-def check_radius(org_id, router_id, current_user=None, current_organization=None):
-    """POST /organization/<org_id>/routers/<router_id>/radius/check — Check RADIUS without reconfiguring."""
-    try:
-        router_uuid = UUID(router_id)
-        result = router_service.check_radius_status(router_uuid, current_organization.id)
-        
-        if result.get('radius_configured'):
-            flash('✅ RADIUS is configured and working!', 'success')
-        elif result.get('api_reachable'):
-            flash('⚠️ API reachable but RADIUS server not found. Click "Retry RADIUS" to configure.', 'warning')
-        elif result.get('nas_exists'):
-            flash('⚠️ NAS entry exists but router API not reachable. Check WireGuard connection.', 'warning')
-        else:
-            flash('❌ RADIUS not configured. Click "Retry RADIUS" to configure.', 'danger')
-            
+        flash('PPPoE server updated!', 'success')
     except ValueError:
-        flash('Invalid router ID format', 'danger')
+        flash('Invalid ID format', 'danger')
+        return redirect(url_for('router_web.index', org_id=org_id))
     except Exception as e:
-        logger.error(f"Error checking RADIUS: {e}", exc_info=True)
-        flash(f'RADIUS check failed: {str(e)}', 'danger')
-    
-    return redirect(url_for('router_web.show', org_id=org_id, router_id=router_id))
-
-
-    
+        logger.error(f"Error editing PPPoE: {e}", exc_info=True)
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('router_web.show', org_id=org_id, router_id=pppoe.router_id))
