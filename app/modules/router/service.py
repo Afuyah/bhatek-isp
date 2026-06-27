@@ -712,71 +712,76 @@ class RouterService:
     # PPPoE SERVER CREATION
     # =========================================================================
 
+
     def create_pppoe_server(
         self,
         router_id: UUID,
         organization_id: UUID,
         data: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
+        Create a PPPoE server on the MikroTik router.
+
+        Workflow
+        --------
+        1. Validate the router.
+        2. Check whether a PPPoE server already exists.
+        3. Create the PPPoE server using only RouterOS-supported parameters.
+        4. Save the configuration locally.
+        """
+
         router = self.get_router(router_id, organization_id)
 
-        name = (data.get("name") or "pppoe1").strip()
-        interface = (data.get("interface") or "ether1").strip()
+        interface = (data.get("interface") or "bridge").strip()
         service_name = (data.get("service_name") or "pppoe-service").strip()
-        max_sessions = int(data.get("max_sessions", 100))
 
         try:
-            # Check for duplicate
+            # ------------------------------------------------------------
+            # Check if a PPPoE server already exists on this interface
+            # ------------------------------------------------------------
             existing = self._execute_via_vps(
-                router, "/interface/pppoe-server/server/print"
+                router,
+                "/interface/pppoe-server/server/print"
             )
-            if any(item.get("name") == name for item in existing):
-                raise BusinessError(
-                    f"PPPoE server '{name}' already exists on the router."
-                )
 
-            # Build params — ONLY the essential ones RouterOS accepts
+            for server in existing:
+                if server.get("interface") == interface:
+                    raise BusinessError(
+                        f"A PPPoE server already exists on interface '{interface}'."
+                    )
+
+            # ------------------------------------------------------------
+            # RouterOS API parameters
+            #
+            # These parameters are supported by both RouterOS v6 and v7.
+            # ------------------------------------------------------------
             params = {
-                "name": name,
                 "interface": interface,
+                "service-name": service_name,
             }
-            if service_name:
-                params["service-name"] = service_name
 
-            # Try adding max-sessions separately — some RouterOS versions reject it
+            # Create the server on MikroTik
             self._execute_via_vps(
                 router,
                 "/interface/pppoe-server/server/add",
                 **params
             )
 
-            # If max-sessions is needed, set it after creation
-            if max_sessions and max_sessions != 100:
-                try:
-                    self._execute_via_vps(
-                        router,
-                        "/interface/pppoe-server/server/set",
-                        numbers=name,
-                        **{"max-sessions": str(max_sessions)}
-                    )
-                except Exception:
-                    pass  # Not critical if this fails
-
-            # Save locally
+            # ------------------------------------------------------------
+            # Save to database
+            # ------------------------------------------------------------
             pppoe = self.pppoe_repo.create({
                 "organization_id": organization_id,
                 "router_id": router_id,
-                "name": name,
+                "name": service_name,
                 "interface": interface,
                 "service_name": service_name,
                 "mtu": 1492,
-                "max_sessions": max_sessions,
                 "is_active": True,
             })
 
             logger.info(
-                "PPPoE server '%s' created successfully on router '%s'.",
-                name, router.name,
+                f"PPPoE server '{service_name}' created successfully on router '{router.name}'."
             )
 
             return {
@@ -787,8 +792,7 @@ class RouterService:
 
         except Exception as exc:
             logger.exception(
-                "Failed creating PPPoE server '%s' on router '%s'.",
-                name, router.name,
+                f"Failed to create PPPoE server on router '{router.name}'."
             )
             raise BusinessError(f"Unable to create PPPoE server: {exc}")
 
