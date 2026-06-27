@@ -718,33 +718,27 @@ class RouterService:
         name = data.get('name', 'pppoe1')
         interface = data.get('interface', 'ether1')
         service_name = data.get('service_name', 'pppoe-service')
-        max_mtu = data.get('mtu', 1492)
-        max_mru = data.get('mtu', 1492)
         max_sessions = data.get('max_sessions', 100)
 
         try:
-            # Build params dict with correct RouterOS attribute names
+            # Build params with EXACT RouterOS API attribute names
+            # These are the attributes RouterOS actually accepts
             params = {
                 'name': name,
                 'interface': interface,
-                'service_name': service_name,
-                'max_sessions': str(max_sessions),
-                'max_mtu': str(max_mtu),
-                'max_mru': str(max_mru),
+                'service-name': service_name,
+                'max-sessions': str(max_sessions),
             }
-            # Only include if provided (some RouterOS versions don't support these)
-            if data.get('one_session_per_host'):
-                params['one_session_per_host'] = 'yes'
-            if data.get('default_profile'):
-                params['default_profile'] = data['default_profile']
-
+            
+            # Use dashes directly in the keys so they pass through unchanged
+            # The _execute_via_vps converts _ to -, but dashes pass through as-is
             self._execute_via_vps(r, '/interface/pppoe-server/server/add', **params)
 
             # Save to database
             ps = self.pppoe_repo.create({
                 'organization_id': organization_id, 'router_id': router_id,
                 'name': name, 'interface': interface,
-                'service_name': service_name, 'mtu': max_mtu,
+                'service_name': service_name, 'mtu': 1492,
                 'max_sessions': max_sessions, 'is_active': True,
             })
             logger.info(f"PPPoE server created: {name} on {r.name}")
