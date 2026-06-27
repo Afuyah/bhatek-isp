@@ -45,6 +45,23 @@ def _get_router_from_request() -> Router:
             return router
     return None
 
+
+@hotspot_bp.route('/')
+def portal_default():
+    """Default portal — resolves org from NAS IP."""
+    nas_ip = request.args.get('nas') or request.remote_addr
+    
+    router = Router.query.filter_by(ip_address=nas_ip, is_active=True).first()
+    if not router:
+        return render_template('hotspot/error.html', message='Router not found'), 404
+    
+    org = Organization.query.get(router.organization_id)
+    if not org:
+        return render_template('hotspot/error.html', message='Organization not found'), 404
+    
+    return redirect(url_for('hotspot.portal', org_slug=org.slug, **request.args))
+
+
 # MAIN PORTAL PAGE
 @hotspot_bp.route('/<org_slug>')
 def portal(org_slug):
