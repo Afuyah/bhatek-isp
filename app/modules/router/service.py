@@ -720,24 +720,25 @@ class RouterService:
         data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Create a PPPoE server on the MikroTik router.
+        Create and enable a PPPoE server on MikroTik.
 
-        Workflow
-        --------
-        1. Validate the router.
-        2. Check whether a PPPoE server already exists.
-        3. Create the PPPoE server using only RouterOS-supported parameters.
-        4. Save the configuration locally.
+        Flow:
+        1. Validate router
+        2. Ensure no duplicate server on interface
+        3. Create PPPoE server
+        4. Enable it explicitly (VERY IMPORTANT in RouterOS)
+        5. Save locally
         """
 
         router = self.get_router(router_id, organization_id)
 
         interface = (data.get("interface") or "bridge").strip()
         service_name = (data.get("service_name") or "pppoe-service").strip()
+        max_sessions = int(data.get("max_sessions", 100))
 
         try:
             # ------------------------------------------------------------
-            # Check if a PPPoE server already exists on this interface
+            # 1. Check if PPPoE server already exists
             # ------------------------------------------------------------
             existing = self._execute_via_vps(
                 router,
@@ -747,28 +748,53 @@ class RouterService:
             for server in existing:
                 if server.get("interface") == interface:
                     raise BusinessError(
-                        f"A PPPoE server already exists on interface '{interface}'."
+                        f"PPPoE server already exists on interface '{interface}'"
                     )
 
             # ------------------------------------------------------------
-            # RouterOS API parameters
-            #
-            # These parameters are supported by both RouterOS v6 and v7.
+            # 2. Create PPPoE server (RouterOS-safe params only)
             # ------------------------------------------------------------
             params = {
                 "interface": interface,
                 "service-name": service_name,
+                "max-sessions": str(max_sessions),
             }
 
-            # Create the server on MikroTik
-            self._execute_via_vps(
+            result = self._execute_via_vps(
                 router,
                 "/interface/pppoe-server/server/add",
                 **params
             )
 
             # ------------------------------------------------------------
-            # Save to database
+            # 3. ENABLE PPPoE SERVER (CRITICAL STEP)
+            #
+            # RouterOS creates it but may leave it disabled depending on config
+            # ------------------------------------------------------------
+            try:
+                # find newly created server by interface
+                servers = self._execute_via_vps(
+                    router,
+                    "/interface/pppoe-server/server/print"
+                )
+
+                for s in servers:
+                    if s.get("interface") == interface:
+                        self._execute_via_vps(
+                            router,
+                            "/interface/pppoe-server/server/set",
+                            numbers=s.get(".id"),
+                            disabled="no"
+                        )
+                        break
+
+            except Exception as enable_error:
+                logger.warning(
+                    f"PPPoE server created but could not be auto-enabled: {enable_error}"
+                )
+
+            # ------------------------------------------------------------
+            # 4. Save to DB
             # ------------------------------------------------------------
             pppoe = self.pppoe_repo.create({
                 "organization_id": organization_id,
@@ -777,24 +803,110 @@ class RouterService:
                 "interface": interface,
                 "service_name": service_name,
                 "mtu": 1492,
+                "max_sessions": max_sessions,
                 "is_active": True,
             })
 
             logger.info(
-                f"PPPoE server '{service_name}' created successfully on router '{router.name}'."
+                f"PPPoE server '{service_name}' created and enabled on {router.name}"
             )
 
             return {
                 "success": True,
-                "message": "PPPoE server created successfully.",
+                "message": "PPPoE server created and enabled successfully.",
                 "pppoe": pppoe,
             }
 
         except Exception as exc:
             logger.exception(
-                f"Failed to create PPPoE server on router '{router.name}'."
+                f"Failed PPPoE creation on router {router.name}"
             )
             raise BusinessError(f"Unable to create PPPoE server: {exc}")
+
+
+
+    def delete_pppoe_server(
+        self,
+        router_id: UUID,
+        organization_id: UUID,
+        pppoe_id: UUID
+    ) -> Dict[str, Any]:
+        """
+        Remove a PPPoE server from:
+        1. MikroTik router (via VPS proxy)
+        2. Local database
+
+        Safe behavior:
+        - verifies router
+        - verifies PPPoE record exists
+        - removes from MikroTik first
+        - only deletes DB if MikroTik succeeds
+        """
+
+        router = self.get_router(router_id, organization_id)
+
+        # ------------------------------------------------------------
+        # 1. Get PPPoE server from DB
+        # ------------------------------------------------------------
+        pppoe = self.pppoe_repo.get_by_id(pppoe_id, organization_id)
+
+        if not pppoe:
+            raise NotFoundError("PPPoE server not found")
+
+        try:
+            # ------------------------------------------------------------
+            # 2. Find PPPoE server on MikroTik
+            # ------------------------------------------------------------
+            servers = self._execute_via_vps(
+                router,
+                "/interface/pppoe-server/server/print"
+            )
+
+            target_id = None
+
+            for s in servers:
+                if (
+                    s.get("interface") == pppoe.interface
+                    or s.get("service-name") == pppoe.service_name
+                ):
+                    target_id = s.get(".id")
+                    break
+
+            # ------------------------------------------------------------
+            # 3. Remove from MikroTik if found
+            # ------------------------------------------------------------
+            if target_id:
+                self._execute_via_vps(
+                    router,
+                    "/interface/pppoe-server/server/remove",
+                    numbers=target_id
+                )
+                logger.info(
+                    f"PPPoE server removed from MikroTik: {pppoe.service_name}"
+                )
+            else:
+                logger.warning(
+                    f"PPPoE server not found on MikroTik: {pppoe.service_name}"
+                )
+
+            # ------------------------------------------------------------
+            # 4. Remove from database
+            # ------------------------------------------------------------
+            self.pppoe_repo.delete(pppoe_id, organization_id)
+
+            logger.info(
+                f"PPPoE server deleted from DB: {pppoe.service_name}"
+            )
+
+            return {
+                "success": True,
+                "message": "PPPoE server deleted successfully",
+                "pppoe_id": str(pppoe_id),
+            }
+
+        except Exception as exc:
+            logger.exception("Failed to delete PPPoE server")
+            raise BusinessError(f"Unable to delete PPPoE server: {exc}")        
 
 
     def get_connection_status(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:

@@ -1154,3 +1154,126 @@ class RouterController:
                 'failed': repo.count_radius_failed(organization_id),
             },
         }
+
+
+
+
+
+    # =========================================================================
+    # PPPoE SERVER DELETE
+    # =========================================================================
+
+    @token_required
+    def delete_pppoe_server(self, router_id):
+        """
+        DELETE /api/v1/routers/<router_id>/pppoe-servers
+
+        Removes a PPPoE server from:
+            1. MikroTik router
+            2. Local database
+        """
+        try:
+            router_uuid = UUID(router_id)
+            data = request.get_json() or {}
+
+            pppoe_id = data.get("pppoe_id")
+            if not pppoe_id:
+                return jsonify({
+                    "success": False,
+                    "error": "pppoe_id is required",
+                    "error_code": "MISSING_PPPOE_ID",
+                }), 400
+
+            # -----------------------------------------------------------------
+            # Load router
+            # -----------------------------------------------------------------
+            router = self.service.get_router(router_uuid, g.organization_id)
+
+            # -----------------------------------------------------------------
+            # Load PPPoE from DB
+            # -----------------------------------------------------------------
+            pppoe = self.service.pppoe_repo.get_by_id(pppoe_id)
+
+            if not pppoe:
+                return jsonify({
+                    "success": False,
+                    "error": "PPPoE server not found",
+                    "error_code": "NOT_FOUND",
+                }), 404
+
+            # -----------------------------------------------------------------
+            # Remove from MikroTik first
+            # -----------------------------------------------------------------
+            try:
+                # Find PPPoE server on router
+                servers = self.service._execute_via_vps(
+                    router,
+                    "/interface/pppoe-server/server/print"
+                )
+
+                target_id = None
+
+                for s in servers:
+                    # RouterOS returns .id like *1, *2
+                    if s.get("name") == pppoe.service_name:
+                        target_id = s.get(".id")
+                        break
+
+                if target_id:
+                    self.service._execute_via_vps(
+                        router,
+                        "/interface/pppoe-server/server/remove",
+                        **{".id": target_id}
+                    )
+                else:
+                    logger.warning(
+                        f"PPPoE server '{pppoe.service_name}' not found on router {router.name}"
+                    )
+
+            except Exception as mikrotik_err:
+                logger.error(f"MikroTik PPPoE delete failed: {mikrotik_err}")
+                raise BusinessError(f"Router deletion failed: {mikrotik_err}")
+
+            # -----------------------------------------------------------------
+            # Remove from database
+            # -----------------------------------------------------------------
+            self.service.pppoe_repo.delete(pppoe_id)
+
+            logger.info(
+                f"PPPoE server '{pppoe.service_name}' deleted from router {router.name}"
+            )
+
+            return jsonify({
+                "success": True,
+                "message": "PPPoE server deleted successfully",
+                "deleted_id": pppoe_id,
+            }), 200
+
+        except ValueError:
+            return jsonify({
+                "success": False,
+                "error": "Invalid router ID format",
+                "error_code": "INVALID_UUID",
+            }), 400
+
+        except NotFoundError as e:
+            return jsonify({
+                "success": False,
+                "error": str(e),
+                "error_code": "NOT_FOUND",
+            }), 404
+
+        except BusinessError as e:
+            return jsonify({
+                "success": False,
+                "error": str(e),
+                "error_code": "PPPOE_DELETE_FAILED",
+            }), 500
+
+        except Exception as e:
+            logger.error(f"Delete PPPoE error: {e}", exc_info=True)
+            return jsonify({
+                "success": False,
+                "error": "Internal server error",
+                "error_code": "INTERNAL_ERROR",
+            }), 500    

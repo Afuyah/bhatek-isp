@@ -279,3 +279,7 @@ def create_pppoe_server(router_id):
 def get_radius_secret(router_id):
     """GET /api/v1/routers/<router_id>/radius/secret — Get RADIUS secret (audited)."""
     return controller.get_radius_secret(router_id)
+@router_bp.route('/<router_id>/pppoe-servers/<pppoe_id>', methods=['DELETE'])
+@token_required
+def delete_pppoe_server(router_id, pppoe_id):
+    return controller.delete_pppoe_server(router_id, pppoe_id)
