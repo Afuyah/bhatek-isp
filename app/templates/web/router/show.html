@@ -4,26 +4,113 @@
 
 {% block extra_css %}
 <style>
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    .status-dot.online { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
-    .status-dot.offline { background: #ef4444; }
-    .status-dot.pending { background: #f59e0b; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); } 50% { box-shadow: 0 0 0 8px rgba(245,158,11,0); } }
-    .code-block { background: #0f172a; border-radius: 12px; padding: 16px 20px; position: relative; overflow-x: auto; }
-    .code-block pre { color: #34d399; font-size: 13px; line-height: 1.7; margin: 0; white-space: pre-wrap; word-break: break-all; font-family: 'JetBrains Mono', 'Fira Code', monospace; }
-    .copy-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.08); color: #9ca3af; border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
-    .copy-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
-    .tab-btn { padding: 10px 18px; font-size: 13px; font-weight: 600; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; transition: all 0.15s; white-space: nowrap; background: none; border-top: none; border-left: none; border-right: none; }
-    .tab-btn:hover { color: #374151; }
-    .tab-btn.active { color: #2d6a4f; border-bottom-color: #2d6a4f; }
-    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 9999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.025em; }
-    .badge-success { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-    .badge-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-    .badge-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-    .badge-info { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
-    @media (max-width: 640px) {
-        .tab-btn { padding: 8px 12px; font-size: 11px; }
-        .code-block pre { font-size: 11px; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+        --bg: #f6f8fb;
+        --surface: #ffffff;
+        --surface-alt: #f8fafc;
+        --border: #eaecf0;
+        --text: #0c1524;
+        --text-alt: #5a6678;
+        --text-muted: #9099a8;
+        --accent: #0ea963;
+        --accent-light: #e6f7ef;
+        --red: #e53e3e;
+        --red-light: #fef5f5;
+        --amber: #d97706;
+        --amber-light: #fffbeb;
+        --blue: #2563eb;
+        --blue-light: #eff6ff;
+        --radius: 16px;
+        --radius-sm: 10px;
+        --shadow-card: 0 1px 3px rgba(12,21,36,0.04), 0 1px 2px rgba(12,21,36,0.03);
+        --shadow-elevated: 0 4px 12px rgba(12,21,36,0.06), 0 1px 3px rgba(12,21,36,0.04);
+        --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+    /* Status pulse */
+    .status-ring { width: 11px; height: 11px; border-radius: 50%; position: relative; flex-shrink: 0; }
+    .status-ring::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; }
+    .status-ring.online { background: #22c55e; }
+    .status-ring.online::after { border: 2px solid #22c55e; animation: ring-pulse 2s ease-out infinite; }
+    .status-ring.offline { background: #ef4444; }
+    .status-ring.offline::after { border: 2px solid #ef4444; animation: ring-slow 4s ease-in-out infinite; }
+    .status-ring.pending { background: #f59e0b; animation: pending-blink 1.4s ease-in-out infinite; }
+    @keyframes ring-pulse { 0% { transform: scale(1); opacity: .5; } 100% { transform: scale(2.3); opacity: 0; } }
+    @keyframes ring-slow { 0%,100% { transform: scale(1); opacity: 0; } 50% { transform: scale(1.8); opacity: .25; } }
+    @keyframes pending-blink { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+    /* Card */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-card); }
+    .card-padded { padding: 20px 24px; }
+
+    /* Terminal */
+    .terminal-shell { background: #080d16; border-radius: var(--radius); overflow: hidden; border: 1px solid #1a2332; }
+    .terminal-shell .ts-header { display: flex; align-items: center; gap: 8px; padding: 11px 16px; background: #0c1422; border-bottom: 1px solid #1a2332; }
+    .terminal-shell .ts-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-shell .ts-body { padding: 18px 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.85; color: #86efac; white-space: pre-wrap; word-break: break-all; max-height: 380px; overflow-y: auto; }
+    .terminal-shell .ts-body::-webkit-scrollbar { width: 4px; }
+    .terminal-shell .ts-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.06); border-radius: 4px; }
+
+    /* Tabs — always visible, no page refresh */
+    .tab-nav { display: flex; gap: 4px; padding: 4px; background: var(--surface-alt); border-radius: 40px; margin-bottom: 20px; overflow-x: auto; }
+    .tab-nav button { flex-shrink: 0; padding: 8px 18px; border-radius: 40px; font-size: 13px; font-weight: 600; border: none; background: transparent; color: var(--text-alt); cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+    .tab-nav button:hover { color: var(--text); }
+    .tab-nav button.active { background: var(--text); color: #fff; box-shadow: 0 2px 8px rgba(12,21,36,.18); }
+    .tab-panel { display: none; animation: fadeSlide 0.2s ease; }
+    .tab-panel.active { display: block; }
+    @keyframes fadeSlide { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Badge */
+    .pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 40px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+    .pill-green { background: var(--accent-light); color: #0d6b3d; }
+    .pill-red { background: var(--red-light); color: #9b1c1c; }
+    .pill-amber { background: var(--amber-light); color: #92400e; }
+    .pill-blue { background: var(--blue-light); color: #1e40af; }
+    .pill-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-alt); }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 18px; border-radius: 40px; font-size: 12.5px; font-weight: 700; cursor: pointer; border: none; text-decoration: none; transition: all var(--transition); white-space: nowrap; letter-spacing: -.01em; }
+    .btn:active { transform: scale(.97); }
+    .btn-dark { background: var(--text); color: #fff; }
+    .btn-dark:hover { background: #1a2332; }
+    .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+    .btn-outline:hover { background: var(--surface-alt); }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-accent:hover { background: #0b8a4f; }
+    .btn-danger-outline { background: transparent; color: var(--red); border: 1.5px solid #fecaca; }
+    .btn-danger-outline:hover { background: var(--red-light); }
+    .btn-xs { padding: 5px 12px; font-size: 10.5px; border-radius: 30px; }
+
+    /* Stat block */
+    .stat-block { background: var(--surface-alt); border-radius: var(--radius-sm); padding: 14px 16px; text-align: center; }
+    .stat-block .sb-value { font-size: 24px; font-weight: 800; color: var(--text); line-height: 1; }
+    .stat-block .sb-label { font-size: 9.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .07em; margin-top: 5px; }
+
+    /* Progress */
+    .progress-track { height: 6px; background: #e2e8f0; border-radius: 40px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 40px; background: var(--accent); transition: width .7s ease; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+    .table-simple { width: 100%; border-collapse: collapse; }
+    .table-simple th { text-align: left; padding: 10px 16px; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; background: var(--surface-alt); border-bottom: 1px solid var(--border); }
+    .table-simple td { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+    .table-simple tr:hover td { background: #fafbfc; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(12,21,36,.55); backdrop-filter: blur(4px); opacity: 0; visibility: hidden; transition: all .2s; }
+    .modal-overlay.show { opacity: 1; visibility: visible; }
+    .modal-dialog { background: #fff; border-radius: var(--radius); max-width: 400px; width: 100%; padding: 24px; box-shadow: var(--shadow-elevated); transform: translateY(12px); transition: transform .2s; }
+    .modal-overlay.show .modal-dialog { transform: translateY(0); }
+
+    @media (max-width: 768px) {
+        .card-padded { padding: 14px 16px; }
+        .grid-2 { grid-template-columns: 1fr !important; }
     }
 </style>
 {% endblock %}
@@ -32,506 +119,209 @@
 {% set health = router.settings.get('health', {}) if router.settings else {} %}
 {% set discovery = router.settings.get('discovery', {}) if router.settings else {} %}
 {% set is_online = router.status == 'online' %}
+{% set is_offline = router.status == 'offline' %}
 {% set radius_ok = router.radius_config_status == 'configured' %}
 {% set radius_failed = router.radius_config_status == 'failed' %}
 {% set wireguard_pending = router.status == 'pending_wireguard' %}
-{% set active_tab = request.args.get('tab', 'overview') %}
 {% set has_wireguard = router.wireguard_ip is not none %}
 {% set wg_ip = router.wireguard_ip or router.ip_address %}
+{% set mem_pct = ((health.total_memory - health.free_memory) / health.total_memory * 100)|round(1) if health.get('free_memory') and health.get('total_memory') else 0 %}
 
-<div class="max-w-7xl mx-auto pb-20">
+<div style="max-width:1200px;margin:0 auto;padding:0 0 60px;">
 
     {# Breadcrumb #}
-    <nav class="flex items-center gap-2 py-3 text-xs text-gray-500 overflow-x-auto whitespace-nowrap">
-        <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="hover:text-gray-700 transition-colors flex items-center gap-1 flex-shrink-0">
-            <i class="fas fa-server text-[10px]"></i> Routers
-        </a>
-        <i class="fas fa-chevron-right text-[8px] text-gray-400 flex-shrink-0"></i>
-        <span class="text-gray-900 font-semibold truncate">{{ router.name }}</span>
-    </nav>
+    <div style="display:flex;align-items:center;gap:6px;padding:12px 0;font-size:11.5px;color:var(--text-muted);">
+        <a href="{{ url_for('router_web.index', org_id=organization.id) }}" style="color:var(--text-alt);text-decoration:none;font-weight:600;">Routers</a>
+        <span>/</span>
+        <span style="color:var(--text);font-weight:700;">{{ router.name }}</span>
+    </div>
 
-    {# Header #}
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-4">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex items-start gap-3 min-w-0">
-                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#2d6a4f] flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-server text-white text-base sm:text-lg"></i>
-                </div>
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <h1 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{ router.name }}</h1>
-                        <span class="status-dot {{ 'online' if is_online else 'offline' }}{{ ' pending' if wireguard_pending else '' }}" 
-                              title="{{ router.status|replace('_', ' ')|title if router.status else 'Unknown' }}"></span>
+    {# Hero #}
+    <div class="card card-padded" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:14px;min-width:0;">
+                <div style="position:relative;">
+                    <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#0c1524,#1a2332);display:flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-server" style="color:#fff;font-size:18px;"></i>
                     </div>
-                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-500 mt-1">
-                        <code class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-medium">{{ wg_ip }}</code>
-                        <span class="hidden sm:inline text-gray-300">|</span>
-                        <span>API :{{ router.api_port }}</span>
-                        {% if router.model %}<span class="hidden sm:inline text-gray-300">|</span><span>{{ router.model }}</span>{% endif %}
+                    <span class="status-ring {{ 'online' if is_online else 'pending' if wireguard_pending else 'offline' }}" style="position:absolute;bottom:-2px;right:-2px;box-shadow:0 0 0 3px #fff;"></span>
+                </div>
+                <div style="min-width:0;">
+                    <h1 style="font-size:20px;font-weight:800;margin:0;letter-spacing:-.02em;">{{ router.name }}</h1>
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:3px;font-size:11px;color:var(--text-alt);">
+                        <code style="background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:6px;font-weight:700;font-size:10.5px;">{{ wg_ip }}</code>
+                        <span>:{{ router.api_port }}</span>
+                        {% if router.model %}<span>{{ router.model }}</span>{% endif %}
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-                <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" 
-                   class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all">
-                    <i class="fas fa-pen-to-square text-[10px]"></i> Edit
-                </a>
-                <button onclick="openModal('deleteModal')" 
-                        class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border-2 border-red-200 text-red-600 hover:bg-red-50 transition-all">
-                    <i class="fas fa-trash-can text-[10px]"></i> Delete
-                </button>
+            <div style="display:flex;gap:6px;">
+                <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}" class="btn btn-outline btn-xs">Edit</a>
+                <button onclick="openModal()" class="btn btn-danger-outline btn-xs">Delete</button>
             </div>
         </div>
-        
-        {# Status Badges #}
-        <div class="flex flex-wrap items-center gap-1.5 mt-4">
-            <span class="badge {{ 'badge-success' if is_online else 'badge-danger' if router.status == 'offline' else 'badge-warning' if wireguard_pending else 'badge-info' }}">
-                <span class="w-1.5 h-1.5 rounded-full {{ 'bg-green-500' if is_online else 'bg-red-500' if router.status == 'offline' else 'bg-yellow-500' if wireguard_pending else 'bg-gray-400' }}"></span>
-                {{ router.status|replace('_', ' ')|title if router.status else 'Unknown' }}
-            </span>
-            <span class="badge {{ 'badge-success' if radius_ok else 'badge-danger' if radius_failed else 'badge-warning' }}">
-                <i class="fas fa-shield-halved text-[9px]"></i>
-                RADIUS: {{ router.radius_config_status|replace('_', ' ')|title if router.radius_config_status else 'None' }}
-            </span>
-            {% if has_wireguard %}
-            <span class="badge badge-info">
-                <i class="fas fa-lock text-[9px]"></i> Secure Tunnel
-            </span>
-            {% endif %}
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+            <span class="pill {{ 'pill-green' if is_online else 'pill-red' if is_offline else 'pill-amber' if wireguard_pending else 'pill-ghost' }}">{{ router.status|replace('_',' ')|title if router.status else 'Unknown' }}</span>
+            <span class="pill {{ 'pill-green' if radius_ok else 'pill-red' if radius_failed else 'pill-amber' }}">RADIUS {{ router.radius_config_status|replace('_',' ')|title if router.radius_config_status else 'None' }}</span>
+            {% if has_wireguard %}<span class="pill pill-blue">WireGuard</span>{% endif %}
         </div>
     </div>
 
-    {# Setup Wizard — Shows when router needs setup #}
+    {# Setup Terminal #}
     {% if setup_script %}
-    <div class="mb-4">
-        <div class="bg-[#0f172a] rounded-xl shadow-xl overflow-hidden">
-            <div class="px-4 sm:px-6 py-4 border-b border-white/10 flex items-center gap-3">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-green-600/30 flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-terminal text-white text-sm"></i>
-                </div>
-                <div>
-                    <h2 class="text-sm sm:text-base font-bold text-white">Router Setup — Paste into MikroTik Terminal</h2>
-                    <p class="text-xs text-gray-400 hidden sm:block">Copy ALL commands below and paste into your MikroTik terminal</p>
-                </div>
-            </div>
-            <div class="p-4 sm:p-6">
-                <div class="code-block">
-                    <pre>{{ setup_script }}</pre>
-                    <button onclick="copySetupScript(this)" class="copy-btn">
-                        <i class="fas fa-copy text-[10px]"></i> Copy All
-                    </button>
-                </div>
-            </div>
-            <div class="px-4 sm:px-6 py-3 bg-black/20 border-t border-white/10 flex flex-wrap gap-2">
-                <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 text-gray-900 text-xs font-bold rounded-lg shadow transition-all active:scale-[0.97]">
-                        <i class="fas fa-plug text-[10px]"></i> Test Connection
-                    </button>
-                </form>
+    <div class="terminal-shell" style="margin-bottom:16px;">
+        <div class="ts-header">
+            <span class="ts-dot" style="background:#ff5f57;"></span><span class="ts-dot" style="background:#febc2e;"></span><span class="ts-dot" style="background:#28c840;"></span>
+            <span style="font-size:10px;color:#64748b;margin-left:6px;font-weight:600;">setup.sh</span>
+        </div>
+        <div class="ts-body" id="setupScript">{{ setup_script }}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#0c1422;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:10px;color:#64748b;">Paste into MikroTik terminal</span>
+            <div style="display:flex;gap:6px;">
+                <button onclick="copyTerminal()" class="btn btn-xs" style="background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.08);">Copy</button>
+                <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-accent btn-xs">Test Connection</button></form>
             </div>
         </div>
     </div>
     {% endif %}
 
-    {# Success Banner — Online but RADIUS not confirmed #}
+    {# Online no RADIUS #}
     {% if is_online and not radius_ok %}
-    <div class="mb-4">
-        <div class="bg-green-50 border-2 border-green-200 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-check-circle text-white text-sm sm:text-lg"></i>
+    <div class="card card-padded" style="margin-bottom:16px;background:var(--accent-light);border-color:#bbf7d0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;"><i class="fas fa-check" style="color:#fff;"></i></div>
+                <div><strong style="font-size:13px;">Router Online</strong><p style="font-size:11px;color:var(--text-alt);margin:1px 0 0;">Verify RADIUS</p></div>
             </div>
-            <div class="flex-1 min-w-0">
-                <h3 class="text-sm font-bold text-green-800">Tunnel Connected — Router Online</h3>
-                <p class="text-xs text-green-600">Check RADIUS to confirm authentication is working.</p>
-            </div>
-            <form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0 w-full sm:w-auto">
-                <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg shadow transition-all active:scale-[0.97]">
-                    <i class="fas fa-shield-halved text-[10px]"></i> Check RADIUS
-                </button>
-            </form>
+            <form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-accent btn-xs">Check RADIUS</button></form>
         </div>
     </div>
     {% endif %}
 
     {# Quick Actions #}
-    <div class="flex flex-wrap gap-2 mb-4">
-        <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-            <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-xs font-semibold rounded-lg shadow transition-all active:scale-[0.97]">
-                <i class="fas fa-plug text-[10px]"></i> Test
-            </button>
-        </form>
-        <form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-            <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg transition-all active:scale-[0.97]">
-                <i class="fas fa-shield-halved text-[10px]"></i> Check RADIUS
-            </button>
-        </form>
-        {% if radius_failed %}
-        <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-            <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg shadow transition-all active:scale-[0.97]">
-                <i class="fas fa-rotate text-[10px]"></i> Retry RADIUS
-            </button>
-        </form>
-        {% endif %}
-        <form method="POST" action="{{ url_for('router_web.sync', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-            <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg transition-all active:scale-[0.97]">
-                <i class="fas fa-rotate text-[10px]"></i> Sync
-            </button>
-        </form>
-        <form method="POST" action="{{ url_for('router_web.discover', org_id=organization.id, router_id=router.id) }}" class="flex-shrink-0">
-            <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg transition-all active:scale-[0.97]">
-                <i class="fas fa-magnifying-glass text-[10px]"></i> Discover
-            </button>
-        </form>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+        <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-dark btn-xs">Test</button></form>
+        <form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-outline btn-xs">Check RADIUS</button></form>
+        {% if radius_failed %}<form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-xs" style="background:var(--amber);color:#fff;">Retry RADIUS</button></form>{% endif %}
+        <form method="POST" action="{{ url_for('router_web.sync', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-outline btn-xs">Sync</button></form>
+        <form method="POST" action="{{ url_for('router_web.discover', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-outline btn-xs">Discover</button></form>
     </div>
 
-    {# Tabs #}
-    <div class="flex items-center gap-0 border-b-2 border-gray-100 overflow-x-auto mb-0">
-        {% for tab_id, icon, label in [('overview', 'fa-eye', 'Overview'), ('hotspot', 'fa-wifi', 'Hotspot'), ('pppoe', 'fa-network-wired', 'PPPoE'), ('radius', 'fa-shield-halved', 'RADIUS')] %}
-        <button onclick="switchTab('{{ tab_id }}')" id="tab-{{ tab_id }}"
-                class="tab-btn {{ 'active' if active_tab == tab_id else '' }}">
-            <i class="fas {{ icon }} text-[10px] sm:text-xs mr-1"></i>
-            <span class="hidden sm:inline">{{ label }}</span>
-            {% if tab_id == 'hotspot' %}<span class="ml-1.5 text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{{ hotspot_servers|length }}</span>{% endif %}
-            {% if tab_id == 'pppoe' %}<span class="ml-1.5 text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{{ pppoe_servers|length }}</span>{% endif %}
-        </button>
-        {% endfor %}
+    {# Tabs — NO PAGE REFRESH #}
+    <div class="tab-nav" role="tablist">
+        <button class="active" data-tab="overview">Overview</button>
+        <button data-tab="hotspot">Hotspot <span style="font-size:9px;opacity:.7;">({{ hotspot_servers|length }})</span></button>
+        <button data-tab="pppoe">PPPoE <span style="font-size:9px;opacity:.7;">({{ pppoe_servers|length }})</span></button>
+        <button data-tab="radius">RADIUS</button>
     </div>
 
-    {# Overview Tab #}
-    <div id="tab-overview" class="tab-content {{ 'hidden' if active_tab != 'overview' }}" style="padding-top: 16px;">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div class="lg:col-span-2 space-y-4">
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div class="px-4 sm:px-6 py-3 border-b border-gray-100">
-                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">Router Information</h3>
+    {# Overview Panel #}
+    <div class="tab-panel active" data-panel="overview">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="grid-2">
+            <div class="card card-padded">
+                <h3 style="font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 14px;">Information</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    {% for label, value, icon in [
+                        ('Name',router.name,'fa-tag'),('Network',network_name or '—','fa-network-wired'),('Tunnel IP',wg_ip,'fa-globe'),
+                        ('API Port',router.api_port|string,'fa-plug'),('Username',router.username,'fa-user'),('Model',router.model or '—','fa-microchip'),
+                        ('Firmware',router.firmware_version or '—','fa-code-branch'),('Location',router.location or '—','fa-map-pin'),
+                        ('Last Seen',router.last_seen_at.strftime('%b %d, %H:%M') if router.last_seen_at else 'Never','fa-clock'),
+                        ('Last Sync',router.last_sync_at.strftime('%b %d, %H:%M') if router.last_sync_at else 'Never','fa-rotate')
+                    ] %}
+                    <div style="display:flex;align-items:flex-start;gap:8px;">
+                        <div style="width:28px;height:28px;border-radius:8px;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas {{ icon }}" style="font-size:10px;color:var(--text-muted);"></i></div>
+                        <div style="min-width:0;"><p style="font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0;">{{ label }}</p><p style="font-size:12px;font-weight:600;margin:1px 0 0;word-break:break-all;">{{ value }}</p></div>
                     </div>
-                    <div class="p-4 sm:p-6">
-                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                            {% for label, value in [
-                                ('Name', router.name), ('Network', network_name or '—'), ('Tunnel IP', wg_ip),
-                                ('API Port', router.api_port|string), ('Username', router.username), ('Model', router.model or '—'),
-                                ('Firmware', router.firmware_version or '—'), ('Location', router.location or '—'),
-                                ('Last Seen', router.last_seen_at.strftime('%b %d, %H:%M') if router.last_seen_at else 'Never'),
-                                ('Last Sync', router.last_sync_at.strftime('%b %d, %H:%M') if router.last_sync_at else 'Never'),
-                            ] %}
-                            <div>
-                                <dt class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ label }}</dt>
-                                <dd class="text-sm text-gray-800 font-medium break-all">{{ value }}</dd>
-                            </div>
-                            {% endfor %}
-                        </dl>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
-            
-            <div class="space-y-4">
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div class="px-4 sm:px-6 py-3 border-b border-gray-100">
-                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">System Health</h3>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+                <div class="card card-padded">
+                    <h3 style="font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 12px;">Health</h3>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <div class="stat-block"><div class="sb-value">{{ health.get('cpu_load','—') }}{% if health.get('cpu_load')!=None %}<span style="font-size:13px;color:var(--text-muted);">%</span>{% endif %}</div><div class="sb-label">CPU</div></div>
+                        <div class="stat-block"><div class="sb-value" style="font-size:14px;">{{ health.get('uptime','—') }}</div><div class="sb-label">Uptime</div></div>
                     </div>
-                    <div class="p-3 grid grid-cols-2 gap-2">
-                        <div class="bg-gray-50 rounded-lg p-3 text-center">
-                            <span class="text-[10px] font-bold text-gray-400 uppercase block mb-1">CPU</span>
-                            <span class="text-xl font-extrabold text-gray-800">{{ health.get('cpu_load', '—') }}{% if health.get('cpu_load') != None %}%{% endif %}</span>
-                        </div>
-                        <div class="bg-gray-50 rounded-lg p-3 text-center">
-                            <span class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Uptime</span>
-                            <span class="text-base font-extrabold text-gray-800 truncate block">{{ health.get('uptime', '—') }}</span>
-                        </div>
-                        {% if health.get('free_memory') and health.get('total_memory') %}
-                        <div class="col-span-2 bg-gray-50 rounded-lg p-3">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-[10px] font-bold text-gray-400 uppercase">Memory</span>
-                                <span class="text-xs font-bold text-gray-700">{{ ((health.total_memory - health.free_memory) / health.total_memory * 100)|round(1) }}%</span>
-                            </div>
-                            <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div class="h-full bg-[#2d6a4f] rounded-full" style="width: {{ ((health.total_memory - health.free_memory) / health.total_memory * 100)|round(1) }}%"></div>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                {% if discovery.get('capabilities') %}
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div class="px-4 sm:px-6 py-3 border-b border-gray-100">
-                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">Capabilities</h3>
-                    </div>
-                    <div class="p-3 flex flex-wrap gap-1.5">
-                        {% for cap in discovery.capabilities %}
-                        <span class="badge badge-info" style="text-transform:none;">{{ cap }}</span>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    {# Hotspot Tab #}
-    <div id="tab-hotspot" class="tab-content {{ 'hidden' if active_tab != 'hotspot' }}" style="padding-top: 16px;">
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="px-4 sm:px-6 py-3 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">Hotspot Servers <span class="text-gray-400 font-normal">({{ hotspot_servers|length }})</span></h3>
-                <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}" 
-                   class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-[10px] font-bold rounded-lg transition-all">
-                    <i class="fas fa-plus text-[9px]"></i> Add
-                </a>
-            </div>
-            {% if hotspot_servers %}
-            <div class="table-container">
-                <table class="w-full">
-                    <thead><tr class="bg-gray-50">
-                        <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase">Name</th>
-                        <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase hidden md:table-cell">Hotspot ID</th>
-                        <th class="text-center px-4 py-3 text-[10px] font-bold text-gray-400 uppercase">Status</th>
-                        <th class="w-10"></th>
-                    </tr></thead>
-                    <tbody class="divide-y divide-gray-50">
-                        {% for hs in hotspot_servers %}
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-semibold text-xs sm:text-sm text-gray-800">{{ hs.name }}</td>
-                            <td class="px-4 py-3 hidden md:table-cell"><code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{{ hs.hotspot_id }}</code></td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="badge {{ 'badge-success' if hs.is_active else 'badge-danger' }}">{{ 'Active' if hs.is_active else 'Off' }}</span>
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                <a href="{{ url_for('router_web.edit_hotspot', org_id=organization.id, hotspot_id=hs.id) }}" 
-                                   class="text-gray-400 hover:text-gray-700 text-xs">Edit</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="py-12 text-center text-gray-400">
-                <i class="fas fa-wifi text-2xl mb-2 block"></i>
-                <p class="text-xs mb-3">No hotspot servers configured</p>
-                <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-xs font-bold rounded-lg transition-all">
-                    <i class="fas fa-plus text-[10px]"></i> Add Server
-                </a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    {# PPPoE Tab #}
-    <div id="tab-pppoe" class="tab-content {{ 'hidden' if active_tab != 'pppoe' }}" style="padding-top: 16px;">
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="px-4 sm:px-6 py-3 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">PPPoE Servers <span class="text-gray-400 font-normal">({{ pppoe_servers|length }})</span></h3>
-                <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}" 
-                   class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-[10px] font-bold rounded-lg transition-all">
-                    <i class="fas fa-plus text-[9px]"></i> Add
-                </a>
-            </div>
-            {% if pppoe_servers %}
-            <div class="table-container">
-                <table class="w-full">
-                    <thead><tr class="bg-gray-50">
-                        <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase">Name</th>
-                        <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase hidden md:table-cell">Service</th>
-                        <th class="text-center px-4 py-3 text-[10px] font-bold text-gray-400 uppercase">Status</th>
-                        <th class="w-10"></th>
-                    </tr></thead>
-                    <tbody class="divide-y divide-gray-50">
-                        {% for ps in pppoe_servers %}
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-semibold text-xs sm:text-sm text-gray-800">{{ ps.name }}</td>
-                            <td class="px-4 py-3 hidden md:table-cell"><code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{{ ps.service_name or '—' }}</code></td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="badge {{ 'badge-success' if ps.is_active else 'badge-danger' }}">{{ 'Active' if ps.is_active else 'Off' }}</span>
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                <a href="{{ url_for('router_web.edit_pppoe', org_id=organization.id, pppoe_id=ps.id) }}" 
-                                   class="text-gray-400 hover:text-gray-700 text-xs">Edit</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="py-12 text-center text-gray-400">
-                <i class="fas fa-network-wired text-2xl mb-2 block"></i>
-                <p class="text-xs mb-3">No PPPoE servers configured</p>
-                <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-xs font-bold rounded-lg transition-all">
-                    <i class="fas fa-plus text-[10px]"></i> Add Server
-                </a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    {# RADIUS Tab #}
-    <div id="tab-radius" class="tab-content {{ 'hidden' if active_tab != 'radius' }}" style="padding-top: 16px;">
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="px-4 sm:px-6 py-3 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide">RADIUS Configuration</h3>
-                <div class="flex gap-2">
-                    <form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}">
-                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white text-[10px] font-bold rounded-lg transition-all">
-                            <i class="fas fa-shield-halved text-[9px]"></i> Check
-                        </button>
-                    </form>
-                    {% if radius_failed %}
-                    <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}">
-                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold rounded-lg transition-all">
-                            <i class="fas fa-rotate text-[9px]"></i> Retry
-                        </button>
-                    </form>
+                    {% if health.get('free_memory') and health.get('total_memory') %}
+                    <div style="margin-top:12px;"><div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:var(--text-muted);margin-bottom:4px;"><span>Memory</span><span>{{ mem_pct }}%</span></div><div class="progress-track"><div class="progress-fill" style="width:{{ mem_pct }}%;"></div></div></div>
                     {% endif %}
                 </div>
+                <div class="card card-padded">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;"><span style="font-size:11px;color:var(--text-alt);">Status</span><span class="pill {{ 'pill-green' if is_online else 'pill-red' }}">{{ 'Online' if is_online else 'Offline' }}</span></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;"><span style="font-size:11px;color:var(--text-alt);">RADIUS</span><span class="pill {{ 'pill-green' if radius_ok else 'pill-red' }}">{{ 'Ready' if radius_ok else 'Pending' }}</span></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;"><span style="font-size:11px;color:var(--text-alt);">Attempts</span><span style="font-weight:700;font-size:13px;">{{ router.auto_config_attempts or 0 }}</span></div>
+                </div>
             </div>
-            <div class="p-4 sm:p-6">
+        </div>
+        {% if discovery.capabilities %}<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">{% for cap in discovery.capabilities %}<span class="pill pill-blue" style="text-transform:none;">{{ cap }}</span>{% endfor %}</div>{% endif %}
+    </div>
+
+    {# Hotspot Panel #}
+    <div class="tab-panel" data-panel="hotspot">
+        <div class="card" style="overflow:hidden;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);">
+                <h3 style="font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0;">Hotspot Servers ({{ hotspot_servers|length }})</h3>
+                <a href="{{ url_for('router_web.create_hotspot', org_id=organization.id) }}?router_id={{ router.id }}" class="btn btn-accent btn-xs">Add</a>
+            </div>
+            {% if hotspot_servers %}<div class="table-wrap"><table class="table-simple"><thead><tr><th>Name</th><th>Hotspot ID</th><th>Status</th><th></th></tr></thead><tbody>{% for hs in hotspot_servers %}<tr><td style="font-weight:700;">{{ hs.name }}</td><td><code style="background:var(--surface-alt);padding:2px 8px;border-radius:5px;font-size:11px;">{{ hs.hotspot_id }}</code></td><td><span class="pill {{ 'pill-green' if hs.is_active else 'pill-red' }}">{{ 'Active' if hs.is_active else 'Off' }}</span></td><td><a href="{{ url_for('router_web.edit_hotspot', org_id=organization.id, hotspot_id=hs.id) }}" style="color:var(--text-alt);font-weight:600;font-size:11px;">Edit</a></td></tr>{% endfor %}</tbody></table></div>
+            {% else %}<div style="text-align:center;padding:48px;color:var(--text-muted);"><i class="fas fa-wifi" style="font-size:28px;display:block;margin-bottom:8px;"></i><p style="font-weight:600;font-size:12px;">No hotspot servers</p></div>{% endif %}
+        </div>
+    </div>
+
+    {# PPPoE Panel #}
+    <div class="tab-panel" data-panel="pppoe">
+        <div class="card" style="overflow:hidden;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);">
+                <h3 style="font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0;">PPPoE Servers ({{ pppoe_servers|length }})</h3>
+                <a href="{{ url_for('router_web.create_pppoe', org_id=organization.id) }}?router_id={{ router.id }}" class="btn btn-accent btn-xs">Add</a>
+            </div>
+            {% if pppoe_servers %}<div class="table-wrap"><table class="table-simple"><thead><tr><th>Name</th><th>Service</th><th>Status</th><th></th></tr></thead><tbody>{% for ps in pppoe_servers %}<tr><td style="font-weight:700;">{{ ps.name }}</td><td><code style="background:var(--surface-alt);padding:2px 8px;border-radius:5px;font-size:11px;">{{ ps.service_name or '—' }}</code></td><td><span class="pill {{ 'pill-green' if ps.is_active else 'pill-red' }}">{{ 'Active' if ps.is_active else 'Off' }}</span></td><td><a href="{{ url_for('router_web.edit_pppoe', org_id=organization.id, pppoe_id=ps.id) }}" style="color:var(--text-alt);font-weight:600;font-size:11px;">Edit</a></td></tr>{% endfor %}</tbody></table></div>
+            {% else %}<div style="text-align:center;padding:48px;color:var(--text-muted);"><i class="fas fa-network-wired" style="font-size:28px;display:block;margin-bottom:8px;"></i><p style="font-weight:600;font-size:12px;">No PPPoE servers</p></div>{% endif %}
+        </div>
+    </div>
+
+    {# RADIUS Panel #}
+    <div class="tab-panel" data-panel="radius">
+        <div class="card" style="overflow:hidden;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;">
+                <h3 style="font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0;">RADIUS</h3>
+                <div style="display:flex;gap:6px;"><form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-dark btn-xs">Check</button></form>{% if radius_failed %}<form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-xs" style="background:var(--amber);color:#fff;">Retry</button></form>{% endif %}</div>
+            </div>
+            <div style="padding:18px 20px;">
                 {% if router.radius_secret %}
-                <div class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div class="bg-gray-50 rounded-lg p-3">
-                            <span class="text-[10px] font-bold text-gray-400 uppercase block mb-2">RADIUS Server</span>
-                            <code class="text-sm font-bold text-[#2d6a4f]">10.0.0.1</code>
-                        </div>
-                        <div class="bg-gray-50 rounded-lg p-3">
-                            <span class="text-[10px] font-bold text-gray-400 uppercase block mb-2">Status</span>
-                            <span class="badge {{ 'badge-success' if radius_ok else 'badge-danger' if radius_failed else 'badge-warning' }}">
-                                {{ router.radius_config_status|replace('_', ' ')|title if router.radius_config_status else 'Unknown' }}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    {# Secret #}
-                    <div>
-                        <span class="text-[10px] font-bold text-gray-400 uppercase block mb-2">Shared Secret</span>
-                        <div class="flex items-center gap-2 bg-[#0f172a] rounded-lg px-3 py-2.5">
-                            <i class="fas fa-key text-gray-500 text-xs flex-shrink-0"></i>
-                            <code id="radiusSecret" class="text-xs text-transparent blur-[5px] select-none flex-1 break-all cursor-pointer" onclick="toggleSecret()">{{ router.radius_secret }}</code>
-                            <button onclick="toggleSecret()" class="text-gray-400 hover:text-white transition-colors flex-shrink-0"><i class="fas fa-eye text-xs"></i></button>
-                            <button onclick="copySecret()" class="text-gray-400 hover:text-white transition-colors flex-shrink-0"><i class="fas fa-copy text-xs"></i></button>
-                        </div>
-                    </div>
-                    
-                    {# Manual Commands #}
-                    <div>
-                        <span class="text-[10px] font-bold text-gray-400 uppercase block mb-2">Manual Setup Commands</span>
-                        <div class="code-block">
-                            <pre>/radius add address=10.0.0.1 secret={{ router.radius_secret }} service=hotspot,ppp authentication-port=1812 accounting-port=1813
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+                    <div style="background:var(--surface-alt);border-radius:var(--radius-sm);padding:14px;"><span style="font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;">Server</span><code style="font-size:15px;font-weight:800;color:var(--accent);">{{ router.radius_secret[:12] }}...</code></div>
+                    <div style="background:var(--surface-alt);border-radius:var(--radius-sm);padding:14px;"><span style="font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;">Status</span><span class="pill {{ 'pill-green' if radius_ok else 'pill-red' if radius_failed else 'pill-amber' }}">{{ router.radius_config_status|replace('_',' ')|title }}</span></div>
+                </div>
+                <div class="terminal-shell"><div class="ts-body" style="max-height:140px;">/radius add address=10.0.0.1 secret={{ router.radius_secret }} service=hotspot,ppp authentication-port=1812 accounting-port=1813
 /ip hotspot profile set [find] use-radius=yes
 /ppp aaa set use-radius=yes
-/radius incoming set accept=yes</pre>
-                            <button onclick="copyCommands(this)" class="copy-btn"><i class="fas fa-copy text-[10px]"></i> Copy</button>
-                        </div>
-                    </div>
-                    
-                    {% if radius_failed %}
-                    <div class="p-3 bg-red-50 border-2 border-red-200 rounded-lg">
-                        <p class="text-xs font-bold text-red-700">Failed after {{ router.auto_config_attempts }} attempt(s)</p>
-                        {% if router.last_config_error %}<p class="text-xs text-red-600 mt-1" style="font-family:monospace;">{{ router.last_config_error[:200] }}</p>{% endif %}
-                    </div>
-                    {% endif %}
-                </div>
-                {% else %}
-                <div class="py-12 text-center text-gray-400">
-                    <i class="fas fa-key text-2xl mb-2 block"></i>
-                    <p class="text-xs mb-3">No RADIUS secret configured</p>
-                    <form method="POST" action="{{ url_for('router_web.regenerate_radius_secret', org_id=organization.id, router_id=router.id) }}">
-                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0f172a] hover:bg-black text-white text-xs font-bold rounded-lg shadow transition-all">
-                            <i class="fas fa-key text-[10px]"></i> Generate Secret
-                        </button>
-                    </form>
-                </div>
-                {% endif %}
+/radius incoming set accept=yes</div></div>
+                {% if radius_failed %}<div style="margin-top:12px;background:var(--red-light);border:1px solid #fecaca;border-radius:var(--radius-sm);padding:12px 16px;"><p style="font-size:11px;font-weight:700;color:#991b1b;margin:0;">Failed {{ router.auto_config_attempts }} attempt(s)</p>{% if router.last_config_error %}<p style="font-size:10px;color:#b91c1c;margin:4px 0 0;font-family:monospace;">{{ router.last_config_error[:180] }}</p>{% endif %}</div>{% endif %}
+                {% else %}<div style="text-align:center;padding:48px;color:var(--text-muted);"><i class="fas fa-key" style="font-size:28px;display:block;margin-bottom:8px;"></i><p style="font-weight:600;font-size:12px;">No secret</p><form method="POST" action="{{ url_for('router_web.regenerate_radius_secret', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-dark btn-xs" style="margin-top:10px;">Generate</button></form></div>{% endif %}
             </div>
         </div>
     </div>
 </div>
 
 {# Delete Modal #}
-<div id="deleteModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" role="dialog">
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('deleteModal')"></div>
-    <div id="deleteModalContent" class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 sm:p-6 scale-95 opacity-0 transition-all duration-200">
-        <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-exclamation-triangle text-red-500"></i>
-            </div>
-            <div>
-                <h3 class="text-base font-bold text-gray-900">Delete Router</h3>
-                <p class="text-xs text-gray-500">Tunnel and authentication will also be removed</p>
-            </div>
-        </div>
-        <p class="text-xs text-gray-600 mb-5">Delete <strong>{{ router.name }}</strong>? This can be reversed.</p>
-        <div class="flex gap-3 justify-end">
-            <button onclick="closeModal('deleteModal')" class="px-4 py-2.5 text-xs font-semibold rounded-lg bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all">Cancel</button>
-            <form method="POST" action="{{ url_for('router_web.delete', org_id=organization.id, router_id=router.id) }}">
-                <input type="hidden" name="soft" value="true">
-                <button type="submit" class="px-5 py-2.5 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white shadow transition-all active:scale-[0.97]">Delete</button>
-            </form>
-        </div>
-    </div>
-</div>
+<div id="deleteModal" class="modal-overlay" onclick="closeModal(event)"><div class="modal-dialog" onclick="event.stopPropagation()"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><div style="width:40px;height:40px;border-radius:12px;background:var(--red-light);display:flex;align-items:center;justify-content:center;"><i class="fas fa-exclamation-triangle" style="color:var(--red);"></i></div><div><h3 style="font-size:15px;font-weight:800;margin:0;">Delete Router</h3><p style="font-size:11px;color:var(--text-alt);margin:0;">Tunnel &amp; auth removed</p></div></div><p style="font-size:12px;color:var(--text-alt);margin:0 0 18px;">Delete <strong>{{ router.name }}</strong>? Soft delete is reversible.</p><div style="display:flex;gap:8px;justify-content:flex-end;"><button onclick="closeModal()" class="btn btn-outline btn-xs">Cancel</button><form method="POST" action="{{ url_for('router_web.delete', org_id=organization.id, router_id=router.id) }}"><input type="hidden" name="soft" value="true"><button class="btn btn-xs" style="background:var(--red);color:#fff;">Delete</button></form></div></div></div>
 
 <script>
-function switchTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    const content = document.getElementById('tab-' + tab);
-    const btn = document.getElementById('tab-' + tab);
-    if (content) content.classList.remove('hidden');
-    if (btn) btn.classList.add('active');
-    try { const u = new URL(window.location); u.searchParams.set('tab', tab); history.replaceState({}, '', u); } catch(e) {}
-}
-
-function openModal(id) {
-    const m = document.getElementById(id);
-    const c = document.getElementById(id + 'Content');
-    if (!m || !c) return;
-    m.classList.remove('hidden'); m.classList.add('flex');
-    requestAnimationFrame(() => { c.classList.remove('scale-95', 'opacity-0'); c.classList.add('scale-100', 'opacity-100'); });
-}
-
-function closeModal(id) {
-    const m = document.getElementById(id);
-    const c = document.getElementById(id + 'Content');
-    if (!m || !c) return;
-    c.classList.add('scale-95', 'opacity-0'); c.classList.remove('scale-100', 'opacity-100');
-    setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
-}
-
-function toggleSecret() {
-    const d = document.getElementById('radiusSecret');
-    if (!d) return;
-    if (d.style.filter === 'none') { d.style.filter = 'blur(5px)'; d.style.color = 'transparent'; d.style.userSelect = 'none'; }
-    else { d.style.filter = 'none'; d.style.color = '#34d399'; d.style.userSelect = 'text'; }
-}
-
-function copySecret() {
-    const d = document.getElementById('radiusSecret');
-    if (!d) return;
-    navigator.clipboard.writeText(d.innerText.trim()).then(() => showToast('Secret copied!', 'success'));
-}
-
-function copySetupScript(btn) {
-    const pre = btn.parentElement.querySelector('pre');
-    if (!pre) return;
-    navigator.clipboard.writeText(pre.innerText.trim()).then(() => {
-        btn.innerHTML = '<i class="fas fa-check text-[10px]"></i> Copied!';
-        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy text-[10px]"></i> Copy All'; }, 2000);
-        showToast('Setup script copied!', 'success');
+// Tabs — NO page refresh, pure JS
+document.querySelectorAll('.tab-nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        const panel = document.querySelector(`[data-panel="${btn.dataset.tab}"]`);
+        if (panel) panel.classList.add('active');
     });
-}
+});
 
-function copyCommands(btn) {
-    const pre = btn.parentElement.querySelector('pre');
-    if (!pre) return;
-    navigator.clipboard.writeText(pre.innerText.trim()).then(() => {
-        btn.innerHTML = '<i class="fas fa-check text-[10px]"></i> Copied!';
-        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy text-[10px]"></i> Copy'; }, 2000);
-        showToast('Commands copied!', 'success');
-    });
-}
-
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal('deleteModal'); });
+function openModal(){ document.getElementById('deleteModal').classList.add('show'); }
+function closeModal(e){ if(!e || e.target === document.getElementById('deleteModal')) document.getElementById('deleteModal').classList.remove('show'); }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') document.getElementById('deleteModal').classList.remove('show'); });
+function copyTerminal(){ const d=document.getElementById('setupScript'); if(d) navigator.clipboard.writeText(d.innerText.trim()).then(()=>showToast('Copied!','success')); }
 </script>
 {% endblock %}
