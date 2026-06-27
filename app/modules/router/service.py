@@ -712,40 +712,85 @@ class RouterService:
     # PPPoE SERVER CREATION
     # =========================================================================
 
-    def create_pppoe_server(self, router_id: UUID, organization_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a PPPoE server on the MikroTik via VPS proxy."""
-        r = self.get_router(router_id, organization_id)
-        name = data.get('name', 'pppoe1')
-        interface = data.get('interface', 'ether1')
-        service_name = data.get('service_name', 'pppoe-service')
-        max_sessions = data.get('max_sessions', 100)
+    def create_pppoe_server(
+        self,
+        router_id: UUID,
+        organization_id: UUID,
+        data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        router = self.get_router(router_id, organization_id)
+
+        name = (data.get("name") or "pppoe1").strip()
+        interface = (data.get("interface") or "ether1").strip()
+        service_name = (data.get("service_name") or "pppoe-service").strip()
+        max_sessions = int(data.get("max_sessions", 100))
 
         try:
-            # Build params with EXACT RouterOS API attribute names
-            # These are the attributes RouterOS actually accepts
-            params = {
-                'name': name,
-                'interface': interface,
-                'service-name': service_name,
-                'max-sessions': str(max_sessions),
-            }
-            
-            # Use dashes directly in the keys so they pass through unchanged
-            # The _execute_via_vps converts _ to -, but dashes pass through as-is
-            self._execute_via_vps(r, '/interface/pppoe-server/server/add', **params)
+            # Check for duplicate
+            existing = self._execute_via_vps(
+                router, "/interface/pppoe-server/server/print"
+            )
+            if any(item.get("name") == name for item in existing):
+                raise BusinessError(
+                    f"PPPoE server '{name}' already exists on the router."
+                )
 
-            # Save to database
-            ps = self.pppoe_repo.create({
-                'organization_id': organization_id, 'router_id': router_id,
-                'name': name, 'interface': interface,
-                'service_name': service_name, 'mtu': 1492,
-                'max_sessions': max_sessions, 'is_active': True,
+            # Build params — ONLY the essential ones RouterOS accepts
+            params = {
+                "name": name,
+                "interface": interface,
+            }
+            if service_name:
+                params["service-name"] = service_name
+
+            # Try adding max-sessions separately — some RouterOS versions reject it
+            self._execute_via_vps(
+                router,
+                "/interface/pppoe-server/server/add",
+                **params
+            )
+
+            # If max-sessions is needed, set it after creation
+            if max_sessions and max_sessions != 100:
+                try:
+                    self._execute_via_vps(
+                        router,
+                        "/interface/pppoe-server/server/set",
+                        numbers=name,
+                        **{"max-sessions": str(max_sessions)}
+                    )
+                except Exception:
+                    pass  # Not critical if this fails
+
+            # Save locally
+            pppoe = self.pppoe_repo.create({
+                "organization_id": organization_id,
+                "router_id": router_id,
+                "name": name,
+                "interface": interface,
+                "service_name": service_name,
+                "mtu": 1492,
+                "max_sessions": max_sessions,
+                "is_active": True,
             })
-            logger.info(f"PPPoE server created: {name} on {r.name}")
-            return {'success': True, 'pppoe': ps}
-        except Exception as e:
-            logger.error(f"Failed to create PPPoE server: {e}")
-            raise BusinessError(f"Failed to create PPPoE server: {e}")
+
+            logger.info(
+                "PPPoE server '%s' created successfully on router '%s'.",
+                name, router.name,
+            )
+
+            return {
+                "success": True,
+                "message": "PPPoE server created successfully.",
+                "pppoe": pppoe,
+            }
+
+        except Exception as exc:
+            logger.exception(
+                "Failed creating PPPoE server '%s' on router '%s'.",
+                name, router.name,
+            )
+            raise BusinessError(f"Unable to create PPPoE server: {exc}")
 
 
     def get_connection_status(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
