@@ -7,7 +7,7 @@ All MikroTik API calls proxied through VPS via SSH.
 Flow:
     1. Admin pastes setup script → WireGuard + RADIUS + Walled Garden configured
     2. Test Connection → verifies API reachable
-    3. Check RADIUS → verifies auth working (no reconfiguration)
+    3. Check RADIUS → verifies auth working AND updates database status
     4. Retry RADIUS → only if check fails, re-runs config
 """
 
@@ -79,6 +79,10 @@ class RouterService:
             m = re.search(rf'(\d+){pat}', uptime_str)
             if m: seconds += int(m.group(1)) * mul
         return seconds
+
+    def _get_effective_ip(self, router: Router) -> str:
+        """Get the effective IP for this router (WireGuard IP takes priority)."""
+        return router.wireguard_ip or str(router.ip_address)
 
     def _allocate_wireguard_ip(self, organization_id: UUID) -> tuple:
         import hashlib
@@ -153,7 +157,7 @@ class RouterService:
     def _execute_via_vps(self, router: Router, command: str, **kwargs) -> List[Dict[str, Any]]:
         """Execute a MikroTik API command via VPS SSH tunnel. Base64-encoded."""
         password = self.encryption.decrypt(router.password_encrypted)
-        host = str(router.ip_address)
+        host = self._get_effective_ip(router)
         port = router.api_port or 8728
         username = router.username
         kwargs_b64 = _b64.b64encode(_json.dumps(kwargs).encode()).decode()
@@ -324,7 +328,6 @@ class RouterService:
         elif method_name == 'configure_radius':
             rs = kwargs.get('radius_server', self._get_radius_server())
             secret = kwargs.get('radius_secret', router.radius_secret)
-            # First check if RADIUS is already correctly configured
             try:
                 existing = self._execute_via_vps(router, '/radius/print')
                 already_ok = any(
@@ -336,15 +339,11 @@ class RouterService:
                     self.repository.update_radius_config_status(router.id, router.organization_id, 'configured')
                     return {'success': True, 'message': 'RADIUS already configured', 'radius_server': rs, 'skipped': True}
             except Exception:
-                pass  # Can't check, proceed with config
-            
-            # Ensure API accessible
+                pass
             try: self._execute_via_vps(router, '/ip/service/enable', numbers='api')
             except: pass
             try: self._execute_via_vps(router, '/ip/service/set', numbers='api', address='0.0.0.0/0')
             except: pass
-            
-            # Configure RADIUS
             existing = self._execute_via_vps(router, '/radius/print'); found = False
             for item in existing:
                 if item.get('address') == rs:
@@ -356,7 +355,6 @@ class RouterService:
                 self._execute_via_vps(router, '/radius/add', address=rs, secret=secret,
                     service='hotspot,ppp', authentication_port='1812',
                     accounting_port='1813', timeout='3s')
-            # Enable on hotspot profiles
             for pid_data in (self._execute_via_vps(router, '/ip/hotspot/user/profile/print') or []):
                 pid = pid_data.get('.id')
                 if pid:
@@ -366,6 +364,7 @@ class RouterService:
             except: pass
             try: self._execute_via_vps(router, '/radius/incoming/set', accept='yes')
             except: pass
+            self.repository.update_radius_config_status(router.id, router.organization_id, 'configured')
             return {'success': True, 'message': 'RADIUS configured', 'radius_server': rs}
         elif method_name == 'configure_walled_garden':
             domain = kwargs.get('platform_domain', 'isp.bhatek.space')
@@ -390,17 +389,43 @@ class RouterService:
         raise ValueError(f"Unknown method: {method_name}")
 
     # =========================================================================
-    # NAS ENTRY
+    # NAS ENTRY — Always uses the effective WireGuard IP
     # =========================================================================
 
     def _create_nas_entry(self, router: Router, radius_secret: str) -> NAS:
+        """Create a NAS entry for FreeRADIUS using the router's effective IP."""
         try:
-            nas = NAS(organization_id=router.organization_id, nasname=str(router.ip_address),
-                      shortname=router.name, type='mikrotik', secret=radius_secret,
-                      description=f"Auto-created for {router.name}", router_id=router.id, is_active=True)
-            db.session.add(nas); db.session.flush(); router.nas_entry_id = nas.id
+            nas_ip = self._get_effective_ip(router)
+            nas = NAS(
+                organization_id=router.organization_id,
+                nasname=nas_ip,
+                shortname=router.name,
+                type='mikrotik',
+                secret=radius_secret,
+                description=f"Auto-created for {router.name}",
+                router_id=router.id,
+                is_active=True,
+            )
+            db.session.add(nas)
+            db.session.flush()
+            router.nas_entry_id = nas.id
+            logger.info(f"NAS entry created: {nas_ip} for router {router.name}")
             return nas
-        except Exception as e: db.session.rollback(); raise BusinessError(f"NAS entry failed: {e}")
+        except Exception as e:
+            db.session.rollback()
+            raise BusinessError(f"NAS entry failed: {e}")
+
+    def _sync_nas_ip(self, router: Router) -> None:
+        """Update NAS entry nasname when router's effective IP changes."""
+        if not router.nas_entry_id:
+            return
+        nas = NAS.query.filter_by(id=router.nas_entry_id).first()
+        if nas:
+            effective_ip = self._get_effective_ip(router)
+            if nas.nasname != effective_ip:
+                nas.nasname = effective_ip
+                db.session.commit()
+                logger.info(f"NAS {nas.id} nasname synced to {effective_ip}")
 
     # =========================================================================
     # SETUP SCRIPT
@@ -507,33 +532,71 @@ class RouterService:
             raise BusinessError(f"Connection test failed: {e}")
 
     # =========================================================================
-    # CHECK RADIUS — Verifies without reconfiguring
+    # CHECK RADIUS — Verifies AND updates database status
     # =========================================================================
 
     def check_radius_status(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
-        """Check if RADIUS is working without making any changes."""
+        """Check if RADIUS is working and update the database status."""
         router = self.get_router(router_id, organization_id)
-        result = {'success': True, 'nas_exists': False, 'api_reachable': False, 'radius_entries': 0}
-        
+        result = {
+            'success': True,
+            'nas_exists': False,
+            'api_reachable': False,
+            'radius_entries': 0,
+            'nas_matches_router': False,
+            'radius_configured': False,
+            'status_updated': False,
+        }
+
         # Check NAS entry
         nas = NAS.query.filter_by(router_id=router_id, is_active=True).first()
         result['nas_exists'] = nas is not None
-        
-        # Check if we can reach the API
+
+        if nas:
+            effective_ip = self._get_effective_ip(router)
+            result['nas_matches_router'] = nas.nasname == effective_ip
+            result['nas_ip'] = nas.nasname
+            result['router_ip'] = effective_ip
+
+        # Check RADIUS on MikroTik via API
         try:
             radius_entries = self._execute_via_vps(router, '/radius/print')
             result['api_reachable'] = True
             result['radius_entries'] = len(radius_entries)
-            # Check if correct RADIUS server is configured
             has_correct = any(
                 e.get('address') == '10.0.0.1' and 'hotspot' in str(e.get('service',''))
                 for e in radius_entries
             )
             result['radius_configured'] = has_correct
+
+            # UPDATE DATABASE: If RADIUS is configured and NAS matches, set status to configured
+            if has_correct and result['nas_matches_router']:
+                self.repository.update_radius_config_status(router_id, organization_id, 'configured')
+                result['status_updated'] = True
+                logger.info(f"RADIUS config status updated to 'configured' for router {router.name}")
+
+            # UPDATE DATABASE: If RADIUS configured but NAS doesn't match, sync NAS then update
+            elif has_correct and not result['nas_matches_router']:
+                self._sync_nas_ip(router)
+                nas = NAS.query.filter_by(router_id=router_id, is_active=True).first()
+                if nas:
+                    effective_ip = self._get_effective_ip(router)
+                    result['nas_matches_router'] = nas.nasname == effective_ip
+                    result['nas_ip'] = nas.nasname
+                    if result['nas_matches_router']:
+                        self.repository.update_radius_config_status(router_id, organization_id, 'configured')
+                        result['status_updated'] = True
+                        logger.info(f"NAS synced and RADIUS status updated to 'configured' for {router.name}")
+
+            # UPDATE DATABASE: If API reachable but no RADIUS entry, mark as pending
+            elif not has_correct:
+                self.repository.update_radius_config_status(router_id, organization_id, 'pending')
+                result['status_updated'] = True
+
         except Exception:
             result['api_reachable'] = False
             result['radius_configured'] = False
-        
+
         return result
 
     # =========================================================================
@@ -543,14 +606,17 @@ class RouterService:
     def retry_radius_configuration(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
         r = self.get_router(router_id, organization_id)
         if not r.radius_secret: raise BusinessError("No RADIUS secret")
-        
-        # First check if already configured
+
+        # Sync NAS IP before configuring
+        self._sync_nas_ip(r)
+
+        # Check current status
         check = self.check_radius_status(router_id, organization_id)
-        if check.get('radius_configured'):
+        if check.get('radius_configured') and check.get('nas_matches_router'):
             self.repository.update_radius_config_status(r.id, organization_id, 'configured')
             return {'success': True, 'message': 'RADIUS is already configured and working', 'skipped': True}
-        
-        # Not configured — run configuration
+
+        # Run configuration
         try:
             self._execute_client_method_via_vps(r, 'configure_radius', radius_secret=r.radius_secret)
             self.repository.update_radius_config_status(r.id, organization_id, 'configured')
@@ -561,6 +627,7 @@ class RouterService:
 
     def configure_radius_manual(self, router_id: UUID, organization_id: UUID, radius_server: str, radius_secret: str) -> Dict[str, Any]:
         r = self.get_router(router_id, organization_id)
+        self._sync_nas_ip(r)
         try:
             self._execute_client_method_via_vps(r, 'configure_radius', radius_server=radius_server, radius_secret=radius_secret)
             self.repository.update_radius_config_status(router_id, organization_id, 'configured')
@@ -660,6 +727,8 @@ class RouterService:
         elif "password" in data: data.pop("password")
         r = self.repository.update(router_id, organization_id, data)
         if not r: raise NotFoundError("Router not found")
+        if data.get('ip_address') or data.get('wireguard_ip'):
+            self._sync_nas_ip(r)
         return r
 
     def delete_router(self, router_id: UUID, organization_id: UUID, soft_delete: bool = True) -> None:
@@ -676,8 +745,6 @@ class RouterService:
     def configure_walled_garden(self, router_id: UUID, organization_id: UUID, **kwargs) -> Dict[str, Any]:
         return self._execute_client_method_via_vps(self.get_router(router_id, organization_id), 'configure_walled_garden', **kwargs)
 
-
-
     # =========================================================================
     # HOTSPOT SERVER CREATION
     # =========================================================================
@@ -690,13 +757,11 @@ class RouterService:
         address_pool = data.get('address_pool', 'dhcp_pool1')
 
         try:
-            # Create on MikroTik
             params = {'name': name, 'interface': interface}
             if address_pool:
                 params['address-pool'] = address_pool
             self._execute_via_vps(r, '/ip/hotspot/add', **params)
 
-            # Save to database
             hs = self.hotspot_repo.create({
                 'organization_id': organization_id, 'router_id': router_id,
                 'name': name, 'hotspot_id': name, 'interface': interface,
@@ -712,202 +777,79 @@ class RouterService:
     # PPPoE SERVER CREATION
     # =========================================================================
 
-
-    def create_pppoe_server(
-        self,
-        router_id: UUID,
-        organization_id: UUID,
-        data: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Create and enable a PPPoE server on MikroTik.
-
-        Flow:
-        1. Validate router
-        2. Ensure no duplicate server on interface
-        3. Create PPPoE server
-        4. Enable it explicitly (VERY IMPORTANT in RouterOS)
-        5. Save locally
-        """
-
+    def create_pppoe_server(self, router_id: UUID, organization_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create and enable a PPPoE server on MikroTik."""
         router = self.get_router(router_id, organization_id)
-
         interface = (data.get("interface") or "bridge").strip()
         service_name = (data.get("service_name") or "pppoe-service").strip()
         max_sessions = int(data.get("max_sessions", 100))
 
         try:
-            # ------------------------------------------------------------
-            # 1. Check if PPPoE server already exists
-            # ------------------------------------------------------------
-            existing = self._execute_via_vps(
-                router,
-                "/interface/pppoe-server/server/print"
-            )
-
+            existing = self._execute_via_vps(router, "/interface/pppoe-server/server/print")
             for server in existing:
                 if server.get("interface") == interface:
-                    raise BusinessError(
-                        f"PPPoE server already exists on interface '{interface}'"
-                    )
+                    raise BusinessError(f"PPPoE server already exists on interface '{interface}'")
 
-            # ------------------------------------------------------------
-            # 2. Create PPPoE server (RouterOS-safe params only)
-            # ------------------------------------------------------------
             params = {
                 "interface": interface,
                 "service-name": service_name,
                 "max-sessions": str(max_sessions),
             }
 
-            result = self._execute_via_vps(
-                router,
-                "/interface/pppoe-server/server/add",
-                **params
-            )
+            self._execute_via_vps(router, "/interface/pppoe-server/server/add", **params)
 
-            # ------------------------------------------------------------
-            # 3. ENABLE PPPoE SERVER (CRITICAL STEP)
-            #
-            # RouterOS creates it but may leave it disabled depending on config
-            # ------------------------------------------------------------
             try:
-                # find newly created server by interface
-                servers = self._execute_via_vps(
-                    router,
-                    "/interface/pppoe-server/server/print"
-                )
-
+                servers = self._execute_via_vps(router, "/interface/pppoe-server/server/print")
                 for s in servers:
                     if s.get("interface") == interface:
-                        self._execute_via_vps(
-                            router,
-                            "/interface/pppoe-server/server/set",
-                            numbers=s.get(".id"),
-                            disabled="no"
-                        )
+                        self._execute_via_vps(router, "/interface/pppoe-server/server/set",
+                            numbers=s.get(".id"), disabled="no")
                         break
-
             except Exception as enable_error:
-                logger.warning(
-                    f"PPPoE server created but could not be auto-enabled: {enable_error}"
-                )
+                logger.warning(f"PPPoE server created but could not be auto-enabled: {enable_error}")
 
-            # ------------------------------------------------------------
-            # 4. Save to DB
-            # ------------------------------------------------------------
             pppoe = self.pppoe_repo.create({
-                "organization_id": organization_id,
-                "router_id": router_id,
-                "name": service_name,
-                "interface": interface,
-                "service_name": service_name,
-                "mtu": 1492,
-                "max_sessions": max_sessions,
-                "is_active": True,
+                "organization_id": organization_id, "router_id": router_id,
+                "name": service_name, "interface": interface,
+                "service_name": service_name, "mtu": 1492,
+                "max_sessions": max_sessions, "is_active": True,
             })
 
-            logger.info(
-                f"PPPoE server '{service_name}' created and enabled on {router.name}"
-            )
-
-            return {
-                "success": True,
-                "message": "PPPoE server created and enabled successfully.",
-                "pppoe": pppoe,
-            }
+            logger.info(f"PPPoE server '{service_name}' created and enabled on {router.name}")
+            return {"success": True, "message": "PPPoE server created and enabled successfully.", "pppoe": pppoe}
 
         except Exception as exc:
-            logger.exception(
-                f"Failed PPPoE creation on router {router.name}"
-            )
+            logger.exception(f"Failed PPPoE creation on router {router.name}")
             raise BusinessError(f"Unable to create PPPoE server: {exc}")
 
-
-
-    def delete_pppoe_server(
-        self,
-        router_id: UUID,
-        organization_id: UUID,
-        pppoe_id: UUID
-    ) -> Dict[str, Any]:
-        """
-        Remove a PPPoE server from:
-        1. MikroTik router (via VPS proxy)
-        2. Local database
-
-        Safe behavior:
-        - verifies router
-        - verifies PPPoE record exists
-        - removes from MikroTik first
-        - only deletes DB if MikroTik succeeds
-        """
-
+    def delete_pppoe_server(self, router_id: UUID, organization_id: UUID, pppoe_id: UUID) -> Dict[str, Any]:
+        """Remove a PPPoE server from MikroTik and database."""
         router = self.get_router(router_id, organization_id)
-
-        # ------------------------------------------------------------
-        # 1. Get PPPoE server from DB
-        # ------------------------------------------------------------
         pppoe = self.pppoe_repo.get_by_id(pppoe_id, organization_id)
-
         if not pppoe:
             raise NotFoundError("PPPoE server not found")
 
         try:
-            # ------------------------------------------------------------
-            # 2. Find PPPoE server on MikroTik
-            # ------------------------------------------------------------
-            servers = self._execute_via_vps(
-                router,
-                "/interface/pppoe-server/server/print"
-            )
-
+            servers = self._execute_via_vps(router, "/interface/pppoe-server/server/print")
             target_id = None
-
             for s in servers:
-                if (
-                    s.get("interface") == pppoe.interface
-                    or s.get("service-name") == pppoe.service_name
-                ):
+                if s.get("interface") == pppoe.interface or s.get("service-name") == pppoe.service_name:
                     target_id = s.get(".id")
                     break
 
-            # ------------------------------------------------------------
-            # 3. Remove from MikroTik if found
-            # ------------------------------------------------------------
             if target_id:
-                self._execute_via_vps(
-                    router,
-                    "/interface/pppoe-server/server/remove",
-                    numbers=target_id
-                )
-                logger.info(
-                    f"PPPoE server removed from MikroTik: {pppoe.service_name}"
-                )
+                self._execute_via_vps(router, "/interface/pppoe-server/server/remove", numbers=target_id)
+                logger.info(f"PPPoE server removed from MikroTik: {pppoe.service_name}")
             else:
-                logger.warning(
-                    f"PPPoE server not found on MikroTik: {pppoe.service_name}"
-                )
+                logger.warning(f"PPPoE server not found on MikroTik: {pppoe.service_name}")
 
-            # ------------------------------------------------------------
-            # 4. Remove from database
-            # ------------------------------------------------------------
             self.pppoe_repo.delete(pppoe_id, organization_id)
-
-            logger.info(
-                f"PPPoE server deleted from DB: {pppoe.service_name}"
-            )
-
-            return {
-                "success": True,
-                "message": "PPPoE server deleted successfully",
-                "pppoe_id": str(pppoe_id),
-            }
+            logger.info(f"PPPoE server deleted from DB: {pppoe.service_name}")
+            return {"success": True, "message": "PPPoE server deleted successfully", "pppoe_id": str(pppoe_id)}
 
         except Exception as exc:
             logger.exception("Failed to delete PPPoE server")
-            raise BusinessError(f"Unable to delete PPPoE server: {exc}")        
-
+            raise BusinessError(f"Unable to delete PPPoE server: {exc}")
 
     def get_connection_status(self, router_id: UUID, organization_id: UUID) -> Dict[str, Any]:
         r = self.get_router(router_id, organization_id); s = r.settings or {}; h = s.get('health', {})
