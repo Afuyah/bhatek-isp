@@ -36,7 +36,7 @@
                         <li><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-file-csv mr-2 text-gray-400"></i>Revenue Report (CSV)</a></li>
                         <li><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-file-csv mr-2 text-gray-400"></i>Subscriptions Report (CSV)</a></li>
                         <li><hr class="my-1 border-gray-100"></li>
-                        <li><a href="{{ url_for('billing_web.invoices', org_id=organization.id) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-file-invoice mr-2 text-gray-400"></i>View All Invoices</a></li>
+                        <li><a href="{{ url_for('billing_web.dashboard', org_id=organization.id) }}#invoices" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-file-invoice mr-2 text-gray-400"></i>View All Invoices</a></li>
                     </ul>
                 </div>
             </div>
@@ -190,7 +190,7 @@
                 </div>
                 <h6 class="text-sm font-semibold text-gray-800">Router Health Status</h6>
             </div>
-            <a href="{{ url_for('router_web.health', org_id=organization.id) }}"
+            <a href="{{ url_for('router_web.index', org_id=organization.id) }}"
                class="text-xs text-[#1a56db] hover:underline">
                 View Details →
             </a>
@@ -309,7 +309,7 @@
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div class="flex flex-wrap justify-between items-center gap-2 px-3 py-3 sm:px-4 sm:py-3.5 bg-gray-50 border-b border-gray-200">
                 <h6 class="text-sm font-semibold text-gray-800">Recent Transactions</h6>
-                <a href="{{ url_for('billing_web.invoices', org_id=organization.id) }}" class="text-xs text-[#1a56db] hover:underline">View All →</a>
+                <a href="{{ url_for('billing_web.dashboard', org_id=organization.id) }}#invoices" class="text-xs text-[#1a56db] hover:underline">View All →</a>
             </div>
             <div class="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
                 {% for transaction in stats.recent_transactions|default([]) %}

@@ -609,3 +609,41 @@ def edit_pppoe(org_id, pppoe_id, current_user=None, current_organization=None):
         logger.error(f"Error editing PPPoE: {e}", exc_info=True)
         flash(f'Error: {str(e)}', 'danger')
     return redirect(url_for('router_web.show', org_id=org_id, router_id=pppoe.router_id))
+
+
+# =============================================================================
+# ROUTER HEALTH
+# =============================================================================
+
+@router_web_bp.route('/health')
+@web_router_access_required
+def health(org_id, current_user=None, current_organization=None):
+    """Router health overview page."""
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 50, type=int), 100)
+    skip = (page - 1) * per_page
+
+    routers = router_service.get_routers_by_organization(
+        organization_id=current_organization.id,
+        skip=skip,
+        limit=per_page,
+    )
+
+    total = router_repo.count_by_organization(current_organization.id)
+    total_pages = (total + per_page - 1) // per_page if total > 0 else 0
+
+    return render_template(
+        'web/router/health.html',
+        organization=current_organization,
+        user=current_user,
+        routers=routers,
+        pagination={
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'pages': total_pages,
+            'has_next': page < total_pages,
+            'has_prev': page > 1,
+        },
+        context=_get_router_context(current_organization.id),
+    )
