@@ -1,0 +1,426 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}Router Health - {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="p-2 sm:p-3 md:p-4 lg:p-5 space-y-3 sm:space-y-4">
+
+    <!-- Page Header -->
+    <div class="flex flex-wrap justify-between items-center gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">Router Health Status</h1>
+            <nav class="text-xs sm:text-sm mt-0.5">
+                <ol class="flex items-center gap-1 text-gray-500">
+                    <li><a href="{{ url_for('web.organization_dashboard', org_id=organization.id) }}" class="hover:text-[#1a56db]">Dashboard</a></li>
+                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li><a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="hover:text-[#1a56db]">Routers</a></li>
+                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li class="text-gray-700">Health</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="flex items-center gap-2">
+            <button type="button" id="testConnectionBtn"
+                    onclick="bulkTestConnection()"
+                    class="hidden inline-flex items-center gap-2 px-3 py-1.5 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm rounded-lg transition-colors duration-150">
+                <i class="fas fa-plug text-xs"></i>
+                <span>Test Connection</span>
+            </button>
+            <span id="selectedCount" class="hidden text-xs text-gray-500 font-medium"></span>
+            <button type="button"
+                    onclick="refreshHealth()"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-colors duration-150"
+                    title="Refresh health data">
+                <i class="fas fa-sync-alt text-xs" id="refreshIcon"></i>
+                <span class="hidden sm:inline">Refresh</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <!-- Total -->
+        <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 card-hover">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-server text-gray-600 text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-gray-800" id="statTotal">{{ health.total|default(0) }}</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-wider">Total Routers</div>
+                </div>
+            </div>
+        </div>
+        <!-- Online -->
+        <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 card-hover">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-emerald-600" id="statOnline">{{ health.online|default(0) }}</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-wider">Online</div>
+                </div>
+            </div>
+        </div>
+        <!-- Offline -->
+        <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 card-hover">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-times-circle text-red-600 text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-red-600" id="statOffline">{{ health.offline|default(0) }}</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-wider">Offline</div>
+                </div>
+            </div>
+        </div>
+        <!-- Error -->
+        <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 card-hover">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-amber-600 text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-amber-600" id="statError">{{ health.error|default(0) }}</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-wider">Error</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+        <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-wrap gap-1" role="group" aria-label="Filter by router status">
+                <button type="button" data-filter="all"
+                        onclick="applyFilter('all')"
+                        class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 bg-gray-800 text-white">
+                    All
+                </button>
+                <button type="button" data-filter="online"
+                        onclick="applyFilter('online')"
+                        class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 text-gray-600 hover:bg-gray-100">
+                    <i class="fas fa-circle text-emerald-500 text-[8px] mr-1"></i> Online
+                </button>
+                <button type="button" data-filter="offline"
+                        onclick="applyFilter('offline')"
+                        class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 text-gray-600 hover:bg-gray-100">
+                    <i class="fas fa-circle text-red-500 text-[8px] mr-1"></i> Offline
+                </button>
+                <button type="button" data-filter="error"
+                        onclick="applyFilter('error')"
+                        class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 text-gray-600 hover:bg-gray-100">
+                    <i class="fas fa-exclamation-triangle text-amber-500 text-[8px] mr-1"></i> Error
+                </button>
+            </div>
+            <div class="relative ml-auto">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                <input type="text" id="routerSearch"
+                       class="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]/20 w-48"
+                       placeholder="Search router..."
+                       aria-label="Search routers">
+            </div>
+        </div>
+    </div>
+
+    <!-- Routers Table -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-3 py-3 w-8">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"
+                                   class="rounded border-gray-300 text-[#1a56db] focus:ring-[#1a56db]"
+                                   aria-label="Select all routers">
+                        </th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Router Name</th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">IP Address</th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Last Seen</th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">CPU Load</th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">Memory</th>
+                        <th class="text-center px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100" id="routerHealthBody">
+                    {% if routers %}
+                        {% for router in routers %}
+                        <tr class="router-row hover:bg-gray-50 transition-colors duration-150"
+                            data-name="{{ (router.name or '')|lower }}"
+                            data-ip="{{ router.ip_address or '' }}"
+                            data-status="{{ router.status or 'unknown' }}">
+                            <td class="px-3 py-3">
+                                <input type="checkbox" name="router_ids" value="{{ router.id }}"
+                                       onchange="updateBulkActions()"
+                                       class="router-checkbox rounded border-gray-300 text-[#1a56db] focus:ring-[#1a56db]"
+                                       aria-label="Select {{ router.name }}">
+                            </td>
+                            <td class="px-3 py-3">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
+                                        {% if router.status == 'online' %}bg-emerald-100
+                                        {% elif router.status == 'offline' %}bg-red-100
+                                        {% elif router.status == 'error' %}bg-amber-100
+                                        {% else %}bg-gray-100{% endif %}">
+                                        <i class="fas fa-server text-xs
+                                            {% if router.status == 'online' %}text-emerald-600
+                                            {% elif router.status == 'offline' %}text-red-600
+                                            {% elif router.status == 'error' %}text-amber-600
+                                            {% else %}text-gray-500{% endif %}"></i>
+                                    </div>
+                                    <div>
+                                        <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}"
+                                           class="font-medium text-gray-800 hover:text-[#1a56db] transition-colors">
+                                            {{ router.name }}
+                                        </a>
+                                        <div class="text-[10px] text-gray-400">{{ router.model or '—' }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-3 py-3 hidden sm:table-cell">
+                                <code class="text-xs bg-gray-100 px-2 py-0.5 rounded font-mono">{{ router.ip_address }}</code>
+                            </td>
+                            <td class="px-3 py-3">
+                                {% if router.status == 'online' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online
+                                </span>
+                                {% elif router.status == 'offline' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Offline
+                                </span>
+                                {% elif router.status == 'error' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Error
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Unknown
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-3 hidden md:table-cell text-xs text-gray-600">
+                                {{ router.last_seen_at.strftime('%b %d, %H:%M') if router.last_seen_at else 'Never' }}
+                            </td>
+                            <td class="px-3 py-3 hidden lg:table-cell">
+                                {% set cpu = router.cpu_load|default(0) %}
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 bg-gray-100 rounded-full h-1.5 w-16">
+                                        <div class="h-1.5 rounded-full
+                                            {% if cpu > 80 %}bg-red-500
+                                            {% elif cpu > 60 %}bg-amber-500
+                                            {% else %}bg-emerald-500{% endif %}"
+                                             style="width: {{ [cpu, 100]|min }}%"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-600 w-8">{{ cpu }}%</span>
+                                </div>
+                            </td>
+                            <td class="px-3 py-3 hidden lg:table-cell">
+                                {% set mem = router.memory_usage|default(0) %}
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 bg-gray-100 rounded-full h-1.5 w-16">
+                                        <div class="h-1.5 rounded-full
+                                            {% if mem > 80 %}bg-red-500
+                                            {% elif mem > 60 %}bg-amber-500
+                                            {% else %}bg-[#1a56db]{% endif %}"
+                                             style="width: {{ [mem, 100]|min }}%"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-600 w-8">{{ mem }}%</span>
+                                </div>
+                            </td>
+                            <td class="px-3 py-3">
+                                <div class="flex items-center justify-center gap-1">
+                                    <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}"
+                                       class="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition-colors duration-150"
+                                       title="View router">
+                                        <i class="fas fa-eye text-sm"></i>
+                                    </a>
+                                    <button type="button"
+                                            onclick="testConnection('{{ router.id }}', '{{ router.name|e }}')"
+                                            class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150"
+                                            title="Test connection">
+                                        <i class="fas fa-plug text-sm"></i>
+                                    </button>
+                                    <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}"
+                                       class="p-1.5 rounded-md text-[#2d6a4f] hover:bg-emerald-50 transition-colors duration-150"
+                                       title="Edit router">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-12 text-gray-400">
+                                <i class="fas fa-server text-4xl mb-3 block opacity-30"></i>
+                                <p class="text-sm font-medium">No routers found</p>
+                                <p class="text-xs mt-1">
+                                    <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="text-[#1a56db] hover:underline">Add your first router</a>
+                                </p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Last refreshed -->
+        <div class="px-4 py-2 border-t border-gray-100 flex items-center justify-between">
+            <span class="text-[10px] text-gray-400">
+                <i class="fas fa-clock mr-1"></i>
+                Last refreshed: <span id="lastRefreshed">{{ health.last_updated or 'just now' }}</span>
+            </span>
+            <span class="text-[10px] text-gray-400" id="visibleCount">
+                Showing {{ routers|length if routers else 0 }} router(s)
+            </span>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentFilter = 'all';
+
+    // Search
+    const routerSearch = document.getElementById('routerSearch');
+    if (routerSearch) {
+        routerSearch.addEventListener('input', function() {
+            applyFilters();
+        });
+    }
+
+    function applyFilter(status) {
+        currentFilter = status;
+
+        // Update button styles
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            const isActive = btn.getAttribute('data-filter') === status;
+            btn.classList.toggle('bg-gray-800', isActive && status === 'all');
+            btn.classList.toggle('text-white', isActive && status === 'all');
+            btn.classList.toggle('bg-emerald-600', isActive && status === 'online');
+            btn.classList.toggle('bg-red-600', isActive && status === 'offline');
+            btn.classList.toggle('bg-amber-500', isActive && status === 'error');
+            btn.classList.toggle('text-white', isActive && status !== 'all');
+            btn.classList.toggle('text-gray-600', !isActive);
+            btn.classList.toggle('hover:bg-gray-100', !isActive);
+        });
+
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const q = (routerSearch?.value || '').toLowerCase();
+        let visible = 0;
+
+        document.querySelectorAll('#routerHealthBody .router-row').forEach(row => {
+            const name = row.getAttribute('data-name') || '';
+            const ip = row.getAttribute('data-ip') || '';
+            const status = row.getAttribute('data-status') || '';
+
+            const matchesSearch = !q || name.includes(q) || ip.includes(q);
+            const matchesFilter = currentFilter === 'all' || status === currentFilter;
+
+            const show = matchesSearch && matchesFilter;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        const countEl = document.getElementById('visibleCount');
+        if (countEl) countEl.textContent = `Showing ${visible} router(s)`;
+    }
+
+    // Select all
+    function toggleSelectAll(master) {
+        document.querySelectorAll('.router-checkbox').forEach(cb => { cb.checked = master.checked; });
+        updateBulkActions();
+    }
+
+    function updateBulkActions() {
+        const checked = document.querySelectorAll('.router-checkbox:checked');
+        const testBtn = document.getElementById('testConnectionBtn');
+        const countEl = document.getElementById('selectedCount');
+
+        if (checked.length > 0) {
+            testBtn?.classList.remove('hidden');
+            countEl?.classList.remove('hidden');
+            if (countEl) countEl.textContent = `${checked.length} selected`;
+        } else {
+            testBtn?.classList.add('hidden');
+            countEl?.classList.add('hidden');
+        }
+    }
+
+    function bulkTestConnection() {
+        const checked = Array.from(document.querySelectorAll('.router-checkbox:checked')).map(cb => cb.value);
+        if (checked.length === 0) return;
+        if (!confirm(`Test connection for ${checked.length} router(s)?`)) return;
+
+        showLoading();
+        fetch(`/api/v1/routers/bulk-test`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: checked })
+        })
+        .then(r => r.json())
+        .then(data => {
+            hideLoading();
+            showToast(data.message || 'Connection test initiated', data.success ? 'success' : 'error');
+            if (data.success) setTimeout(() => location.reload(), 2000);
+        })
+        .catch(() => {
+            hideLoading();
+            showToast('Connection test failed', 'error');
+        });
+    }
+
+    function testConnection(routerId, name) {
+        showLoading();
+        fetch(`/api/v1/routers/${routerId}/test`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                hideLoading();
+                showToast(
+                    data.message || `${name}: ${data.status || 'tested'}`,
+                    data.success ? 'success' : 'error'
+                );
+                if (data.success) setTimeout(() => location.reload(), 1500);
+            })
+            .catch(() => {
+                hideLoading();
+                showToast(`Failed to test ${name}`, 'error');
+            });
+    }
+
+    function refreshHealth() {
+        const icon = document.getElementById('refreshIcon');
+        icon.classList.add('animate-spin');
+
+        fetch(`/api/v1/routers/stats?org_id={{ organization.id }}`)
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                icon.classList.remove('animate-spin');
+                if (!data) return;
+                const counts = data.counts || data;
+                if (counts.total !== undefined) document.getElementById('statTotal').textContent = counts.total;
+                if (counts.online !== undefined) document.getElementById('statOnline').textContent = counts.online;
+                if (counts.offline !== undefined) document.getElementById('statOffline').textContent = counts.offline;
+                if (counts.error !== undefined) document.getElementById('statError').textContent = counts.error;
+
+                const now = new Date();
+                const el = document.getElementById('lastRefreshed');
+                if (el) el.textContent = now.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' });
+
+                showToast('Health data refreshed', 'success');
+            })
+            .catch(() => {
+                icon.classList.remove('animate-spin');
+                showToast('Failed to refresh health data', 'error');
+            });
+    }
+
+    // Auto-refresh every 60 seconds
+    setInterval(refreshHealth, 60000);
+</script>
+{% endblock %}
