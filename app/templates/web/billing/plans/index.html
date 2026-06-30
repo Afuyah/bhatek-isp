@@ -36,12 +36,28 @@
         </div>
     </div>
 
-    <!-- Search Bar -->
-    <div class="relative">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-        <input type="text" id="searchInput" 
-               class="w-full md:w-80 pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]"
-               placeholder="Search by plan name, description...">
+    <!-- Search & Filter Bar -->
+    <div class="flex flex-wrap items-center gap-2">
+        <div class="relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input type="text" id="searchInput" 
+                   class="w-full md:w-72 pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]"
+                   placeholder="Search by plan name, description..."
+                   aria-label="Search plans">
+        </div>
+        <button type="button" id="autoRenewFilterBtn"
+                onclick="toggleAutoRenewFilter()"
+                class="inline-flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-gray-600"
+                aria-pressed="false">
+            <i class="fas fa-sync-alt text-xs text-[#2d6a4f]"></i>
+            Auto-Renew Enabled
+        </button>
+        <span id="filterIndicator" class="hidden text-xs text-[#1a56db] font-medium">
+            <i class="fas fa-filter mr-1"></i> Filtered
+            <button onclick="clearAutoRenewFilter()" class="ml-1 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-[10px]"></i>
+            </button>
+        </span>
     </div>
 
     <!-- All Plans Tab -->
@@ -55,6 +71,8 @@
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">Bandwidth</th>
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Validity</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">Active Subs</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">Auto-Renew</th>
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                             <th class="text-center px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Actions</th>
                         </tr>
@@ -64,7 +82,8 @@
                             {% for plan in all_plans %}
                             <tr class="plan-row hover:bg-gray-50 transition-colors duration-150" 
                                 data-name="{{ plan.name.lower() }}" 
-                                data-desc="{{ (plan.description or '').lower() }}">
+                                data-desc="{{ (plan.description or '').lower() }}"
+                                data-auto-renew="{{ 'true' if plan.auto_renew_enabled|default(false) else 'false' }}">
                                 <td class="px-3 py-3">
                                     <div class="font-semibold text-gray-800">{{ plan.name }}</div>
                                     <div class="text-xs text-gray-500 mt-0.5">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
@@ -96,6 +115,23 @@
                                         {% endif %}
                                     </span>
                                 </td>
+                                <td class="px-3 py-3 hidden lg:table-cell">
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-md text-xs font-medium text-[#1a56db]">
+                                        <i class="fas fa-users text-[10px]"></i>
+                                        {{ plan.active_subscriptions_count|default(0) }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-3 hidden lg:table-cell">
+                                    {% if plan.auto_renew_enabled|default(false) %}
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#2d6a4f]/10 text-[#2d6a4f]">
+                                        <i class="fas fa-sync-alt text-[8px]"></i> Enabled
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
+                                        <i class="fas fa-ban text-[8px]"></i> Disabled
+                                    </span>
+                                    {% endif %}
+                                </td>
                                 <td class="px-3 py-3">
                                     <div class="flex flex-wrap gap-1">
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
@@ -114,12 +150,12 @@
                                 <td class="px-3 py-3">
                                     <div class="flex items-center justify-center gap-1">
                                         <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" 
-                                           class="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="Edit">
+                                           class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150" title="Edit plan">
                                             <i class="fas fa-edit text-sm"></i>
                                         </a>
                                         <button type="button" 
                                                 onclick="openDeleteModal('{{ plan.id }}', '{{ plan.name }}')"
-                                                class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Delete">
+                                                class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Deactivate plan">
                                             <i class="fas fa-trash text-sm"></i>
                                         </button>
                                     </div>
@@ -128,7 +164,7 @@
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="6" class="text-center py-8 text-gray-400">
+                                <td colspan="8" class="text-center py-8 text-gray-400">
                                     <i class="fas fa-tags text-3xl mb-2 block opacity-50"></i>
                                     <p class="text-sm">No plans created yet</p>
                                 </td>
@@ -151,6 +187,8 @@
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">Bandwidth</th>
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Validity</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">Active Subs</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">Auto-Renew</th>
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                             <th class="text-center px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Actions</th>
                         </tr>
@@ -160,7 +198,8 @@
                             {% for plan in hotspot_plans %}
                             <tr class="plan-row hover:bg-gray-50 transition-colors duration-150" 
                                 data-name="{{ plan.name.lower() }}" 
-                                data-desc="{{ (plan.description or '').lower() }}">
+                                data-desc="{{ (plan.description or '').lower() }}"
+                                data-auto-renew="{{ 'true' if plan.auto_renew_enabled|default(false) else 'false' }}">
                                 <td class="px-3 py-3">
                                     <div class="font-semibold text-gray-800">{{ plan.name }}</div>
                                     <div class="text-xs text-gray-500 mt-0.5">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
@@ -188,10 +227,28 @@
                                         {% endif %}
                                     </span>
                                 </td>
+                                <td class="px-3 py-3 hidden lg:table-cell">
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-md text-xs font-medium text-[#1a56db]">
+                                        <i class="fas fa-users text-[10px]"></i>
+                                        {{ plan.active_subscriptions_count|default(0) }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-3 hidden lg:table-cell">
+                                    {% if plan.auto_renew_enabled|default(false) %}
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#2d6a4f]/10 text-[#2d6a4f]">
+                                        <i class="fas fa-sync-alt text-[8px]"></i> Enabled
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
+                                        <i class="fas fa-ban text-[8px]"></i> Disabled
+                                    </span>
+                                    {% endif %}
+                                </td>
                                 <td class="px-3 py-3">
                                     <div class="flex flex-wrap gap-1">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
-                                            <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
+                                            {% if plan.is_active %}bg-emerald-100 text-emerald-700{% else %}bg-red-100 text-red-700{% endif %}">
+                                            <span class="w-1 h-1 rounded-full {{ 'bg-emerald-500' if plan.is_active else 'bg-red-500' }}"></span>
                                             {{ 'Active' if plan.is_active else 'Inactive' }}
                                         </span>
                                     </div>
@@ -199,12 +256,12 @@
                                 <td class="px-3 py-3">
                                     <div class="flex items-center justify-center gap-1">
                                         <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" 
-                                           class="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="Edit">
+                                           class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150" title="Edit plan">
                                             <i class="fas fa-edit text-sm"></i>
                                         </a>
                                         <button type="button" 
                                                 onclick="openDeleteModal('{{ plan.id }}', '{{ plan.name }}')"
-                                                class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Delete">
+                                                class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Deactivate plan">
                                             <i class="fas fa-trash text-sm"></i>
                                         </button>
                                     </div>
@@ -213,7 +270,7 @@
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="6" class="text-center py-8 text-gray-400">
+                                <td colspan="8" class="text-center py-8 text-gray-400">
                                     <i class="fas fa-wifi text-3xl mb-2 block opacity-50"></i>
                                     <p class="text-sm">No hotspot plans created yet</p>
                                 </td>
@@ -236,6 +293,8 @@
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">Bandwidth</th>
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Validity</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">Active Subs</th>
+                            <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">Auto-Renew</th>
                             <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                             <th class="text-center px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Actions</th>
                         </tr>
@@ -245,7 +304,8 @@
                             {% for plan in pppoe_plans %}
                             <tr class="plan-row hover:bg-gray-50 transition-colors duration-150" 
                                 data-name="{{ plan.name.lower() }}" 
-                                data-desc="{{ (plan.description or '').lower() }}">
+                                data-desc="{{ (plan.description or '').lower() }}"
+                                data-auto-renew="{{ 'true' if plan.auto_renew_enabled|default(false) else 'false' }}">
                                 <td class="px-3 py-3">
                                     <div class="font-semibold text-gray-800">{{ plan.name }}</div>
                                     <div class="text-xs text-gray-500 mt-0.5">{{ plan.description|truncate(50) if plan.description else 'No description' }}</div>
@@ -273,10 +333,28 @@
                                         {% endif %}
                                     </span>
                                 </td>
+                                <td class="px-3 py-3 hidden lg:table-cell">
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-md text-xs font-medium text-[#1a56db]">
+                                        <i class="fas fa-users text-[10px]"></i>
+                                        {{ plan.active_subscriptions_count|default(0) }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-3 hidden lg:table-cell">
+                                    {% if plan.auto_renew_enabled|default(false) %}
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#2d6a4f]/10 text-[#2d6a4f]">
+                                        <i class="fas fa-sync-alt text-[8px]"></i> Enabled
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
+                                        <i class="fas fa-ban text-[8px]"></i> Disabled
+                                    </span>
+                                    {% endif %}
+                                </td>
                                 <td class="px-3 py-3">
                                     <div class="flex flex-wrap gap-1">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
-                                            <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
+                                            {% if plan.is_active %}bg-emerald-100 text-emerald-700{% else %}bg-red-100 text-red-700{% endif %}">
+                                            <span class="w-1 h-1 rounded-full {{ 'bg-emerald-500' if plan.is_active else 'bg-red-500' }}"></span>
                                             {{ 'Active' if plan.is_active else 'Inactive' }}
                                         </span>
                                     </div>
@@ -284,12 +362,12 @@
                                 <td class="px-3 py-3">
                                     <div class="flex items-center justify-center gap-1">
                                         <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" 
-                                           class="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="Edit">
+                                           class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150" title="Edit plan">
                                             <i class="fas fa-edit text-sm"></i>
                                         </a>
                                         <button type="button" 
                                                 onclick="openDeleteModal('{{ plan.id }}', '{{ plan.name }}')"
-                                                class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Delete">
+                                                class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Deactivate plan">
                                             <i class="fas fa-trash text-sm"></i>
                                         </button>
                                     </div>
@@ -298,7 +376,7 @@
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="6" class="text-center py-8 text-gray-400">
+                                <td colspan="8" class="text-center py-8 text-gray-400">
                                     <i class="fas fa-network-wired text-3xl mb-2 block opacity-50"></i>
                                     <p class="text-sm">No PPPoE plans created yet</p>
                                 </td>
@@ -372,6 +450,7 @@
     
     // Search functionality
     const searchInput = document.getElementById('searchInput');
+    let autoRenewFilterActive = false;
     
     function filterPlans(searchTerm) {
         const activeTab = document.querySelector('.tab-content:not(.hidden)').id;
@@ -386,13 +465,38 @@
         rows.forEach(row => {
             const name = row.getAttribute('data-name') || '';
             const desc = row.getAttribute('data-desc') || '';
+            const autoRenew = row.getAttribute('data-auto-renew') === 'true';
             
-            if (name.includes(searchTerm) || desc.includes(searchTerm)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            const matchesSearch = name.includes(searchTerm) || desc.includes(searchTerm);
+            const matchesAutoRenew = !autoRenewFilterActive || autoRenew;
+            
+            row.style.display = (matchesSearch && matchesAutoRenew) ? '' : 'none';
         });
+    }
+    
+    function toggleAutoRenewFilter() {
+        autoRenewFilterActive = !autoRenewFilterActive;
+        const btn = document.getElementById('autoRenewFilterBtn');
+        const indicator = document.getElementById('filterIndicator');
+        
+        if (autoRenewFilterActive) {
+            btn.classList.add('bg-[#2d6a4f]/10', 'border-[#2d6a4f]/30', 'text-[#2d6a4f]');
+            btn.classList.remove('text-gray-600');
+            btn.setAttribute('aria-pressed', 'true');
+            indicator.classList.remove('hidden');
+        } else {
+            btn.classList.remove('bg-[#2d6a4f]/10', 'border-[#2d6a4f]/30', 'text-[#2d6a4f]');
+            btn.classList.add('text-gray-600');
+            btn.setAttribute('aria-pressed', 'false');
+            indicator.classList.add('hidden');
+        }
+        
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        filterPlans(searchTerm);
+    }
+    
+    function clearAutoRenewFilter() {
+        if (autoRenewFilterActive) toggleAutoRenewFilter();
     }
     
     if (searchInput) {

@@ -1,0 +1,371 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}Invoices - {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="p-2 sm:p-3 md:p-4 lg:p-5 space-y-3 sm:space-y-4">
+
+    <!-- Page Header -->
+    <div class="flex flex-wrap justify-between items-center gap-3">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">Invoices</h1>
+            <nav class="text-xs sm:text-sm mt-0.5">
+                <ol class="flex items-center gap-1 text-gray-500">
+                    <li><a href="{{ url_for('web.organization_dashboard', org_id=organization.id) }}" class="hover:text-[#1a56db]">Dashboard</a></li>
+                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li><a href="{{ url_for('billing_web.dashboard', org_id=organization.id) }}" class="hover:text-[#1a56db]">Billing</a></li>
+                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li class="text-gray-700">Invoices</li>
+                </ol>
+            </nav>
+        </div>
+        <!-- Bulk Actions -->
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="button" id="bulkReminderBtn"
+                    onclick="bulkSendReminders()"
+                    class="hidden inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm rounded-lg transition-colors duration-150">
+                <i class="fas fa-paper-plane text-xs"></i>
+                <span>Send Reminders</span>
+            </button>
+            <span id="selectedCount" class="hidden text-xs text-gray-500 font-medium"></span>
+        </div>
+    </div>
+
+    <!-- Period Filter Tabs -->
+    <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-1" role="tablist" aria-label="Invoice period">
+                {% set active_period = request.args.get('period', 'monthly') %}
+                <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period='daily') }}"
+                   role="tab" aria-selected="{{ 'true' if active_period == 'daily' else 'false' }}"
+                   class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
+                          {{ 'bg-[#1a56db] text-white shadow-sm' if active_period == 'daily' else 'text-gray-600 hover:bg-gray-100' }}">
+                    <i class="fas fa-calendar-day mr-1"></i> Daily
+                </a>
+                <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period='weekly') }}"
+                   role="tab" aria-selected="{{ 'true' if active_period == 'weekly' else 'false' }}"
+                   class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
+                          {{ 'bg-[#1a56db] text-white shadow-sm' if active_period == 'weekly' else 'text-gray-600 hover:bg-gray-100' }}">
+                    <i class="fas fa-calendar-week mr-1"></i> Weekly
+                </a>
+                <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period='monthly') }}"
+                   role="tab" aria-selected="{{ 'true' if active_period == 'monthly' else 'false' }}"
+                   class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
+                          {{ 'bg-[#1a56db] text-white shadow-sm' if active_period == 'monthly' else 'text-gray-600 hover:bg-gray-100' }}">
+                    <i class="fas fa-calendar-alt mr-1"></i> Monthly
+                </a>
+            </div>
+
+            <!-- Period Picker -->
+            <form method="GET" action="{{ url_for('billing_web.invoices', org_id=organization.id) }}"
+                  class="flex flex-wrap items-end gap-2">
+                <input type="hidden" name="period" value="{{ active_period }}">
+                {% if active_period == 'daily' %}
+                <div>
+                    <label class="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Date</label>
+                    <input type="date" name="date"
+                           value="{{ request.args.get('date', '') }}"
+                           class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]/20"
+                           aria-label="Select date">
+                </div>
+                {% elif active_period == 'weekly' %}
+                <div>
+                    <label class="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Week</label>
+                    <input type="week" name="week"
+                           value="{{ request.args.get('week', '') }}"
+                           class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]/20"
+                           aria-label="Select week">
+                </div>
+                {% else %}
+                <div>
+                    <label class="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Month</label>
+                    <input type="month" name="month"
+                           value="{{ request.args.get('month', '') }}"
+                           class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]/20"
+                           aria-label="Select month">
+                </div>
+                {% endif %}
+                <button type="submit"
+                        class="px-3 py-1.5 bg-[#2d6a4f] hover:bg-[#245a42] text-white text-sm font-medium rounded-lg transition-colors duration-150">
+                    <i class="fas fa-filter mr-1"></i> Apply
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div class="bg-white rounded-xl border border-gray-200 p-3 text-center card-hover">
+            <div class="text-xl font-bold text-gray-700">{{ invoice_stats.draft|default(0) }}</div>
+            <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Draft</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-3 text-center card-hover">
+            <div class="text-xl font-bold text-[#1a56db]">{{ invoice_stats.sent|default(0) }}</div>
+            <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Sent</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-3 text-center card-hover">
+            <div class="text-xl font-bold text-emerald-600">{{ invoice_stats.paid|default(0) }}</div>
+            <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Paid</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-3 text-center card-hover">
+            <div class="text-xl font-bold text-red-600">{{ invoice_stats.overdue|default(0) }}</div>
+            <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Overdue</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-3 text-center card-hover">
+            <div class="text-xl font-bold text-gray-400">{{ invoice_stats.cancelled|default(0) }}</div>
+            <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Cancelled</div>
+        </div>
+    </div>
+
+    <!-- Status Filter & Search -->
+    <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+        <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-wrap gap-1" role="group" aria-label="Filter by invoice status">
+                {% set status_filter = request.args.get('status', 'all') %}
+                <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period=active_period, status='all') }}"
+                   class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
+                          {{ 'bg-gray-800 text-white' if status_filter == 'all' else 'text-gray-600 hover:bg-gray-100' }}">
+                    All
+                </a>
+                <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period=active_period, status='paid') }}"
+                   class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
+                          {{ 'bg-emerald-600 text-white' if status_filter == 'paid' else 'text-gray-600 hover:bg-gray-100' }}">
+                    <i class="fas fa-check-circle mr-1"></i> Paid
+                </a>
+                <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period=active_period, status='pending') }}"
+                   class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
+                          {{ 'bg-[#1a56db] text-white' if status_filter == 'pending' else 'text-gray-600 hover:bg-gray-100' }}">
+                    <i class="fas fa-clock mr-1"></i> Pending
+                </a>
+                <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period=active_period, status='overdue') }}"
+                   class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
+                          {{ 'bg-red-600 text-white' if status_filter == 'overdue' else 'text-gray-600 hover:bg-gray-100' }}">
+                    <i class="fas fa-exclamation-triangle mr-1"></i> Overdue
+                </a>
+            </div>
+            <div class="relative ml-auto">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                <input type="text" id="invoiceSearch"
+                       class="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]/20 w-48"
+                       placeholder="Search invoice..."
+                       aria-label="Search invoices">
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices Table -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-3 py-3 w-8">
+                            <input type="checkbox" id="selectAllInvoices" onchange="toggleSelectAllInvoices(this)"
+                                   class="rounded border-gray-300 text-[#1a56db] focus:ring-[#1a56db]"
+                                   aria-label="Select all invoices">
+                        </th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Invoice #</th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Subscriber</th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">Amount</th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Issue Date</th>
+                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Due Date</th>
+                        <th class="text-center px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100" id="invoicesBody">
+                    {% if invoices %}
+                        {% for inv in invoices %}
+                        <tr class="invoice-row hover:bg-gray-50 transition-colors duration-150"
+                            data-number="{{ (inv.invoice_number or '')|lower }}"
+                            data-subscriber="{{ (inv.subscriber_name or '')|lower }}">
+                            <td class="px-3 py-3">
+                                <input type="checkbox" name="invoice_ids" value="{{ inv.id }}"
+                                       onchange="updateInvoiceBulkActions()"
+                                       class="inv-checkbox rounded border-gray-300 text-[#1a56db] focus:ring-[#1a56db]"
+                                       aria-label="Select invoice {{ inv.invoice_number }}">
+                            </td>
+                            <td class="px-3 py-3">
+                                <span class="font-mono text-xs font-semibold text-gray-700">
+                                    {{ inv.invoice_number or '—' }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 bg-[#1a56db]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-user text-[#1a56db] text-[10px]"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-800 text-xs">{{ inv.subscriber_name }}</div>
+                                        <div class="text-[10px] text-gray-400">{{ inv.plan_name or '—' }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-3 py-3 hidden sm:table-cell">
+                                <span class="font-semibold text-gray-800">KES {{ "{:,.0f}".format(inv.amount|default(0)) }}</span>
+                            </td>
+                            <td class="px-3 py-3">
+                                {% if inv.status == 'paid' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
+                                    <i class="fas fa-check-circle text-[8px]"></i> Paid
+                                </span>
+                                {% elif inv.status == 'sent' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-[#1a56db]">
+                                    <i class="fas fa-paper-plane text-[8px]"></i> Sent
+                                </span>
+                                {% elif inv.status == 'overdue' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">
+                                    <i class="fas fa-exclamation-triangle text-[8px]"></i> Overdue
+                                </span>
+                                {% elif inv.status == 'cancelled' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
+                                    <i class="fas fa-ban text-[8px]"></i> Cancelled
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
+                                    <i class="fas fa-file text-[8px]"></i> Draft
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-3 hidden md:table-cell text-xs text-gray-600">
+                                {{ inv.issue_date.strftime('%b %d, %Y') if inv.issue_date else '—' }}
+                            </td>
+                            <td class="px-3 py-3 hidden md:table-cell text-xs
+                                {% if inv.status == 'overdue' %}text-red-600 font-medium{% else %}text-gray-600{% endif %}">
+                                {{ inv.due_date.strftime('%b %d, %Y') if inv.due_date else '—' }}
+                            </td>
+                            <td class="px-3 py-3">
+                                <div class="flex items-center justify-center gap-1">
+                                    <a href="{{ url_for('billing_web.invoice_show', org_id=organization.id, invoice_id=inv.id) }}"
+                                       class="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition-colors duration-150"
+                                       title="View invoice">
+                                        <i class="fas fa-eye text-sm"></i>
+                                    </a>
+                                    {% if inv.status not in ['paid', 'cancelled'] %}
+                                    <button type="button"
+                                            onclick="sendInvoiceReminder('{{ inv.id }}', '{{ inv.subscriber_name|e }}')"
+                                            class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150"
+                                            title="Send reminder">
+                                        <i class="fas fa-paper-plane text-sm"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-12 text-gray-400">
+                                <i class="fas fa-file-invoice text-4xl mb-3 block opacity-30"></i>
+                                <p class="text-sm font-medium">No invoices found</p>
+                                <p class="text-xs mt-1">
+                                    {% if status_filter != 'all' %}
+                                    <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period=active_period) }}" class="text-[#1a56db] hover:underline">Clear filter</a>
+                                    {% else %}
+                                    Invoices will appear here once generated
+                                    {% endif %}
+                                </p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination and pagination.pages > 1 %}
+        <div class="flex justify-between items-center px-4 py-3 border-t border-gray-100">
+            <span class="text-xs text-gray-500">
+                Page {{ pagination.page }} of {{ pagination.pages }} · {{ pagination.total }} total
+            </span>
+            <div class="flex gap-1">
+                {% if pagination.has_prev %}
+                <a href="?page={{ pagination.page - 1 }}&period={{ active_period }}&status={{ status_filter }}"
+                   class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-chevron-left mr-1"></i> Prev
+                </a>
+                {% endif %}
+                {% if pagination.has_next %}
+                <a href="?page={{ pagination.page + 1 }}&period={{ active_period }}&status={{ status_filter }}"
+                   class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    Next <i class="fas fa-chevron-right ml-1"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Search
+    const invoiceSearch = document.getElementById('invoiceSearch');
+    if (invoiceSearch) {
+        invoiceSearch.addEventListener('input', function() {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll('#invoicesBody .invoice-row').forEach(row => {
+                const num = row.getAttribute('data-number') || '';
+                const sub = row.getAttribute('data-subscriber') || '';
+                row.style.display = (num.includes(q) || sub.includes(q)) ? '' : 'none';
+            });
+        });
+    }
+
+    // Select all
+    function toggleSelectAllInvoices(master) {
+        document.querySelectorAll('.inv-checkbox').forEach(cb => { cb.checked = master.checked; });
+        updateInvoiceBulkActions();
+    }
+
+    function updateInvoiceBulkActions() {
+        const checked = document.querySelectorAll('.inv-checkbox:checked');
+        const btn = document.getElementById('bulkReminderBtn');
+        const countEl = document.getElementById('selectedCount');
+        if (checked.length > 0) {
+            btn?.classList.remove('hidden');
+            countEl?.classList.remove('hidden');
+            if (countEl) countEl.textContent = `${checked.length} selected`;
+        } else {
+            btn?.classList.add('hidden');
+            countEl?.classList.add('hidden');
+        }
+    }
+
+    function bulkSendReminders() {
+        const checked = Array.from(document.querySelectorAll('.inv-checkbox:checked')).map(cb => cb.value);
+        if (checked.length === 0) return;
+        if (!confirm(`Send payment reminders for ${checked.length} invoice(s)?`)) return;
+
+        showLoading();
+        fetch(`/api/v1/billing/invoices/bulk-remind`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: checked })
+        })
+        .then(r => r.json())
+        .then(data => {
+            hideLoading();
+            showToast(data.message || 'Reminders sent', data.success ? 'success' : 'error');
+        })
+        .catch(() => {
+            hideLoading();
+            showToast('Failed to send reminders', 'error');
+        });
+    }
+
+    function sendInvoiceReminder(invoiceId, name) {
+        if (!confirm(`Send payment reminder to ${name}?`)) return;
+        showLoading();
+        fetch(`/api/v1/billing/invoices/${invoiceId}/remind`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                hideLoading();
+                showToast(data.message || 'Reminder sent', data.success ? 'success' : 'error');
+            })
+            .catch(() => {
+                hideLoading();
+                showToast('Failed to send reminder', 'error');
+            });
+    }
+</script>
+{% endblock %}
