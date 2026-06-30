@@ -6,6 +6,9 @@ from datetime import datetime
 import json
 from markupsafe import Markup
 
+from celery import Celery
+from celery.schedules import crontab
+
 from app.core.security.jwt import JWTService
 from app.core.config.settings import config
 from app.core.database.session import db
@@ -15,6 +18,72 @@ from app.core.exceptions.handlers import register_error_handlers
 
 # Import all models
 from app.models import *
+
+
+def _make_celery(app: Flask) -> Celery:
+    """
+    Create and configure a Celery instance bound to the Flask app.
+
+    The instance is stored at ``app.extensions['celery']`` so it can be
+    retrieved from anywhere that has access to the current app.
+    """
+    celery = Celery(app.import_name)
+
+    # Pull broker / backend from Flask config (set from env in settings.py)
+    celery.conf.broker_url = app.config.get('CELERY_BROKER_URL')
+    celery.conf.result_backend = app.config.get('CELERY_RESULT_BACKEND')
+    celery.conf.task_serializer = app.config.get('CELERY_TASK_SERIALIZER', 'json')
+    celery.conf.result_serializer = app.config.get('CELERY_RESULT_SERIALIZER', 'json')
+    celery.conf.accept_content = app.config.get('CELERY_ACCEPT_CONTENT', ['json'])
+    celery.conf.timezone = app.config.get('CELERY_TIMEZONE', 'UTC')
+    celery.conf.task_track_started = app.config.get('CELERY_TASK_TRACK_STARTED', True)
+    celery.conf.task_time_limit = app.config.get('CELERY_TASK_TIME_LIMIT', 300)
+
+    # -----------------------------------------------------------------------
+    # Beat schedule — convert the settings dict to proper Celery schedule
+    # objects (crontab / timedelta).
+    # -----------------------------------------------------------------------
+    raw_schedule = app.config.get('CELERY_BEAT_SCHEDULE', {})
+    beat_schedule = {}
+
+    for name, entry in raw_schedule.items():
+        sched = entry.get('schedule')
+        if isinstance(sched, dict) and sched.get('type') == 'crontab':
+            # Build a crontab object from the dict
+            beat_schedule[name] = {
+                'task': entry['task'],
+                'schedule': crontab(
+                    hour=sched.get('hour', '*'),
+                    minute=sched.get('minute', '*'),
+                    day_of_week=sched.get('day_of_week', '*'),
+                    day_of_month=sched.get('day_of_month', '*'),
+                    month_of_year=sched.get('month_of_year', '*'),
+                ),
+                'options': entry.get('options', {}),
+            }
+        else:
+            # Numeric schedule (seconds interval)
+            beat_schedule[name] = {
+                'task': entry['task'],
+                'schedule': sched,
+                'options': entry.get('options', {}),
+            }
+
+    celery.conf.beat_schedule = beat_schedule
+
+    # Register the task module so shared_task decorators are discovered
+    celery.conf.imports = ('app.tasks',)
+
+    # Store on app so it can be retrieved via current_app.extensions['celery']
+    app.extensions['celery'] = celery
+
+    logger.info("Celery initialized with broker: %s", celery.conf.broker_url)
+    return celery
+
+
+# Module-level Celery instance — used by ``celery -A app.celery_app worker``
+# It is fully configured only after create_app() is called.
+celery_app = Celery(__name__)
 
 
 def create_app(config_name=None):
@@ -35,6 +104,14 @@ def create_app(config_name=None):
     db.init_app(app)
     Migrate(app, db)
     redis_client.init_app(app)
+
+    # -------------------------------------------------------------------------
+    # CELERY
+    # -------------------------------------------------------------------------
+    celery = _make_celery(app)
+    # Update the module-level instance so ``celery -A app.celery_app`` works
+    celery_app.config_from_object(celery.conf)
+    celery_app.conf.update(celery.conf)
 
     # CORS
     cors_origins = app.config.get('CORS_ORIGINS', ['http://localhost:3000'])

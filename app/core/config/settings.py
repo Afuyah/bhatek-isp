@@ -211,6 +211,88 @@ class Config:
     CELERY_TIMEZONE = os.environ.get('TIMEZONE', 'UTC')
     CELERY_TASK_TRACK_STARTED = True
     CELERY_TASK_TIME_LIMIT = int(os.environ.get('CELERY_TASK_TIME_LIMIT', 300))
+
+    # Celery Beat Schedule
+    # All times are UTC.  Adjust TIMEZONE env var if you need local-time scheduling.
+    CELERY_BEAT_SCHEDULE = {
+        # ----------------------------------------------------------------
+        # Plan management — runs once per day
+        # ----------------------------------------------------------------
+        'check-plan-expiration': {
+            'task': 'app.tasks.check_plan_expiration',
+            'schedule': {
+                'type': 'crontab',
+                'hour': 2,
+                'minute': 0,
+            },
+            'options': {'expires': 3600},
+        },
+        'disconnect-expired-plans': {
+            'task': 'app.tasks.disconnect_expired_plans',
+            'schedule': {
+                'type': 'crontab',
+                'hour': 3,
+                'minute': 0,
+            },
+            'options': {'expires': 3600},
+        },
+        'auto-renew-plans': {
+            'task': 'app.tasks.auto_renew_plans',
+            'schedule': {
+                'type': 'crontab',
+                'hour': 4,
+                'minute': 0,
+            },
+            'options': {'expires': 3600},
+        },
+
+        # ----------------------------------------------------------------
+        # Router health monitoring
+        # ----------------------------------------------------------------
+        'sync-router-health': {
+            'task': 'app.tasks.sync_router_health',
+            'schedule': 1800,  # every 30 minutes (seconds)
+            'options': {'expires': 1800},
+        },
+        'check-router-errors': {
+            'task': 'app.tasks.check_router_errors',
+            'schedule': 3600,  # every hour (seconds)
+            'options': {'expires': 3600},
+        },
+
+        # ----------------------------------------------------------------
+        # Billing reports
+        # ----------------------------------------------------------------
+        'generate-daily-billing-report': {
+            'task': 'app.tasks.generate_daily_billing_report',
+            'schedule': {
+                'type': 'crontab',
+                'hour': 23,
+                'minute': 59,
+            },
+            'options': {'expires': 3600},
+        },
+        'generate-weekly-billing-report': {
+            'task': 'app.tasks.generate_weekly_billing_report',
+            'schedule': {
+                'type': 'crontab',
+                'hour': 23,
+                'minute': 59,
+                'day_of_week': 1,  # Monday
+            },
+            'options': {'expires': 3600},
+        },
+        'generate-monthly-billing-report': {
+            'task': 'app.tasks.generate_monthly_billing_report',
+            'schedule': {
+                'type': 'crontab',
+                'hour': 23,
+                'minute': 59,
+                'day_of_month': 1,
+            },
+            'options': {'expires': 3600},
+        },
+    }
     
     # Logging Configuration
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
