@@ -36,18 +36,28 @@ Route Structure:
         │   └── GET    /coupons/validate               Validate coupon
         │
         ├── Invoices
-        │   └── POST   /invoices/generate              Generate invoice
+        │   ├── POST   /invoices/generate              Generate invoice
+        │   ├── GET    /invoices/daily                 Daily invoices  ?date=YYYY-MM-DD
+        │   ├── GET    /invoices/weekly                Weekly invoices ?week=N&year=YYYY
+        │   └── GET    /invoices/monthly               Monthly invoices ?month=N&year=YYYY
         │
         ├── Maintenance
         │   └── POST   /maintenance/expire             Run expiry checks
         │
         └── Stats
-            └── GET    /stats                          Dashboard statistics
+            ├── GET    /stats                          Dashboard statistics
+            ├── GET    /stats/daily                    Daily stats   ?date=YYYY-MM-DD
+            ├── GET    /stats/weekly                   Weekly stats  ?week=N&year=YYYY
+            └── GET    /stats/monthly                  Monthly stats ?month=N&year=YYYY
 """
 
-from flask import Blueprint
+from flask import Blueprint, request, g, jsonify
+from datetime import datetime
+
 from app.modules.billing.controller import BillingController
+from app.modules.billing.billing_service import BillingPeriodService
 from app.core.security.jwt import token_required, permission_required
+from app.core.logging.logger import logger
 
 billing_bp = Blueprint('billing', __name__, url_prefix='/api/v1/billing')
 controller = BillingController()
@@ -268,3 +278,265 @@ def run_expiry_checks():
 def get_billing_stats():
     """GET /api/v1/billing/stats — Dashboard statistics"""
     return controller.get_billing_stats()
+
+
+# =========================================================================
+# BILLING PERIOD — INVOICE ROUTES
+# =========================================================================
+
+_period_service = BillingPeriodService()
+
+
+@billing_bp.route('/invoices/daily', methods=['GET'])
+@token_required
+def get_daily_invoices():
+    """
+    GET /api/v1/billing/invoices/daily?date=2026-06-30
+
+    Return invoices issued on the given date (defaults to today).
+    """
+    try:
+        date_str = request.args.get('date')
+        date = datetime.strptime(date_str, '%Y-%m-%d') if date_str else None
+
+        invoices = _period_service.get_invoices_by_period(
+            period='daily',
+            date=date,
+            organization_id=g.organization_id,
+        )
+        revenue = _period_service.get_revenue_by_period(
+            period='daily',
+            date=date,
+            organization_id=g.organization_id,
+        )
+        return jsonify({
+            'success': True,
+            'period': 'daily',
+            'date': date_str or datetime.utcnow().strftime('%Y-%m-%d'),
+            'invoices': [inv.to_dict() for inv in invoices],
+            'count': len(invoices),
+            'revenue': revenue,
+        }), 200
+    except ValueError as exc:
+        return jsonify({
+            'success': False,
+            'error': f'Invalid date format: {exc}. Use YYYY-MM-DD.',
+            'error_code': 'INVALID_DATE',
+        }), 400
+    except Exception as exc:
+        logger.error(f"get_daily_invoices error: {exc}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error',
+            'error_code': 'INTERNAL_ERROR',
+        }), 500
+
+
+@billing_bp.route('/invoices/weekly', methods=['GET'])
+@token_required
+def get_weekly_invoices():
+    """
+    GET /api/v1/billing/invoices/weekly?week=26&year=2026
+
+    Return invoices issued during the given ISO week (defaults to current week).
+    """
+    try:
+        week = request.args.get('week', type=int)
+        year = request.args.get('year', type=int)
+
+        invoices = _period_service.get_invoices_by_period(
+            period='weekly',
+            week=week,
+            year=year,
+            organization_id=g.organization_id,
+        )
+        revenue = _period_service.get_revenue_by_period(
+            period='weekly',
+            week=week,
+            year=year,
+            organization_id=g.organization_id,
+        )
+        return jsonify({
+            'success': True,
+            'period': 'weekly',
+            'week': week,
+            'year': year,
+            'invoices': [inv.to_dict() for inv in invoices],
+            'count': len(invoices),
+            'revenue': revenue,
+        }), 200
+    except Exception as exc:
+        logger.error(f"get_weekly_invoices error: {exc}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error',
+            'error_code': 'INTERNAL_ERROR',
+        }), 500
+
+
+@billing_bp.route('/invoices/monthly', methods=['GET'])
+@token_required
+def get_monthly_invoices():
+    """
+    GET /api/v1/billing/invoices/monthly?month=6&year=2026
+
+    Return invoices issued during the given calendar month (defaults to current month).
+    """
+    try:
+        month = request.args.get('month', type=int)
+        year = request.args.get('year', type=int)
+
+        invoices = _period_service.get_invoices_by_period(
+            period='monthly',
+            month=month,
+            year=year,
+            organization_id=g.organization_id,
+        )
+        revenue = _period_service.get_revenue_by_period(
+            period='monthly',
+            month=month,
+            year=year,
+            organization_id=g.organization_id,
+        )
+        return jsonify({
+            'success': True,
+            'period': 'monthly',
+            'month': month,
+            'year': year,
+            'invoices': [inv.to_dict() for inv in invoices],
+            'count': len(invoices),
+            'revenue': revenue,
+        }), 200
+    except Exception as exc:
+        logger.error(f"get_monthly_invoices error: {exc}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error',
+            'error_code': 'INTERNAL_ERROR',
+        }), 500
+
+
+# =========================================================================
+# BILLING PERIOD — STATS ROUTES
+# =========================================================================
+
+@billing_bp.route('/stats/daily', methods=['GET'])
+@token_required
+def get_daily_stats():
+    """
+    GET /api/v1/billing/stats/daily?date=2026-06-30
+
+    Return aggregated billing stats for a single day.
+    """
+    try:
+        date_str = request.args.get('date')
+        date = datetime.strptime(date_str, '%Y-%m-%d') if date_str else None
+
+        revenue = _period_service.get_revenue_by_period(
+            period='daily', date=date, organization_id=g.organization_id
+        )
+        subscriptions = _period_service.get_subscription_stats_by_period(
+            period='daily', date=date, organization_id=g.organization_id
+        )
+        vouchers = _period_service.get_voucher_stats_by_period(
+            period='daily', date=date, organization_id=g.organization_id
+        )
+        return jsonify({
+            'success': True,
+            'period': 'daily',
+            'date': date_str or datetime.utcnow().strftime('%Y-%m-%d'),
+            'revenue': revenue,
+            'subscriptions': subscriptions,
+            'vouchers': vouchers,
+        }), 200
+    except ValueError as exc:
+        return jsonify({
+            'success': False,
+            'error': f'Invalid date format: {exc}. Use YYYY-MM-DD.',
+            'error_code': 'INVALID_DATE',
+        }), 400
+    except Exception as exc:
+        logger.error(f"get_daily_stats error: {exc}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error',
+            'error_code': 'INTERNAL_ERROR',
+        }), 500
+
+
+@billing_bp.route('/stats/weekly', methods=['GET'])
+@token_required
+def get_weekly_stats():
+    """
+    GET /api/v1/billing/stats/weekly?week=26&year=2026
+
+    Return aggregated billing stats for an ISO week.
+    """
+    try:
+        week = request.args.get('week', type=int)
+        year = request.args.get('year', type=int)
+
+        revenue = _period_service.get_revenue_by_period(
+            period='weekly', week=week, year=year, organization_id=g.organization_id
+        )
+        subscriptions = _period_service.get_subscription_stats_by_period(
+            period='weekly', week=week, year=year, organization_id=g.organization_id
+        )
+        vouchers = _period_service.get_voucher_stats_by_period(
+            period='weekly', week=week, year=year, organization_id=g.organization_id
+        )
+        return jsonify({
+            'success': True,
+            'period': 'weekly',
+            'week': week,
+            'year': year,
+            'revenue': revenue,
+            'subscriptions': subscriptions,
+            'vouchers': vouchers,
+        }), 200
+    except Exception as exc:
+        logger.error(f"get_weekly_stats error: {exc}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error',
+            'error_code': 'INTERNAL_ERROR',
+        }), 500
+
+
+@billing_bp.route('/stats/monthly', methods=['GET'])
+@token_required
+def get_monthly_stats():
+    """
+    GET /api/v1/billing/stats/monthly?month=6&year=2026
+
+    Return aggregated billing stats for a calendar month.
+    """
+    try:
+        month = request.args.get('month', type=int)
+        year = request.args.get('year', type=int)
+
+        revenue = _period_service.get_revenue_by_period(
+            period='monthly', month=month, year=year, organization_id=g.organization_id
+        )
+        subscriptions = _period_service.get_subscription_stats_by_period(
+            period='monthly', month=month, year=year, organization_id=g.organization_id
+        )
+        vouchers = _period_service.get_voucher_stats_by_period(
+            period='monthly', month=month, year=year, organization_id=g.organization_id
+        )
+        return jsonify({
+            'success': True,
+            'period': 'monthly',
+            'month': month,
+            'year': year,
+            'revenue': revenue,
+            'subscriptions': subscriptions,
+            'vouchers': vouchers,
+        }), 200
+    except Exception as exc:
+        logger.error(f"get_monthly_stats error: {exc}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error',
+            'error_code': 'INTERNAL_ERROR',
+        }), 500
