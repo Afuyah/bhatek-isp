@@ -398,12 +398,54 @@ def voucher_batch_detail(org_id, batch_id, current_user=None, current_organizati
         flash('Batch not found', 'danger')
         return redirect(url_for('billing_web.vouchers', org_id=org_id))
 
+# INVOICE ROUTES
+@billing_web_bp.route('/invoices')
+@web_billing_access_required
+def invoices(org_id, current_user=None, current_organization=None):
+    """List invoices — data loaded client-side via API"""
+
+    period = request.args.get('period', 'monthly')
+    status = request.args.get('status', 'all')
+
+    # Invoice stats placeholders (implement from payment module when available)
+    invoice_stats = {
+        'draft': 0,
+        'sent': 0,
+        'paid': 0,
+        'overdue': 0,
+        'cancelled': 0,
+    }
+
+    return render_template(
+        'web/billing/invoices/index.html',
+        organization=current_organization,
+        user=current_user,
+        invoices=[],
+        invoice_stats=invoice_stats,
+        pagination=None,
+    )
+
+
+@billing_web_bp.route('/invoices/<invoice_id>')
+@web_billing_access_required
+def invoice_show(org_id, invoice_id, current_user=None, current_organization=None):
+    """Invoice detail page"""
+
+    return render_template(
+        'web/billing/invoices/show.html',
+        organization=current_organization,
+        user=current_user,
+        invoice=None,
+        invoice_id=invoice_id,
+    )
+
+
 # SUBSCRIPTION ROUTES
 @billing_web_bp.route('/subscriptions')
 @web_billing_access_required
 def subscriptions(org_id, current_user=None, current_organization=None):
     """List all active subscriptions"""
-    
+
     expiring_soon = billing_service.subscription_repo.get_expiring_soon(current_organization.id, 7)
     
     return render_template(
@@ -412,6 +454,34 @@ def subscriptions(org_id, current_user=None, current_organization=None):
         user=current_user,
         expiring_soon=expiring_soon
     )
+
+
+@billing_web_bp.route('/subscriptions/<subscription_id>')
+@web_billing_access_required
+def subscription_show(org_id, subscription_id, current_user=None, current_organization=None):
+    """Subscription detail page"""
+
+    try:
+        sub_uuid = UUID(subscription_id)
+        subscription = billing_service.subscription_repo.get_by_id(sub_uuid, current_organization.id)
+        if not subscription:
+            flash('Subscription not found', 'danger')
+            return redirect(url_for('billing_web.subscriptions', org_id=org_id))
+
+        return render_template(
+            'web/billing/subscriptions/show.html',
+            organization=current_organization,
+            user=current_user,
+            subscription=subscription,
+        )
+    except ValueError:
+        flash('Invalid subscription ID format', 'danger')
+        return redirect(url_for('billing_web.subscriptions', org_id=org_id))
+    except Exception as e:
+        logger.error(f"Error loading subscription {subscription_id}: {e}", exc_info=True)
+        flash('Subscription not found', 'danger')
+        return redirect(url_for('billing_web.subscriptions', org_id=org_id))
+
 
 # DASHBOARD
 @billing_web_bp.route('/dashboard')
