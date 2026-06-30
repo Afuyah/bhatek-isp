@@ -14,6 +14,11 @@ Router Health
     sync_router_health          — every 30 minutes
     check_router_errors         — every hour
 
+Session & RADIUS Cleanup
+    cleanup_expired_sessions    — every hour
+    cleanup_radius_cache        — every 2 hours
+    expire_subscriptions_cascade — every 15 minutes (full cascade: RADIUS + sessions + MikroTik)
+
 Billing Reports
     generate_daily_billing_report   — daily  @ 23:59 UTC
     generate_weekly_billing_report  — Monday @ 23:59 UTC
@@ -227,6 +232,39 @@ def disconnect_expired_plans(self) -> Dict[str, Any]:
                                 f"MikroTik disconnect failed for {subscriber.id}: {mt_exc}"
                             )
 
+                        # 4. Terminate active sessions
+                        try:
+                            from app.models.session import ActiveSession
+                            from app.integrations.radius.radius_cache import RadiusCache
+                            active_sessions = ActiveSession.query.filter_by(
+                                subscriber_id=subscriber.id,
+                                status='active',
+                            ).all()
+                            for sess in active_sessions:
+                                sess.status = 'expired'
+                                sess.termination_cause = 'subscription_expired'
+                                if sess.session_id:
+                                    RadiusCache.delete_session(sess.session_id)
+                        except Exception as sess_exc:
+                            logger.warning(
+                                f"Session termination failed for {subscriber.id}: {sess_exc}"
+                            )
+
+                        # 5. Invalidate RADIUS cache
+                        try:
+                            from app.integrations.radius.radius_cache import RadiusCache
+                            username = (
+                                subscriber.phone
+                                if subscriber.subscriber_type == 'hotspot'
+                                else subscriber.username
+                            )
+                            if username:
+                                RadiusCache.delete_auth_data(
+                                    username, str(subscriber.organization_id)
+                                )
+                        except Exception:
+                            pass
+
                     db.session.commit()
                     disconnected += 1
 
@@ -350,11 +388,22 @@ def auto_renew_plans(self) -> Dict[str, Any]:
                         from app.integrations.radius.radius_sync_service import (
                             RadiusSyncService,
                         )
+                        from app.integrations.radius.radius_cache import RadiusCache
                         subscriber = Subscriber.query.get(sub.subscriber_id)
                         if subscriber:
                             RadiusSyncService().update_subscription_in_radius(
                                 subscriber, sub, plan
                             )
+                            # Invalidate auth cache so next auth picks up new expiry
+                            username = (
+                                subscriber.phone
+                                if subscriber.subscriber_type == 'hotspot'
+                                else subscriber.username
+                            )
+                            if username:
+                                RadiusCache.delete_auth_data(
+                                    username, str(subscriber.organization_id)
+                                )
                     except Exception as radius_exc:
                         logger.warning(
                             f"RADIUS update failed on auto-renew for {sub.id}: "
@@ -700,6 +749,264 @@ def generate_weekly_billing_report(self) -> Dict[str, Any]:
 
         except Exception as exc:
             logger.error(f"generate_weekly_billing_report failed: {exc}", exc_info=True)
+            raise self.retry(exc=exc)
+
+
+@shared_task(
+    bind=True,
+    name='app.tasks.cleanup_expired_sessions',
+    max_retries=2,
+    default_retry_delay=120,
+    acks_late=True,
+)
+def cleanup_expired_sessions(self) -> Dict[str, Any]:
+    """
+    Remove sessions that have passed their expiry_time and are still
+    marked 'active'.  Also purges stale RADIUS cache entries.
+
+    Runs every hour.
+    """
+    from app import create_app
+    app = create_app()
+
+    with app.app_context():
+        try:
+            from app.core.database.session import db
+            from app.models.session import ActiveSession
+            from datetime import datetime
+
+            now = datetime.utcnow()
+
+            # Find expired-but-still-active sessions
+            expired = ActiveSession.query.filter(
+                ActiveSession.status == 'active',
+                ActiveSession.expiry_time <= now,
+            ).all()
+
+            cleaned = 0
+            errors = 0
+
+            for sess in expired:
+                try:
+                    sess.status = 'expired'
+                    sess.termination_cause = 'subscription_expired'
+                    db.session.commit()
+
+                    # Purge from RADIUS cache
+                    try:
+                        from app.integrations.radius.radius_cache import RadiusCache
+                        RadiusCache.delete_session(sess.session_id)
+                    except Exception:
+                        pass
+
+                    cleaned += 1
+                except Exception as exc:
+                    db.session.rollback()
+                    logger.warning(f"Session cleanup failed for {sess.id}: {exc}")
+                    errors += 1
+
+            result = {
+                'expired_found': len(expired),
+                'cleaned': cleaned,
+                'errors': errors,
+                'timestamp': now.isoformat(),
+            }
+            logger.info(f"cleanup_expired_sessions completed: {result}")
+            return result
+
+        except Exception as exc:
+            logger.error(f"cleanup_expired_sessions failed: {exc}", exc_info=True)
+            raise self.retry(exc=exc)
+
+
+@shared_task(
+    bind=True,
+    name='app.tasks.cleanup_radius_cache',
+    max_retries=2,
+    default_retry_delay=120,
+    acks_late=True,
+)
+def cleanup_radius_cache(self) -> Dict[str, Any]:
+    """
+    Invalidate RADIUS auth cache for subscribers whose subscriptions
+    have expired.  Ensures FreeRADIUS re-checks the database on next
+    auth attempt rather than serving a stale cached ACCEPT.
+
+    Runs every 2 hours.
+    """
+    from app import create_app
+    app = create_app()
+
+    with app.app_context():
+        try:
+            from app.models.billing import Subscription
+            from app.models.subscriber import Subscriber
+            from app.integrations.radius.radius_cache import RadiusCache
+            from datetime import datetime
+
+            now = datetime.utcnow()
+
+            # Subscriptions that expired in the last 2 hours (cache may still be warm)
+            recently_expired = Subscription.query.filter(
+                Subscription.status.in_(['expired', 'disconnected', 'cancelled']),
+                Subscription.expiry_time >= now - timedelta(hours=2),
+                Subscription.expiry_time <= now,
+            ).all()
+
+            invalidated = 0
+            for sub in recently_expired:
+                try:
+                    subscriber = Subscriber.query.get(sub.subscriber_id)
+                    if subscriber:
+                        username = (
+                            subscriber.phone
+                            if subscriber.subscriber_type == 'hotspot'
+                            else subscriber.username
+                        )
+                        if username:
+                            RadiusCache.delete_auth_data(
+                                username, str(subscriber.organization_id)
+                            )
+                            invalidated += 1
+                except Exception as exc:
+                    logger.warning(f"Cache invalidation failed for sub {sub.id}: {exc}")
+
+            result = {
+                'recently_expired': len(recently_expired),
+                'cache_invalidated': invalidated,
+                'timestamp': now.isoformat(),
+            }
+            logger.info(f"cleanup_radius_cache completed: {result}")
+            return result
+
+        except Exception as exc:
+            logger.error(f"cleanup_radius_cache failed: {exc}", exc_info=True)
+            raise self.retry(exc=exc)
+
+
+@shared_task(
+    bind=True,
+    name='app.tasks.expire_subscriptions_cascade',
+    max_retries=3,
+    default_retry_delay=300,
+    acks_late=True,
+)
+def expire_subscriptions_cascade(self) -> Dict[str, Any]:
+    """
+    Full cascade expiry: for each expired active subscription —
+        1. Mark subscription as 'expired'
+        2. Remove from RADIUS (radcheck / radreply / radusergroup)
+        3. Terminate active sessions
+        4. Disconnect from MikroTik (best-effort)
+        5. Invalidate RADIUS cache
+        6. Send expiry notification email
+
+    Runs every 15 minutes to catch near-real-time expirations.
+    """
+    from app import create_app
+    app = create_app()
+
+    with app.app_context():
+        try:
+            from app.core.database.session import db
+            from app.models.billing import Subscription
+            from app.models.subscriber import Subscriber
+            from app.models.session import ActiveSession
+            from app.integrations.radius.radius_sync_service import RadiusSyncService
+            from app.integrations.radius.radius_cache import RadiusCache
+            from app.integrations.mikrotik.client import MikroTikClient
+
+            now = datetime.utcnow()
+
+            expired_subs = Subscription.query.filter(
+                Subscription.status == 'active',
+                Subscription.expiry_time <= now,
+            ).all()
+
+            radius_sync = RadiusSyncService()
+            mikrotik = MikroTikClient()
+            processed = 0
+            errors = 0
+
+            for sub in expired_subs:
+                try:
+                    subscriber = Subscriber.query.get(sub.subscriber_id)
+
+                    # 1. Mark expired
+                    sub.status = 'expired'
+                    sub.cancelled_at = now
+                    sub.cancellation_reason = 'expired'
+                    db.session.commit()
+
+                    if subscriber:
+                        username = (
+                            subscriber.phone
+                            if subscriber.subscriber_type == 'hotspot'
+                            else subscriber.username
+                        )
+
+                        # 2. Remove from RADIUS
+                        try:
+                            radius_sync.remove_subscriber_from_radius(subscriber)
+                        except Exception as re:
+                            logger.warning(f"RADIUS removal failed for {subscriber.id}: {re}")
+
+                        # 3. Terminate active sessions
+                        try:
+                            active_sessions = ActiveSession.query.filter_by(
+                                subscriber_id=subscriber.id,
+                                status='active',
+                            ).all()
+                            for sess in active_sessions:
+                                sess.status = 'expired'
+                                sess.termination_cause = 'subscription_expired'
+                                if sess.session_id:
+                                    RadiusCache.delete_session(sess.session_id)
+                            db.session.commit()
+                        except Exception as se:
+                            logger.warning(f"Session termination failed for {subscriber.id}: {se}")
+
+                        # 4. Disconnect from MikroTik (best-effort)
+                        try:
+                            _disconnect_from_mikrotik(mikrotik, subscriber)
+                        except Exception:
+                            pass
+
+                        # 5. Invalidate RADIUS cache
+                        try:
+                            if username:
+                                RadiusCache.delete_auth_data(
+                                    username, str(subscriber.organization_id)
+                                )
+                        except Exception:
+                            pass
+
+                        # 6. Send expiry notification
+                        try:
+                            from app.integrations.email_service import send_expiration_reminder_email
+                            if subscriber.email:
+                                send_expiration_reminder_email(subscriber, 0)
+                        except Exception:
+                            pass
+
+                    processed += 1
+
+                except Exception as exc:
+                    db.session.rollback()
+                    logger.error(f"Cascade expiry failed for sub {sub.id}: {exc}", exc_info=True)
+                    errors += 1
+
+            result = {
+                'expired_found': len(expired_subs),
+                'processed': processed,
+                'errors': errors,
+                'timestamp': now.isoformat(),
+            }
+            logger.info(f"expire_subscriptions_cascade completed: {result}")
+            return result
+
+        except Exception as exc:
+            logger.error(f"expire_subscriptions_cascade failed: {exc}", exc_info=True)
             raise self.retry(exc=exc)
 
 

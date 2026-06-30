@@ -268,37 +268,60 @@ def organization_dashboard(org_id):
     from app.modules.organization.service import OrganizationService
     org_service = OrganizationService()
     organization = org_service.get_organization(UUID(org_id))
-    
-    # Get statistics
+
+    # ── Real stats from ReportingService ──────────────────────────────────
+    from app.modules.reporting.service import ReportingService
+    reporting_service = ReportingService()
+    try:
+        overview = reporting_service.get_dashboard_overview(organization.id)
+    except Exception as e:
+        logger.warning(f"Dashboard overview failed: {e}")
+        overview = {}
+
     stats = {
-        'total_subscribers': 0,
-        'subscriber_growth': 12,
-        'active_sessions': 0,
-        'session_growth': 8,
-        'monthly_revenue': 0,
-        'revenue_growth': 15,
-        'active_routers': 0,
-        'online_routers': 0,
+        'total_subscribers': overview.get('active_subscribers', 0),
+        'subscriber_growth': 0,
+        'active_sessions': overview.get('active_sessions', 0),
+        'session_growth': 0,
+        'monthly_revenue': overview.get('monthly_revenue', 0),
+        'revenue_growth': overview.get('revenue_growth_pct', 0),
+        'active_routers': overview.get('total_routers', 0),
+        'online_routers': overview.get('online_routers', 0),
+        'expiring_soon': overview.get('expiring_soon', 0),
+        'new_subscribers_month': overview.get('new_subscribers_month', 0),
+        'currency': overview.get('currency', 'KES'),
     }
-    
-    # Get expiring subscriptions
+
+    # ── Supporting data ───────────────────────────────────────────────────
     from app.modules.billing.service import BillingService
     billing_service = BillingService()
     expiring_subscriptions = billing_service.subscription_repo.get_expiring_soon(organization.id, 7)
-    
-    # Get recent voucher batches
+
+    # Recent voucher batches
     voucher_batches = billing_service.voucher_batch_repo.get_by_organization(organization.id, 0, 5)
-    
-    # Get recent routers
+
+    # Recent routers
     from app.modules.router.service import RouterService
     router_service = RouterService()
     recent_routers = router_service.get_routers_by_organization(organization.id, 0, 5)
-    
-    # Get recent access points
+
+    # Recent access points
     from app.modules.access_point.service import AccessPointService
     ap_service = AccessPointService()
     recent_aps = ap_service.get_access_points_by_organization(organization.id, 0, 5)
-    
+
+    # Recent activity
+    try:
+        recent_activity = reporting_service.get_recent_activity(organization.id, limit=10)
+    except Exception:
+        recent_activity = {'new_subscribers': [], 'recent_payments': [], 'recently_expired': []}
+
+    # Plan distribution for charts
+    try:
+        plan_distribution = reporting_service.get_plan_distribution(organization.id)
+    except Exception:
+        plan_distribution = []
+
     return render_template(
         'web/organization/dashboard.html',
         organization=organization,
@@ -308,16 +331,40 @@ def organization_dashboard(org_id):
         expiring_subscriptions=expiring_subscriptions,
         voucher_batches=voucher_batches,
         recent_routers=recent_routers,
-        recent_aps=recent_aps
+        recent_aps=recent_aps,
+        recent_activity=recent_activity,
+        plan_distribution=plan_distribution,
     )
 
 
 @web_bp.route('/super-admin')
 @web_super_admin_required
 def super_admin_dashboard():
-    """Super admin dashboard"""
+    """Super admin dashboard with ISP-wide stats"""
     user = g.current_user
-    return render_template('web/super_admin/dashboard.html', user=user)
+    from app.modules.reporting.service import ReportingService
+    try:
+        isp_stats = ReportingService().get_isp_wide_overview()
+    except Exception as e:
+        logger.warning(f"ISP overview failed: {e}")
+        isp_stats = {}
+    return render_template('web/super_admin/dashboard.html', user=user, isp_stats=isp_stats)
+
+
+@web_bp.route('/organization/<org_id>/reports')
+@web_organization_member_required
+def organization_reports(org_id):
+    """Organization reports page"""
+    user = g.current_user
+    from app.modules.organization.service import OrganizationService
+    org_service = OrganizationService()
+    organization = org_service.get_organization(UUID(org_id))
+    return render_template(
+        'web/organization/reports.html',
+        organization=organization,
+        user=user,
+        now=datetime.now(),
+    )
 
 
 @web_bp.route('/logout')

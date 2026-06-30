@@ -261,6 +261,25 @@ class Config:
         },
 
         # ----------------------------------------------------------------
+        # Session & RADIUS cleanup
+        # ----------------------------------------------------------------
+        'cleanup-expired-sessions': {
+            'task': 'app.tasks.cleanup_expired_sessions',
+            'schedule': 3600,  # every hour
+            'options': {'expires': 3600},
+        },
+        'cleanup-radius-cache': {
+            'task': 'app.tasks.cleanup_radius_cache',
+            'schedule': 7200,  # every 2 hours
+            'options': {'expires': 7200},
+        },
+        'expire-subscriptions-cascade': {
+            'task': 'app.tasks.expire_subscriptions_cascade',
+            'schedule': 900,  # every 15 minutes
+            'options': {'expires': 900},
+        },
+
+        # ----------------------------------------------------------------
         # Billing reports
         # ----------------------------------------------------------------
         'generate-daily-billing-report': {
