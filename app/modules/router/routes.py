@@ -283,3 +283,19 @@ def get_radius_secret(router_id):
 @token_required
 def delete_pppoe_server(router_id, pppoe_id):
     return controller.delete_pppoe_server(router_id, pppoe_id)
+
+
+# FULL SYNC & RADIUS TEST
+
+@router_bp.route('/<router_id>/full-sync', methods=['POST'])
+@token_required
+def full_sync(router_id):
+    """POST /api/v1/routers/<router_id>/full-sync — Re-sync WireGuard IP, NAS, RADIUS."""
+    return controller.full_sync(router_id)
+
+
+@router_bp.route('/<router_id>/radius/test', methods=['GET'])
+@token_required
+def test_radius(router_id):
+    """GET /api/v1/routers/<router_id>/radius/test — Verify RADIUS configuration."""
+    return controller.test_radius(router_id)

@@ -1276,4 +1276,123 @@ class RouterController:
                 "success": False,
                 "error": "Internal server error",
                 "error_code": "INTERNAL_ERROR",
-            }), 500    
+            }), 500
+
+
+    # =========================================================================
+    # FULL SYNC — re-syncs WireGuard IP, NAS entry, and RADIUS in one call
+    # =========================================================================
+
+    @token_required
+    def full_sync(self, router_id):
+        """
+        POST /api/v1/routers/<router_id>/full-sync
+
+        Re-syncs all components for a router:
+            1. Ensures NAS entry exists and nasname matches WireGuard IP
+            2. Re-runs RADIUS configuration on MikroTik
+            3. Syncs hotspot/PPPoE server records
+            4. Updates router status
+        """
+        try:
+            router_uuid = UUID(router_id)
+            router = self.service.get_router(router_uuid, g.organization_id)
+
+            results = {
+                'router_id': router_id,
+                'router_name': router.name,
+                'steps': {},
+            }
+
+            # Step 1: Sync NAS IP
+            try:
+                self.service._sync_nas_ip(router)
+                from app.models.nas import NAS
+                nas = NAS.query.filter_by(router_id=router_uuid, is_active=True).first()
+                if not nas:
+                    nas = self.service._create_nas_entry(router, router.radius_secret)
+                    from app.core.database.session import db
+                    db.session.commit()
+                results['steps']['nas_sync'] = {
+                    'success': True,
+                    'nas_ip': nas.nasname if nas else None,
+                }
+            except Exception as e:
+                results['steps']['nas_sync'] = {'success': False, 'error': str(e)}
+
+            # Step 2: Re-configure RADIUS on MikroTik
+            try:
+                radius_result = self.service.retry_radius_configuration(
+                    router_uuid, g.organization_id
+                )
+                results['steps']['radius_config'] = radius_result
+            except Exception as e:
+                results['steps']['radius_config'] = {'success': False, 'error': str(e)}
+
+            # Step 3: Sync hotspot/PPPoE servers
+            try:
+                sync_result = self.service.sync_router(router_uuid, g.organization_id)
+                results['steps']['server_sync'] = sync_result
+            except Exception as e:
+                results['steps']['server_sync'] = {'success': False, 'error': str(e)}
+
+            all_ok = all(
+                v.get('success', False)
+                for v in results['steps'].values()
+            )
+            results['success'] = all_ok
+            results['message'] = (
+                'Full sync completed successfully' if all_ok
+                else 'Full sync completed with some errors — check steps for details'
+            )
+            return jsonify(results), 200 if all_ok else 207
+
+        except ValueError:
+            return jsonify({
+                'success': False, 'error': 'Invalid router ID format',
+                'error_code': 'INVALID_UUID',
+            }), 400
+        except NotFoundError as e:
+            return jsonify({
+                'success': False, 'error': str(e), 'error_code': 'NOT_FOUND',
+            }), 404
+        except Exception as e:
+            logger.error(f"Full sync error: {e}", exc_info=True)
+            return jsonify({
+                'success': False, 'error': 'Internal server error',
+                'error_code': 'INTERNAL_ERROR',
+            }), 500
+
+    # =========================================================================
+    # RADIUS TEST — verifies RADIUS sync for a router
+    # =========================================================================
+
+    @token_required
+    def test_radius(self, router_id):
+        """
+        GET /api/v1/routers/<router_id>/radius/test
+
+        Verifies RADIUS configuration:
+            - NAS entry exists and IP matches
+            - RADIUS entries exist on MikroTik
+        """
+        try:
+            router_uuid = UUID(router_id)
+            result = self.service.check_radius_status(router_uuid, g.organization_id)
+            result['success'] = True
+            return jsonify(result), 200
+        except ValueError:
+            return jsonify({
+                'success': False, 'error': 'Invalid router ID format',
+                'error_code': 'INVALID_UUID',
+            }), 400
+        except NotFoundError as e:
+            return jsonify({
+                'success': False, 'error': str(e), 'error_code': 'NOT_FOUND',
+            }), 404
+        except Exception as e:
+            logger.error(f"RADIUS test error: {e}", exc_info=True)
+            return jsonify({
+                'success': False, 'error': 'Internal server error',
+                'error_code': 'INTERNAL_ERROR',
+            }), 500

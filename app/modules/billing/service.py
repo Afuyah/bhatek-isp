@@ -516,6 +516,28 @@ class BillingService:
                     username, str(organization_id)
                 )
 
+            # Terminate active sessions
+            try:
+                from app.models.session import ActiveSession
+                from app.integrations.radius.radius_cache import RadiusCache
+                active_sessions = ActiveSession.query.filter_by(
+                    subscriber_id=subscriber.id,
+                    status='active',
+                ).all()
+                for sess in active_sessions:
+                    sess.status = 'cancelled'
+                    sess.termination_cause = 'subscription_cancelled'
+                    if sess.session_id:
+                        RadiusCache.delete_session(sess.session_id)
+                db.session.commit()
+                if active_sessions:
+                    logger.info(
+                        f"Terminated {len(active_sessions)} sessions on cancel "
+                        f"for subscriber {subscriber.id}"
+                    )
+            except Exception as e:
+                logger.warning(f"Session termination on cancel failed: {e}")
+
         logger.info(
             f"Cancelled subscription {subscription_id} | "
             f"reason={reason} | org={organization_id}"

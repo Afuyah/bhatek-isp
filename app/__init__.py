@@ -214,6 +214,7 @@ def create_app(config_name=None):
         '/verify-email',
         '/dashboard',
         '/super-admin',
+        '/reports',
 
         # Public hotspot captive portal
         '/hotspot',
@@ -255,6 +256,8 @@ def create_app(config_name=None):
         '/api/v1/routers/*/radius/retry',
         '/api/v1/routers/*/radius/secret/generate',
         '/api/v1/routers/*/radius/regenerate',
+        '/api/v1/routers/*/radius/test',
+        '/api/v1/routers/*/full-sync',
     ]
 
     # Apply middleware stack
@@ -319,7 +322,8 @@ def create_app(config_name=None):
     from app.modules.payment.routes import payment_bp
     from app.modules.session.routes import session_bp
     from app.modules.hotspot.routes import hotspot_bp
-    
+    from app.modules.reporting.routes import reports_bp
+
     app.register_blueprint(hotspot_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     app.register_blueprint(org_bp, url_prefix='/api/v1/organizations')
@@ -330,6 +334,7 @@ def create_app(config_name=None):
     app.register_blueprint(billing_bp, url_prefix='/api/v1/billing')
     app.register_blueprint(payment_bp, url_prefix='/api/v1/payments')
     app.register_blueprint(session_bp, url_prefix='/api/v1/sessions')
+    app.register_blueprint(reports_bp)
 
     # -------------------------------------------------------------------------
     # WEB BLUEPRINTS
