@@ -10,6 +10,6 @@ COPY . .
 ENV FLASK_APP=wsgi.py
 ENV FLASK_ENV=production
 
-EXPOSE 5000
+EXPOSE 8080
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "wsgi:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "wsgi:app"]
