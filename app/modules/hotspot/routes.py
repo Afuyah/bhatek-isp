@@ -53,11 +53,11 @@ def portal_default():
     
     router = Router.query.filter_by(ip_address=nas_ip, is_active=True).first()
     if not router:
-        return render_template('hotspot/error.html', message='Router not found'), 404
+        return render_template('web/hotspot/error.html', message='Router not found'), 404
     
     org = Organization.query.get(router.organization_id)
     if not org:
-        return render_template('hotspot/error.html', message='Organization not found'), 404
+        return render_template('web/hotspot/error.html', message='Organization not found'), 404
     
     return redirect(url_for('hotspot.portal', org_slug=org.slug, **request.args))
 
@@ -76,7 +76,7 @@ def portal(org_slug):
     """
     org = _get_org_by_slug(org_slug)
     if not org:
-        return render_template('hotspot/error.html',
+        return render_template('web/hotspot/error.html',
             message='WiFi service not found',
             org_name='Unknown'), 404
 
@@ -89,7 +89,7 @@ def portal(org_slug):
     plans = billing.get_public_plans(org.id)
 
     return render_template(
-        'hotspot/portal.html',
+        'web/hotspot/portal.html',
         theme=theme,
         plans=plans,
         client_mac=client_mac,

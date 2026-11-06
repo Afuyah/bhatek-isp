@@ -34,7 +34,7 @@ services:
 
   celery:
     build: .
-    command: celery -A app.tasks.celery_app worker --loglevel=info
+    command: celery -A app.celery_app worker --loglevel=info
     environment:
       - DATABASE_URL=postgresql://isp_user:isp_password@db:5432/isp_db
       - REDIS_URL=redis://redis:6379/0

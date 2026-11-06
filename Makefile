@@ -41,7 +41,7 @@ docker-down:
 	docker-compose down
 
 celery-worker:
-	celery -A app.tasks.celery_app:celery worker --loglevel=info --concurrency=4
+	celery -A app.celery_app worker --loglevel=info --concurrency=4
 
 celery-beat:
-	celery -A app.tasks.celery_app:celery beat --loglevel=info
+	celery -A app.celery_app beat --loglevel=info
