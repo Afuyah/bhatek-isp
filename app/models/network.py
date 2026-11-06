@@ -17,7 +17,7 @@ class Network(BaseModel, OrganizationMixin, TimestampMixin):
     
     # Relationships
     organization = relationship('Organization', back_populates='networks')
-    routers = relationship('Router', back_populates='network', lazy='dynamic')
+    routers = relationship('Router', back_populates='network')
     
     __table_args__ = (
         Index('idx_networks_org_slug', 'organization_id', 'slug', unique=True),

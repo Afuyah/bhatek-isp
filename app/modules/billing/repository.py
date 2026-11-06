@@ -144,7 +144,12 @@ class PlanRepository:
                 return False
             
             # Check if plan has active subscriptions
-            if plan.subscriptions and plan.subscriptions.filter(Subscription.status == 'active').count() > 0:
+            active_subscriptions = (
+                db.session.query(Subscription.id)
+                .filter(Subscription.plan_id == plan_id, Subscription.status == 'active')
+                .count()
+            )
+            if active_subscriptions > 0:
                 if soft_delete:
                     plan.is_active = False
                     logger.warning(f"Plan {plan_id} deactivated due to active subscriptions")

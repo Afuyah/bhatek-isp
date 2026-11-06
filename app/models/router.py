@@ -59,9 +59,9 @@ class Router(BaseModel, OrganizationMixin, TimestampMixin):
     # Relationships
     organization = relationship('Organization', back_populates='routers')
     network = relationship('Network', back_populates='routers')
-    hotspot_servers = relationship('HotspotServer', back_populates='router', lazy='dynamic')
-    pppoe_servers = relationship('PPPoeServer', back_populates='router', lazy='dynamic')
-    access_points = relationship('AccessPoint', back_populates='router', lazy='dynamic')
+    hotspot_servers = relationship('HotspotServer', back_populates='router')
+    pppoe_servers = relationship('PPPoeServer', back_populates='router')
+    access_points = relationship('AccessPoint', back_populates='router')
     nas_entry = relationship('NAS', foreign_keys=[nas_entry_id], uselist=False)
     
     def __repr__(self):
@@ -126,7 +126,7 @@ class HotspotServer(BaseModel, OrganizationMixin, TimestampMixin):
     is_active = Column(Boolean, default=True, index=True)
     
     router = relationship('Router', back_populates='hotspot_servers')
-    access_points = relationship('AccessPoint', back_populates='hotspot_server', lazy='dynamic')
+    access_points = relationship('AccessPoint', back_populates='hotspot_server')
 
 
 class PPPoeServer(BaseModel, OrganizationMixin, TimestampMixin):

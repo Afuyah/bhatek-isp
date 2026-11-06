@@ -37,22 +37,20 @@ class Organization(BaseModel, TimestampMixin):
     users = relationship(
         'User',
         foreign_keys='User.organization_id',
-        back_populates='organization',
-        lazy='dynamic'
+        back_populates='organization'
     )
     
     organization_users = relationship(
         'OrganizationUser',
         back_populates='organization',
-        lazy='dynamic',
         cascade='all, delete-orphan'
     )
 
-    networks = relationship('Network', back_populates='organization', lazy='dynamic')
-    routers = relationship('Router', back_populates='organization', lazy='dynamic')
-    subscribers = relationship('Subscriber', back_populates='organization', lazy='dynamic')
-    payment_accounts = relationship('PaymentAccount', back_populates='organization', lazy='dynamic')
-    plans = relationship('Plan', back_populates='organization', lazy='dynamic')
+    networks = relationship('Network', back_populates='organization')
+    routers = relationship('Router', back_populates='organization')
+    subscribers = relationship('Subscriber', back_populates='organization')
+    payment_accounts = relationship('PaymentAccount', back_populates='organization')
+    plans = relationship('Plan', back_populates='organization')
 
     def __repr__(self):
         return f'<Organization {self.name}>'

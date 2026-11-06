@@ -124,9 +124,9 @@ class Plan(BaseModel, OrganizationMixin, TimestampMixin):
     # RELATIONSHIPS
     # ========================================================================
     organization = relationship('Organization', back_populates='plans')
-    subscriptions = relationship('Subscription', back_populates='plan', lazy='dynamic')
-    vouchers = relationship('Voucher', back_populates='plan', lazy='dynamic')
-    invoices = relationship('Invoice', back_populates='plan', lazy='dynamic')
+    subscriptions = relationship('Subscription', back_populates='plan')
+    vouchers = relationship('Voucher', back_populates='plan')
+    invoices = relationship('Invoice', back_populates='plan')
     
     # ========================================================================
     # INDEXES
@@ -237,9 +237,9 @@ class Subscription(BaseModel, OrganizationMixin, TimestampMixin):
     # ========================================================================
     subscriber = relationship('Subscriber', back_populates='subscriptions')
     plan = relationship('Plan', back_populates='subscriptions')
-    active_sessions = relationship('ActiveSession', back_populates='subscription', lazy='dynamic')
-    transactions = relationship('Transaction', back_populates='subscription', lazy='dynamic')
-    invoices = relationship('Invoice', back_populates='subscription', lazy='dynamic')
+    active_sessions = relationship('ActiveSession', back_populates='subscription')
+    transactions = relationship('Transaction', back_populates='subscription')
+    invoices = relationship('Invoice', back_populates='subscription')
     
     # ========================================================================
     # INDEXES
@@ -352,8 +352,8 @@ class Invoice(BaseModel, OrganizationMixin, TimestampMixin):
     subscriber = relationship('Subscriber', back_populates='invoices')
     subscription = relationship('Subscription', back_populates='invoices')
     plan = relationship('Plan', back_populates='invoices')
-    transactions = relationship('Transaction', back_populates='invoice', lazy='dynamic')
-    invoice_items = relationship('InvoiceItem', back_populates='invoice', lazy='dynamic', cascade='all, delete-orphan')
+    transactions = relationship('Transaction', back_populates='invoice')
+    invoice_items = relationship('InvoiceItem', back_populates='invoice', cascade='all, delete-orphan')
     
     # ========================================================================
     # INDEXES
@@ -602,7 +602,7 @@ class VoucherBatch(BaseModel, OrganizationMixin, TimestampMixin):
     
     # Relationships
     plan = relationship('Plan')
-    vouchers = relationship('Voucher', back_populates='batch', lazy='dynamic')
+    vouchers = relationship('Voucher', back_populates='batch')
     
     def to_dict(self):
         return {

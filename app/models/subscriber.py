@@ -43,12 +43,12 @@ class Subscriber(BaseModel, OrganizationMixin, TimestampMixin):
     # RELATIONSHIPS
     # ========================================================================
     organization = relationship('Organization', back_populates='subscribers')
-    devices = relationship('Device', back_populates='subscriber', lazy='dynamic')
-    subscriptions = relationship('Subscription', back_populates='subscriber', lazy='dynamic')
-    active_sessions = relationship('ActiveSession', back_populates='subscriber', lazy='dynamic')
-    vouchers = relationship('Voucher', back_populates='used_by_subscriber', lazy='dynamic')
-    transactions = relationship('Transaction', back_populates='subscriber', lazy='dynamic')
-    invoices = relationship('Invoice', back_populates='subscriber', lazy='dynamic')
+    devices = relationship('Device', back_populates='subscriber')
+    subscriptions = relationship('Subscription', back_populates='subscriber')
+    active_sessions = relationship('ActiveSession', back_populates='subscriber')
+    vouchers = relationship('Voucher', back_populates='used_by_subscriber')
+    transactions = relationship('Transaction', back_populates='subscriber')
+    invoices = relationship('Invoice', back_populates='subscriber')
     
     # ========================================================================
     # INDEXES

@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
 from app.models.network import Network
+from app.models.router import Router
 from app.core.database.session import db
 from app.core.logging.logger import logger
 
@@ -122,7 +123,12 @@ class NetworkRepository:
                 return False
             
             # Check if network has associated routers
-            if network.routers.count() > 0:
+            router_count = (
+                db.session.query(Router.id)
+                .filter(Router.network_id == network_id)
+                .count()
+            )
+            if router_count > 0:
                 logger.warning(f"Cannot delete network {network_id} with active routers")
                 return False
             

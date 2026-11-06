@@ -25,7 +25,7 @@ class PaymentAccount(BaseModel, OrganizationMixin, TimestampMixin):
     
     # Relationships
     organization = relationship('Organization', back_populates='payment_accounts')
-    transactions = relationship('Transaction', back_populates='payment_account', lazy='dynamic')
+    transactions = relationship('Transaction', back_populates='payment_account')
     
     __table_args__ = (
         Index('idx_payment_accounts_org', 'organization_id'),
