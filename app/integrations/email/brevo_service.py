@@ -1,7 +1,6 @@
-import requests
-import json
 from flask import current_app
 from app.core.logging.logger import logger
+from app.integrations.email.transport import send
 import threading
 import time
 
@@ -28,89 +27,11 @@ class BrevoEmailService:
             logger.warning("Brevo email service initialized in MOCK mode")
             self.use_api = False
     
-    def send_email(self, to_email: str, subject: str, html_content: str, 
+    def send_email(self, to_email: str, subject: str, html_content: str,
                    text_content: str = None, reply_to: str = None) -> bool:
-        """Send email using Brevo (API or SMTP)"""
-        
-        if self.use_api and self.api_key:
-            return self._send_via_api(to_email, subject, html_content, text_content, reply_to)
-        elif self.smtp_user and self.smtp_password:
-            return self._send_via_smtp(to_email, subject, html_content, text_content)
-        else:
-            # Mock mode for development
-            logger.info(f"[BREVO_MOCK] Email to {to_email}: {subject}")
-            return True
-    
-    def _send_via_api(self, to_email: str, subject: str, html_content: str, 
-                      text_content: str = None, reply_to: str = None) -> bool:
-        """Send email using Brevo REST API"""
-        try:
-            url = "https://api.brevo.com/v3/smtp/email"
-            
-            payload = {
-                "sender": {"name": self.from_name, "email": self.from_email},
-                "to": [{"email": to_email}],
-                "subject": subject,
-                "htmlContent": html_content
-            }
-            
-            if text_content:
-                payload["textContent"] = text_content
-            
-            if reply_to:
-                payload["replyTo"] = {"email": reply_to}
-            
-            headers = {
-                "accept": "application/json",
-                "api-key": self.api_key,
-                "content-type": "application/json"
-            }
-            
-            response = requests.post(url, json=payload, headers=headers, timeout=30)
-            
-            if response.status_code == 201:
-                logger.info(f"Email sent via Brevo API to {to_email}")
-                return True
-            else:
-                logger.error(f"Brevo API error: {response.status_code} - {response.text}")
-                return False
-                
-        except requests.exceptions.Timeout:
-            logger.error(f"Brevo API timeout for {to_email}")
-            return False
-        except Exception as e:
-            logger.error(f"Brevo API exception: {e}", exc_info=True)
-            return False
-    
-    def _send_via_smtp(self, to_email: str, subject: str, html_content: str, 
-                       text_content: str = None) -> bool:
-        """Send email using Brevo SMTP relay"""
-        try:
-            import smtplib
-            from email.mime.text import MIMEText
-            from email.mime.multipart import MIMEMultipart
-            
-            msg = MIMEMultipart('alternative')
-            msg['From'] = f"{self.from_name} <{self.from_email}>"
-            msg['To'] = to_email
-            msg['Subject'] = subject
-            
-            if text_content:
-                msg.attach(MIMEText(text_content, 'plain'))
-            msg.attach(MIMEText(html_content, 'html'))
-            
-            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=30) as server:
-                server.starttls()
-                server.login(self.smtp_user, self.smtp_password)
-                server.send_message(msg)
-            
-            logger.info(f"Email sent via Brevo SMTP to {to_email}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Brevo SMTP error: {e}", exc_info=True)
-            return False
-    
+        """Send email using the shared transport (Brevo API -> SMTP -> mock)."""
+        return send(to_email, subject, html_content, text_content)
+
     def send_verification_email(self, to_email: str, verification_url: str) -> bool:
         """Send email verification link"""
         subject = "Verify Your Email - Bhatek Solution"
