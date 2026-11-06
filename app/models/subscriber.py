@@ -120,7 +120,7 @@ class Subscriber(BaseModel, OrganizationMixin, TimestampMixin):
 class Device(BaseModel, OrganizationMixin, TimestampMixin):
     __tablename__ = 'devices'
     
-    subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id', ondelete='CASCADE'), nullable=False)
+    subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id', ondelete='CASCADE'), nullable=False, index=True)
     mac_address = Column(MACADDR, nullable=False)
     device_name = Column(String(255), nullable=True)
     device_type = Column(String(50), nullable=True)  # phone, laptop, router, etc.

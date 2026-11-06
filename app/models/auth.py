@@ -35,7 +35,7 @@ class User(BaseModel, TimestampMixin):
     locked_until = Column(DateTime)
     
     # Self-reference
-    created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'))
+    created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), index=True)
 
    
     creator = relationship('User',   remote_side='User.id',   foreign_keys=[created_by],  backref='created_users' )
@@ -129,7 +129,7 @@ class RefreshToken(BaseModel):
     __tablename__ = 'refresh_tokens'
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     token = Column(String(2048
         ), unique=True, nullable=False)
     session_id = Column(String(36), nullable=True, index=True)
@@ -164,8 +164,8 @@ class RefreshToken(BaseModel):
 class AuditLog(BaseModel):
     __tablename__ = 'audit_logs'
     
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'))
-    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id'))
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), index=True)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id'), index=True)
     subscriber_id = Column(UUID(as_uuid=True))
     
     action = Column(String(100), nullable=False)

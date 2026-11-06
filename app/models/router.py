@@ -10,7 +10,7 @@ class Router(BaseModel, OrganizationMixin, TimestampMixin):
     __tablename__ = 'routers'
     
     # Basic Information
-    network_id = Column(UUID(as_uuid=True), ForeignKey('networks.id'))
+    network_id = Column(UUID(as_uuid=True), ForeignKey('networks.id'), index=True)
     name = Column(String(255), nullable=False)
     model = Column(String(100))
     firmware_version = Column(String(50))
@@ -110,7 +110,7 @@ class Router(BaseModel, OrganizationMixin, TimestampMixin):
 class HotspotServer(BaseModel, OrganizationMixin, TimestampMixin):
     __tablename__ = 'hotspot_servers'
     
-    router_id = Column(UUID(as_uuid=True), ForeignKey('routers.id', ondelete='CASCADE'), nullable=False)
+    router_id = Column(UUID(as_uuid=True), ForeignKey('routers.id', ondelete='CASCADE'), nullable=False, index=True)
     name = Column(String(255), nullable=False)
     hotspot_id = Column(String(50), nullable=False)
     interface = Column(String(50))
@@ -132,7 +132,7 @@ class HotspotServer(BaseModel, OrganizationMixin, TimestampMixin):
 class PPPoeServer(BaseModel, OrganizationMixin, TimestampMixin):
     __tablename__ = 'pppoe_servers'
     
-    router_id = Column(UUID(as_uuid=True), ForeignKey('routers.id', ondelete='CASCADE'), nullable=False)
+    router_id = Column(UUID(as_uuid=True), ForeignKey('routers.id', ondelete='CASCADE'), nullable=False, index=True)
     name = Column(String(255), nullable=False)
     interface = Column(String(50))
     service_name = Column(String(100))

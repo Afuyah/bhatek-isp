@@ -9,12 +9,12 @@ from app.core.database.mixins import OrganizationMixin
 class ActiveSession(BaseModel, OrganizationMixin):
     __tablename__ = 'active_sessions'
     
-    subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id'), nullable=True)
-    voucher_id = Column(UUID(as_uuid=True), ForeignKey('vouchers.id'), nullable=True)
-    subscription_id = Column(UUID(as_uuid=True), ForeignKey('subscriptions.id'), nullable=True)
-    router_id = Column(UUID(as_uuid=True), ForeignKey('routers.id'), nullable=True)
-    hotspot_server_id = Column(UUID(as_uuid=True), ForeignKey('hotspot_servers.id'), nullable=True)
-    pppoe_server_id = Column(UUID(as_uuid=True), ForeignKey('pppoe_servers.id'), nullable=True)
+    subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id'), nullable=True, index=True)
+    voucher_id = Column(UUID(as_uuid=True), ForeignKey('vouchers.id'), nullable=True, index=True)
+    subscription_id = Column(UUID(as_uuid=True), ForeignKey('subscriptions.id'), nullable=True, index=True)
+    router_id = Column(UUID(as_uuid=True), ForeignKey('routers.id'), nullable=True, index=True)
+    hotspot_server_id = Column(UUID(as_uuid=True), ForeignKey('hotspot_servers.id'), nullable=True, index=True)
+    pppoe_server_id = Column(UUID(as_uuid=True), ForeignKey('pppoe_servers.id'), nullable=True, index=True)
     access_point_id = Column(UUID(as_uuid=True), ForeignKey('access_points.id'), nullable=True, index=True)
     
     session_type = Column(String(20), nullable=False)  # hotspot, pppoe

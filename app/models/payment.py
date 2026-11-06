@@ -55,10 +55,10 @@ class Transaction(BaseModel, OrganizationMixin):
     """Payment transactions - SINGLE SOURCE OF TRUTH"""
     __tablename__ = 'transactions'
     
-    subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id'))
-    subscription_id = Column(UUID(as_uuid=True), ForeignKey('subscriptions.id'))
-    invoice_id = Column(UUID(as_uuid=True), ForeignKey('invoices.id'))
-    payment_account_id = Column(UUID(as_uuid=True), ForeignKey('payment_accounts.id'))
+    subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id'), index=True)
+    subscription_id = Column(UUID(as_uuid=True), ForeignKey('subscriptions.id'), index=True)
+    invoice_id = Column(UUID(as_uuid=True), ForeignKey('invoices.id'), index=True)
+    payment_account_id = Column(UUID(as_uuid=True), ForeignKey('payment_accounts.id'), index=True)
     
     transaction_reference = Column(String(255), nullable=False, unique=True, index=True)
     mpesa_receipt = Column(String(50), index=True)
@@ -149,14 +149,14 @@ class Refund(BaseModel, OrganizationMixin, TimestampMixin):
     """Refund records for transactions"""
     __tablename__ = 'refunds'
     
-    transaction_id = Column(UUID(as_uuid=True), ForeignKey('transactions.id'), nullable=False)
+    transaction_id = Column(UUID(as_uuid=True), ForeignKey('transactions.id'), nullable=False, index=True)
     refund_reference = Column(String(100), nullable=False, unique=True, index=True)
     amount = Column(DECIMAL(10, 2), nullable=False)
     reason = Column(String(255))
     status = Column(String(20), default='pending')  # pending, completed, failed
     mpesa_refund_receipt = Column(String(50))
     processed_at = Column(DateTime)
-    processed_by = Column(UUID(as_uuid=True), ForeignKey('users.id'))
+    processed_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), index=True)
     
     # Relationships
     transaction = relationship('Transaction')

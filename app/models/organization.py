@@ -61,14 +61,14 @@ class Organization(BaseModel, TimestampMixin):
 class OrganizationUser(BaseModel):
     __tablename__ = 'organization_users'
     
-    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id', ondelete='CASCADE'), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     
     role = Column(String(50), nullable=False)
     is_primary = Column(Boolean, default=False)
     joined_at = Column(DateTime, default=datetime.utcnow)
     
-    invited_by = Column(UUID(as_uuid=True), ForeignKey('users.id'))
+    invited_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), index=True)
 
     organization = relationship(
         'Organization',
@@ -94,7 +94,7 @@ class OrganizationUser(BaseModel):
 class OrganizationSetting(BaseModel):
     __tablename__ = 'organization_settings'
     
-    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id', ondelete='CASCADE'), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id', ondelete='CASCADE'), nullable=False, index=True)
     key = Column(String(100), nullable=False)
     value = Column(JSON)
     is_encrypted = Column(Boolean, default=False)

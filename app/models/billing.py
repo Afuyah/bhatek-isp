@@ -201,8 +201,8 @@ class Subscription(BaseModel, OrganizationMixin, TimestampMixin):
     # ========================================================================
     # RELATIONSHIPS
     # ========================================================================
-    subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id', ondelete='CASCADE'), nullable=False)
-    plan_id = Column(UUID(as_uuid=True), ForeignKey('plans.id'), nullable=False)
+    subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id', ondelete='CASCADE'), nullable=False, index=True)
+    plan_id = Column(UUID(as_uuid=True), ForeignKey('plans.id'), nullable=False, index=True)
     
     # ========================================================================
     # STATUS & TIME
@@ -311,9 +311,9 @@ class Invoice(BaseModel, OrganizationMixin, TimestampMixin):
     # ========================================================================
     # RELATIONSHIPS
     # ========================================================================
-    subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id'), nullable=True)
-    subscription_id = Column(UUID(as_uuid=True), ForeignKey('subscriptions.id'), nullable=True)
-    plan_id = Column(UUID(as_uuid=True), ForeignKey('plans.id'), nullable=True)
+    subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id'), nullable=True, index=True)
+    subscription_id = Column(UUID(as_uuid=True), ForeignKey('subscriptions.id'), nullable=True, index=True)
+    plan_id = Column(UUID(as_uuid=True), ForeignKey('plans.id'), nullable=True, index=True)
     
     # ========================================================================
     # FINANCIALS
@@ -400,7 +400,7 @@ class InvoiceItem(BaseModel):
     """Line items for invoices"""
     __tablename__ = 'invoice_items'
     
-    invoice_id = Column(UUID(as_uuid=True), ForeignKey('invoices.id', ondelete='CASCADE'), nullable=False)
+    invoice_id = Column(UUID(as_uuid=True), ForeignKey('invoices.id', ondelete='CASCADE'), nullable=False, index=True)
     description = Column(String(255), nullable=False)
     quantity = Column(Integer, default=1)
     unit_price = Column(DECIMAL(10, 2), nullable=False)
@@ -426,8 +426,8 @@ class Voucher(BaseModel, OrganizationMixin, TimestampMixin):
     # ========================================================================
     # RELATIONSHIPS
     # ========================================================================
-    plan_id = Column(UUID(as_uuid=True), ForeignKey('plans.id'), nullable=False)
-    batch_id = Column(UUID(as_uuid=True), ForeignKey('voucher_batches.id'), nullable=True)
+    plan_id = Column(UUID(as_uuid=True), ForeignKey('plans.id'), nullable=False, index=True)
+    batch_id = Column(UUID(as_uuid=True), ForeignKey('voucher_batches.id'), nullable=True, index=True)
     
     # ========================================================================
     # VOUCHER IDENTIFIERS
@@ -463,16 +463,16 @@ class Voucher(BaseModel, OrganizationMixin, TimestampMixin):
     # ========================================================================
     # CREATION & EXPIRY
     # ========================================================================
-    created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
+    created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=False, index=True)
     
     # ========================================================================
     # USAGE INFO
     # ========================================================================
-    used_by_subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id'), nullable=True)
+    used_by_subscriber_id = Column(UUID(as_uuid=True), ForeignKey('subscribers.id'), nullable=True, index=True)
     used_at = Column(DateTime, nullable=True)
-    used_on_router_id = Column(UUID(as_uuid=True), ForeignKey('routers.id'), nullable=True)
+    used_on_router_id = Column(UUID(as_uuid=True), ForeignKey('routers.id'), nullable=True, index=True)
     
     # ========================================================================
     # ADDITIONAL
@@ -582,7 +582,7 @@ class VoucherBatch(BaseModel, OrganizationMixin, TimestampMixin):
     """Bulk voucher generation batches"""
     __tablename__ = 'voucher_batches'
     
-    plan_id = Column(UUID(as_uuid=True), ForeignKey('plans.id'), nullable=False)
+    plan_id = Column(UUID(as_uuid=True), ForeignKey('plans.id'), nullable=False, index=True)
     
     batch_name = Column(String(255), nullable=False)
     quantity = Column(Integer, nullable=False)
@@ -591,7 +591,7 @@ class VoucherBatch(BaseModel, OrganizationMixin, TimestampMixin):
     
     status = Column(String(20), default='pending')  # pending, generated, partially_used, exhausted
     
-    created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
+    created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     generated_at = Column(DateTime, nullable=True)
     

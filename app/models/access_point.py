@@ -22,7 +22,7 @@ class AccessPoint(BaseModel, OrganizationMixin, TimestampMixin):
     
     # OPTIONAL
     ip_address = Column(INET, nullable=True)
-    hotspot_server_id = Column(UUID(as_uuid=True), ForeignKey('hotspot_servers.id'), nullable=True)
+    hotspot_server_id = Column(UUID(as_uuid=True), ForeignKey('hotspot_servers.id'), nullable=True, index=True)
     description = Column(String(500), nullable=True)  # Technician notes
     
     # AUTO-DETECTED / SYSTEM MANAGED

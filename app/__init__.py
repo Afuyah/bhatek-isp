@@ -15,6 +15,7 @@ from app.core.database.session import db
 from app.core.database.redis_client import redis_client
 from app.core.logging.logger import setup_logging, logger
 from app.core.exceptions.handlers import register_error_handlers
+from app.core.performance import GzipMiddleware, register_performance
 
 # Import all models
 from app.models import *
@@ -269,7 +270,12 @@ def create_app(config_name=None):
         secret_key=jwt_secret_key,
         exempt_paths=exempt_paths,
     )
+    # Outermost: compress the finished response (skips text/event-stream)
+    wsgi_app = GzipMiddleware(wsgi_app)
     app.wsgi_app = wsgi_app
+
+    # Static-asset caching, ETags and JSON defaults
+    register_performance(app)
 
     # -------------------------------------------------------------------------
     # REQUEST / RESPONSE HOOKS
