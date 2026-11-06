@@ -1,6 +1,8 @@
 from functools import wraps
 from flask import session, redirect, url_for, g, request
 from app.models.auth import User
+from app.core.database.identifiers import as_uuid
+from app.core.database.session import db
 from app.core.logging.logger import logger
 
 def web_login_required(f):
@@ -11,10 +13,17 @@ def web_login_required(f):
             # Store the original URL to redirect back after login
             session['next_url'] = request.url
             return redirect(url_for('web.login'))
-        
+
+        # The session stores the id as a string; PostgreSQL's UUID column binds
+        # with a processor that needs a UUID object, so coerce before querying.
+        user_id = as_uuid(session.get('user_id'))
+        if user_id is None:
+            session.clear()
+            return redirect(url_for('web.login'))
+
         # Set user in g for easy access
         try:
-            user = User.query.get(session['user_id'])
+            user = db.session.get(User, user_id)
             if not user or not user.is_active:
                 session.clear()
                 return redirect(url_for('web.login'))

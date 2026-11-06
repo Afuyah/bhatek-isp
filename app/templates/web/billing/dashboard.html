@@ -200,23 +200,23 @@
         <div class="p-3 sm:p-4">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div class="text-center p-3 bg-gray-50 rounded-lg">
-                    <div class="text-2xl font-bold text-gray-800" id="routerTotal">{{ router_health.total|default('—') }}</div>
+                    <div class="text-2xl font-bold text-gray-800" id="routerTotal">{{ (router_health or {}).get('total', '—') }}</div>
                     <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Total Routers</div>
                 </div>
                 <div class="text-center p-3 bg-emerald-50 rounded-lg">
-                    <div class="text-2xl font-bold text-emerald-600" id="routerOnline">{{ router_health.online|default('—') }}</div>
+                    <div class="text-2xl font-bold text-emerald-600" id="routerOnline">{{ (router_health or {}).get('online', '—') }}</div>
                     <div class="text-[10px] text-emerald-600 uppercase tracking-wider mt-0.5">
                         {{ icon('circle', 'text-[8px] mr-0.5') }} Online
                     </div>
                 </div>
                 <div class="text-center p-3 bg-red-50 rounded-lg">
-                    <div class="text-2xl font-bold text-red-600" id="routerOffline">{{ router_health.offline|default('—') }}</div>
+                    <div class="text-2xl font-bold text-red-600" id="routerOffline">{{ (router_health or {}).get('offline', '—') }}</div>
                     <div class="text-[10px] text-red-600 uppercase tracking-wider mt-0.5">
                         {{ icon('circle', 'text-[8px] mr-0.5') }} Offline
                     </div>
                 </div>
                 <div class="text-center p-3 bg-amber-50 rounded-lg">
-                    <div class="text-2xl font-bold text-amber-600" id="routerError">{{ router_health.error|default('—') }}</div>
+                    <div class="text-2xl font-bold text-amber-600" id="routerError">{{ (router_health or {}).get('error', '—') }}</div>
                     <div class="text-[10px] text-amber-600 uppercase tracking-wider mt-0.5">
                         {{ icon('exclamation-triangle', 'text-[8px] mr-0.5') }} Error
                     </div>
@@ -436,13 +436,13 @@
                 <!-- Summary counts -->
                 <div class="grid grid-cols-2 gap-3 mb-3">
                     <div class="text-center p-3 bg-[#2d6a4f]/5 rounded-lg">
-                        <div class="text-2xl font-bold text-[#2d6a4f]">{{ auto_renewal.enabled_count|default(0) }}</div>
+                        <div class="text-2xl font-bold text-[#2d6a4f]">{{ (auto_renewal or {}).get('enabled_count', 0) }}</div>
                         <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">
                             {{ icon('check-circle', 'text-[#2d6a4f] mr-0.5') }} Auto-Renew On
                         </div>
                     </div>
                     <div class="text-center p-3 bg-gray-50 rounded-lg">
-                        <div class="text-2xl font-bold text-gray-500">{{ auto_renewal.disabled_count|default(0) }}</div>
+                        <div class="text-2xl font-bold text-gray-500">{{ (auto_renewal or {}).get('disabled_count', 0) }}</div>
                         <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">
                             {{ icon('times-circle', 'text-gray-400 mr-0.5') }} Auto-Renew Off
                         </div>
@@ -450,7 +450,7 @@
                 </div>
                 <!-- Recent auto-renew list -->
                 <div class="divide-y divide-gray-100 max-h-[200px] overflow-y-auto rounded-lg border border-gray-100">
-                    {% for sub in auto_renewal.recent|default([]) %}
+                    {% for sub in (auto_renewal or {}).get('recent', []) %}
                     <div class="flex items-center justify-between px-3 py-2 hover:bg-gray-50 transition-colors">
                         <div class="min-w-0">
                             <div class="text-xs font-medium text-gray-800 truncate">{{ sub.subscriber_name }}</div>

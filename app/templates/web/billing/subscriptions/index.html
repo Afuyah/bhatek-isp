@@ -42,19 +42,19 @@
     <!-- Stats Row -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div class="bg-white rounded-xl border border-gray-200 p-3 text-center card-hover">
-            <div class="text-2xl font-bold text-emerald-600">{{ stats.active|default(0) }}</div>
+            <div class="text-2xl font-bold text-emerald-600">{{ (stats or {}).get('active', 0) }}</div>
             <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Active</div>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-3 text-center card-hover">
-            <div class="text-2xl font-bold text-amber-600">{{ stats.expiring_soon|default(0) }}</div>
+            <div class="text-2xl font-bold text-amber-600">{{ (stats or {}).get('expiring_soon', 0) }}</div>
             <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Expiring Soon</div>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-3 text-center card-hover">
-            <div class="text-2xl font-bold text-red-600">{{ stats.expired|default(0) }}</div>
+            <div class="text-2xl font-bold text-red-600">{{ (stats or {}).get('expired', 0) }}</div>
             <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Expired</div>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-3 text-center card-hover">
-            <div class="text-2xl font-bold text-gray-500">{{ stats.disconnected|default(0) }}</div>
+            <div class="text-2xl font-bold text-gray-500">{{ (stats or {}).get('disconnected', 0) }}</div>
             <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Disconnected</div>
         </div>
     </div>

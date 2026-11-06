@@ -8,6 +8,7 @@ a page render.
 
 from datetime import datetime
 
+from jinja2 import ChainableUndefined
 from markupsafe import Markup
 import json
 
@@ -75,7 +76,17 @@ FILTERS = {
 
 
 def register_template_filters(app):
-    """Register every filter in :data:`FILTERS` on ``app``."""
+    """Register every filter in :data:`FILTERS` on ``app``.
+
+    Also switches the template environment to ``ChainableUndefined``. Templates
+    in this project are written defensively -- ``{{ stats.total|default(0) }}``
+    -- which only works if ``stats.total`` evaluates to an undefined value
+    rather than raising. With the default ``Undefined`` the attribute access
+    raises before ``default()`` is ever consulted, turning an optional context
+    key into a 500. Chainable undefined makes those fallbacks behave as intended;
+    tests that want strictness can set ``app.jinja_env.undefined`` themselves.
+    """
+    app.jinja_env.undefined = ChainableUndefined
     for name, fn in FILTERS.items():
         app.add_template_filter(fn, name)
     return app

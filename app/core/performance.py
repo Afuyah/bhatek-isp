@@ -149,7 +149,9 @@ def register_performance(app):
     def _cache_headers(response):
         path = request.path
         if path.startswith('/static/'):
-            response.headers.setdefault('Cache-Control', 'public, max-age=31536000, immutable')
+            # Override rather than setdefault: Flask's send_static_file sets its
+            # own max-age header, and immutable is the part we actually want.
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
         elif path.startswith('/api/'):
             response.headers.setdefault('Cache-Control', 'no-store')
         else:

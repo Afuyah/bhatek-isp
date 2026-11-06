@@ -48,7 +48,7 @@
                     {{ icon('server', 'text-gray-600 text-lg') }}
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-gray-800" id="statTotal">{{ health.total|default(0) }}</div>
+                    <div class="text-2xl font-bold text-gray-800" id="statTotal">{{ (health or {}).get('total', 0) }}</div>
                     <div class="text-[10px] text-gray-500 uppercase tracking-wider">Total Routers</div>
                 </div>
             </div>
@@ -60,7 +60,7 @@
                     {{ icon('check-circle', 'text-emerald-600 text-lg') }}
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-emerald-600" id="statOnline">{{ health.online|default(0) }}</div>
+                    <div class="text-2xl font-bold text-emerald-600" id="statOnline">{{ (health or {}).get('online', 0) }}</div>
                     <div class="text-[10px] text-gray-500 uppercase tracking-wider">Online</div>
                 </div>
             </div>
@@ -72,7 +72,7 @@
                     {{ icon('times-circle', 'text-red-600 text-lg') }}
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-red-600" id="statOffline">{{ health.offline|default(0) }}</div>
+                    <div class="text-2xl font-bold text-red-600" id="statOffline">{{ (health or {}).get('offline', 0) }}</div>
                     <div class="text-[10px] text-gray-500 uppercase tracking-wider">Offline</div>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                     {{ icon('exclamation-triangle', 'text-amber-600 text-lg') }}
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-amber-600" id="statError">{{ health.error|default(0) }}</div>
+                    <div class="text-2xl font-bold text-amber-600" id="statError">{{ (health or {}).get('error', 0) }}</div>
                     <div class="text-[10px] text-gray-500 uppercase tracking-wider">Error</div>
                 </div>
             </div>
@@ -269,7 +269,7 @@
         <div class="px-4 py-2 border-t border-gray-100 flex items-center justify-between">
             <span class="text-[10px] text-gray-400">
                 {{ icon('clock', 'mr-1') }}
-                Last refreshed: <span id="lastRefreshed">{{ health.last_updated or 'just now' }}</span>
+                Last refreshed: <span id="lastRefreshed">{{ (health or {}).get('last_updated') or 'just now' }}</span>
             </span>
             <span class="text-[10px] text-gray-400" id="visibleCount">
                 Showing {{ routers|length if routers else 0 }} router(s)

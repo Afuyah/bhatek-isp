@@ -117,9 +117,23 @@ Measured, not inferred:
   shadowed the HTML error pages. Now content-negotiated: HTML pages get `web/404.html` /
   `web/500.html`, API paths still get JSON. Verified: 404 → `text/html`, 20 KB, renders the shell.
 
-Blocked: any DB-backed page. Docker's daemon is not running, so there is no Postgres to create the
-schema against, and `db.create_all()` cannot run on SQLite (models use `INET`, `MACADDR`, pg `UUID`).
-A `docker compose up` on a machine with the daemon running is the next verification step.
+Test suite: `tests/` now runs against SQLite (31 of 32 tables; `radacct` is skipped because SQLite
+rejects its composite-PK autoincrement). `tests/support/sqlite_compat.py` compiles the three
+Postgres-only column types for SQLite. **33 tests pass**, covering public pages, gzip, caching,
+HTML-vs-JSON error pages, every operator page, auth protection, both SSE streams and endpoint
+resolution.
+
+Real bugs found by running the app (all fixed):
+1. **Session auth was broken for every web page.** `session['user_id']` is a string; it was passed
+   straight into `User.query.get(...)` on a PostgreSQL `UUID` column whose binder calls `.hex`.
+   Every authenticated page would raise. Fixed with `app/core/database/identifiers.as_uuid()`,
+   applied in `web_login_required` and `UserRepository.get_by_id`.
+2. **`Network.to_dict()` crashed** — a regression from converting relationships off `lazy='dynamic'`:
+   `self.routers.count()` became `list.count()` → TypeError. Now `len(self.routers)`.
+3. **Three pages 500'd on missing template context** (`health`, `auto_renewal`, `stats`).
+   `X.attr|default(...)` raises before the filter runs when `X` is undefined. Fixed those sites and
+   switched the environment to `ChainableUndefined`, which is what the templates were written for.
+4. Static responses did not carry `immutable` (Flask's own header won over `setdefault`).
 
 ### Phase 6b — verification (original plan)
 - Boot the app in a venv, run migrations on empty Postgres, exercise auth + RADIUS + billing happy paths.

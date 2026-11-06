@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.auth import User, RefreshToken, AuditLog
 from app.core.database.session import db
+from app.core.database.identifiers import as_uuid
 from app.core.logging.logger import logger
 
 
@@ -18,6 +19,9 @@ class UserRepository:
 
     def get_by_id(self, user_id: UUID) -> Optional[User]:
         try:
+            user_id = as_uuid(user_id)
+            if user_id is None:
+                return None
             stmt = select(self.model).where(self.model.id == user_id)
             return db.session.execute(stmt).scalar_one_or_none()
         except SQLAlchemyError as e:

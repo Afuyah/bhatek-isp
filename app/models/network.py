@@ -44,8 +44,9 @@ class Network(BaseModel, OrganizationMixin, TimestampMixin):
         
         # Add counts if requested
         if include_counts:
-            # Count routers associated with this network
-            data['router_count'] = self.routers.count() if hasattr(self, 'routers') else 0
+            # ``routers`` is a normal collection now (not a dynamic query), so
+            # len() is the correct count — Query.count() would raise TypeError.
+            data['router_count'] = len(self.routers) if hasattr(self, 'routers') else 0
             # Placeholders for future modules
             data['ap_count'] = 0  # Will be updated when AP module is ready
             data['active_sessions'] = 0 
