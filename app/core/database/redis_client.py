@@ -156,13 +156,7 @@ def get_redis_connection():
     return None
 
 
-# Optional: Monkey-patch FlaskRedis to expose ping, exists, etc. if missing
-if not hasattr(redis_client, 'exists'):
-    redis_client.exists = RedisClient.exists
-
-if not hasattr(redis_client, 'ping'):
-    redis_client.ping = RedisClient.ping
-
-if not hasattr(redis_client, 'setex'):
-    # FlaskRedis already has setex in most versions
-    pass
+# NOTE: an earlier version monkey-patched ``exists``/``ping`` onto the FlaskRedis
+# proxy here. Those methods called back into the proxy, so if the patch applied
+# they recursed until RecursionError. FlaskRedis already proxies the real client,
+# which provides both, so the patch was removed.

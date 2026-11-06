@@ -7,6 +7,7 @@ from app.modules.network.repository import NetworkRepository
 from app.models.network import Network
 from app.modules.organization.service import OrganizationService
 from app.core.logging.logger import logger
+from app.core.cache import remember, delete_area
 from app.core.exceptions.handlers import BusinessError, NotFoundError, ValidationError
 
 
@@ -64,7 +65,8 @@ class NetworkService:
         }
         
         network = self.network_repo.create(network_data)
-        
+        delete_area('network_stats')
+
         logger.info(f"Network created: {network.name} in organization {organization_id}")
         return network
     
@@ -101,7 +103,8 @@ class NetworkService:
         updated_network = self.network_repo.update(network_id, organization_id, data)
         if not updated_network:
             raise NotFoundError(f'Network not found: {network_id}')
-        
+
+        delete_area('network_stats')
         logger.info(f"Network updated: {network_id}")
         return updated_network
     
@@ -110,7 +113,8 @@ class NetworkService:
         result = self.network_repo.delete(network_id, organization_id, soft_delete)
         if not result:
             raise BusinessError('Cannot delete network with associated routers. Remove routers first.')
-        
+
+        delete_area('network_stats')
         logger.info(f"Network deleted: {network_id}")
         return result
     
@@ -123,10 +127,13 @@ class NetworkService:
         """Get all active networks for an organization"""
         return self.network_repo.get_all_active(organization_id)
     
+    @remember('network_stats', ttl=30)
     def get_network_stats(self, organization_id: UUID) -> Dict[str, Any]:
-        """Get network statistics"""
+        """Get network statistics (cached 30s; invalidated on any network write)."""
         return self.network_repo.get_network_stats(organization_id)
     
     def bulk_update_status(self, organization_id: UUID, network_ids: List[UUID], is_active: bool) -> int:
         """Bulk update network status"""
-        return self.network_repo.bulk_update_status(organization_id, network_ids, is_active)
+        updated = self.network_repo.bulk_update_status(organization_id, network_ids, is_active)
+        delete_area('network_stats')
+        return updated

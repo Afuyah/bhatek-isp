@@ -1,48 +1,74 @@
-version: '3.8'
+x-app-env: &app-env
+  DATABASE_URL: postgresql://isp_user:isp_password@db:5432/isp_db
+  REDIS_URL: redis://redis:6379/0
+  FLASK_ENV: production
+  SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
 
 services:
   web:
     build: .
     ports:
-      - "5000:5000"
+      - "8080:8080"
     environment:
-      - DATABASE_URL=postgresql://isp_user:isp_password@db:5432/isp_db
-      - REDIS_URL=redis://redis:6379/0
+      <<: *app-env
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-3}
+      GUNICORN_THREADS: ${GUNICORN_THREADS:-8}
     depends_on:
-      - db
-      - redis
-    volumes:
-      - ./:/app
-
-  db:
-    image: postgres:15
-    environment:
-      - POSTGRES_DB=isp_db
-      - POSTGRES_USER=isp_user
-      - POSTGRES_PASSWORD=isp_password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 45s
 
   celery:
     build: .
-    command: celery -A app.celery_app worker --loglevel=info
-    environment:
-      - DATABASE_URL=postgresql://isp_user:isp_password@db:5432/isp_db
-      - REDIS_URL=redis://redis:6379/0
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=4
+    environment: *app-env
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  beat:
+    build: .
+    command: celery -A app.celery_app beat --loglevel=info
+    environment: *app-env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: isp_db
+      POSTGRES_USER: isp_user
+      POSTGRES_PASSWORD: isp_password
     volumes:
-      - ./:/app
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U isp_user -d isp_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
 
 volumes:
   postgres_data:
