@@ -9,72 +9,7 @@
     <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
     
-    <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 3px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background: #2d6a4f;
-            border-radius: 3px;
-        }
-        
-        .sidebar-transition {
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .loading-spinner {
-            animation: spin 0.6s linear infinite;
-        }
-        
-        @keyframes toastIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        .toast-animation {
-            animation: toastIn 0.2s ease-out;
-        }
-        
-        .table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        @media (max-width: 640px) {
-            .table-container table {
-                min-width: 500px;
-            }
-        }
-        
-        /* Minimal hover effects - only on desktop */
-        @media (hover: hover) {
-            .card-hover:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            }
-            .nav-link:hover {
-                background: rgba(255, 255, 255, 0.05);
-            }
-        }
-        
-        /* Active nav state */
-        .nav-link.active {
-            background: rgba(45, 106, 79, 0.15);
-            color: #40916c;
-        }
-        .nav-link.active i {
-            color: #40916c;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/organization-base.css') }}">
     
     {% block extra_css %}{% endblock %}
 </head>

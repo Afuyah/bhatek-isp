@@ -1,0 +1,154 @@
+/* Plan Cards */
+    .plan-card {
+        cursor: pointer;
+        transition: all 0.25s ease;
+        border: 1.5px solid #eef2f0;
+        border-radius: 20px;
+        background: white;
+    }
+    
+    .plan-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08);
+        border-color: #2d6a4f40;
+    }
+    
+    .plan-card.selected {
+        border-color: #2d6a4f;
+        background: #f4f9f7;
+        box-shadow: 0 4px 12px rgba(45,106,79,0.1);
+    }
+    
+    /* Progress Bar */
+    .progress-custom {
+        background: #e8f0ee;
+        border-radius: 40px;
+        height: 8px;
+        overflow: hidden;
+    }
+    
+    .progress-bar-custom {
+        background: #2d6a4f;
+        height: 100%;
+        transition: width 0.3s ease;
+        border-radius: 40px;
+    }
+    
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #94a3b8;
+        transition: all 0.25s ease;
+        background: #fafbfc;
+    }
+    
+    .step-circle.active {
+        border-color: #2d6a4f;
+        background: #2d6a4f;
+        color: white;
+    }
+    
+    .step-circle.completed {
+        border-color: #2d6a4f;
+        background: #2d6a4f10;
+        color: #2d6a4f;
+    }
+    
+    .step-label {
+        font-size: 0.7rem;
+        margin-top: 0.5rem;
+        color: #6b7a75;
+        font-weight: 500;
+    }
+    
+    .step-label.active {
+        color: #2d6a4f;
+    }
+    
+    /* Form Fields */
+    .form-control-modern {
+        border-radius: 14px;
+        border: 1.5px solid #e2e8f0;
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+    
+    .form-control-modern:focus {
+        border-color: #2d6a4f;
+        box-shadow: 0 0 0 3px #2d6a4f20;
+        outline: none;
+    }
+    
+    /* Badge Styles */
+    .badge-speed {
+        background: #2d6a4f10;
+        color: #2d6a4f;
+        padding: 0.25rem 0.75rem;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    /* Step Container */
+    .step {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .step.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Method Buttons */
+    .method-btn {
+        border-radius: 20px;
+        padding: 1.5rem;
+        transition: all 0.25s ease;
+        border: 1.5px solid #eef2f0;
+        background: white;
+    }
+    
+    .method-btn:hover {
+        border-color: #2d6a4f;
+        background: #f4f9f7;
+        transform: translateY(-2px);
+    }
+    
+    /* Success Animation */
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: #2d6a4f10;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        animation: scaleIn 0.4s ease;
+    }
+    
+    @keyframes scaleIn {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }

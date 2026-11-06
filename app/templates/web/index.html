@@ -245,37 +245,6 @@ function closeVerificationModal() {
 }
 </script>
 
-<style>
-/* Minimal animations - only what's needed */
-@media (prefers-reduced-motion: no-preference) {
-    .hover-lift {
-        transition: all 0.2s ease;
-    }
-    .hover-lift:hover {
-        transform: translateY(-2px);
-    }
-}
-
-/* Disable animations on mobile for better performance */
-@media (max-width: 768px) {
-    .transition-all {
-        transition-duration: 0.1s;
-    }
-    .hover\:translate-y-\[-2px\]:hover {
-        transform: none;
-    }
-}
-
-/* Clean focus states */
-*:focus-visible {
-    outline: 2px solid #2d6a4f;
-    outline-offset: 2px;
-}
-
-/* Smooth but fast transitions */
-button, a {
-    transition: all 0.15s ease;
-}
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/index.css') }}">
 
 {% endblock %}

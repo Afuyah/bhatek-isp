@@ -5,21 +5,7 @@
 {% block title %}Renew Subscription - {{ organization.name }}{% endblock %}
 
 {% block extra_css %}
-<style>
-    .info-box {
-        background: #f8f9fa;
-        border-radius: 0.5rem;
-        padding: 1rem;
-    }
-    .expiry-warning {
-        background: #fff3cd;
-        border-left: 4px solid #ffc107;
-    }
-    .expiry-danger {
-        background: #f8d7da;
-        border-left: 4px solid #dc3545;
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/subscriber-renew_subscription.css') }}">
 {% endblock %}
 
 {% block content %}

@@ -1,0 +1,74 @@
+body {
+            background: linear-gradient(135deg, #e8f0ee 0%, #d4e4df 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .verify-card {
+            background: white;
+            border-radius: 24px;
+            padding: 48px 40px;
+            text-align: center;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #e8f0ee;
+            border-top: 3px solid #2d6a4f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .btn-primary {
+            background: #2d6a4f;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 40px;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: #1b4d3e;
+            transform: translateY(-2px);
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #2d6a4f10;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .success-icon i {
+            font-size: 40px;
+            color: #2d6a4f;
+        }
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            background: #dc354510;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .error-icon i {
+            font-size: 40px;
+            color: #dc3545;
+        }
+    
+/* local replacements for the few Bootstrap utilities this page used */
+.container{max-width:720px;margin:0 auto;padding:0 1rem}
+.btn{display:inline-block;padding:.55rem 1.1rem;border-radius:.6rem;text-decoration:none;font-weight:600;cursor:pointer}
+.btn-primary{background:#4361ee;color:#fff}.btn-primary:hover{background:#3f37c9}
+.text-muted{color:#6b7280}.mb-3{margin-bottom:1rem}.mb-4{margin-bottom:1.5rem}.mt-4{margin-top:1.5rem}

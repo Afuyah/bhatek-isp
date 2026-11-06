@@ -1,0 +1,467 @@
+/* ========================================
+       PROFESSIONAL REGISTRATION PAGE
+       ========================================= */
+    
+    :root {
+        --primary: #2d6a4f;
+        --primary-dark: #1b4332;
+        --primary-light: #40916c;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+    }
+
+    .register-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #eef5f2 0%, #d4e4df 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .register-container {
+        max-width: 1200px;
+        width: 100%;
+        display: flex;
+        background: white;
+        border-radius: 2rem;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    /* ========================================
+       LEFT SIDE - BRAND SECTION
+       ========================================= */
+    
+    .register-brand {
+        flex: 1;
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .register-brand::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -30%;
+        width: 80%;
+        height: 80%;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .brand-content {
+        position: relative;
+        z-index: 1;
+        color: white;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .brand-logo i {
+        font-size: 1.5rem;
+    }
+
+    .brand-logo span {
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    /* Progress Steps */
+    .progress-steps {
+        margin: 2rem 0;
+        flex: 1;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+        transition: opacity 0.3s;
+    }
+
+    .step.active {
+        opacity: 1;
+    }
+
+    .step.completed {
+        opacity: 0.8;
+    }
+
+    .step-number {
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .step.completed .step-number {
+        background: var(--primary-light);
+    }
+
+    .step.active .step-number {
+        background: white;
+        color: var(--primary);
+    }
+
+    .step-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .step-label {
+        font-size: 0.65rem;
+        opacity: 0.7;
+    }
+
+    .step-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    /* Testimonial */
+    .brand-testimonial {
+        margin-top: auto;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .brand-testimonial i {
+        font-size: 1.5rem;
+        opacity: 0.5;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .brand-testimonial p {
+        font-size: 0.8rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        font-style: italic;
+    }
+
+    .testimonial-author {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .testimonial-author strong {
+        font-size: 0.8rem;
+    }
+
+    .testimonial-author span {
+        font-size: 0.65rem;
+        opacity: 0.7;
+    }
+
+    /* ========================================
+       RIGHT SIDE - FORM SECTION
+       ========================================= */
+    
+    .register-form-wrapper {
+        flex: 1.2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background: white;
+    }
+
+    .register-card {
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .register-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .register-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(45, 106, 79, 0.1);
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .register-icon i {
+        font-size: 1.8rem;
+        color: var(--primary);
+    }
+
+    .register-header h3 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 0.25rem;
+    }
+
+    .register-header p {
+        font-size: 0.8rem;
+        color: var(--gray-500);
+    }
+
+    /* Form Elements */
+    .form-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0;
+    }
+
+    .form-row .input-group-custom {
+        flex: 1;
+    }
+
+    .input-group-custom {
+        margin-bottom: 1rem;
+    }
+
+    .input-group-custom label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 0.35rem;
+    }
+
+    .input-group-custom .required {
+        color: #dc2626;
+    }
+
+    .input-field {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-field i:first-child {
+        position: absolute;
+        left: 1rem;
+        color: var(--gray-400);
+        font-size: 0.85rem;
+        pointer-events: none;
+    }
+
+    .input-field input {
+        width: 100%;
+        padding: 0.7rem 2.5rem;
+        font-size: 0.85rem;
+        border: 1.5px solid var(--gray-200);
+        border-radius: 0.75rem;
+        transition: all 0.2s;
+        outline: none;
+        background: white;
+    }
+
+    .input-field input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+    }
+
+    .input-field input:read-only {
+        background: var(--gray-50);
+        cursor: not-allowed;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 1rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--gray-400);
+        font-size: 0.85rem;
+        padding: 0;
+    }
+
+    .input-group-custom small {
+        display: block;
+        font-size: 0.6rem;
+        color: var(--gray-500);
+        margin-top: 0.25rem;
+    }
+
+    .slug-hint {
+        display: block;
+        font-size: 0.6rem;
+        color: var(--gray-500);
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Password Strength */
+    .password-strength {
+        margin: 0.5rem 0 1rem;
+    }
+
+    .strength-bar {
+        height: 4px;
+        background: var(--gray-200);
+        border-radius: 2px;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s;
+    }
+
+    .strength-text {
+        font-size: 0.6rem;
+        color: var(--gray-500);
+    }
+
+    /* Register Button */
+    .btn-register {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border: none;
+        color: white;
+        padding: 0.85rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 0.5rem;
+    }
+
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(45, 106, 79, 0.3);
+    }
+
+    .btn-register:disabled {
+        opacity: 0.7;
+        transform: none;
+    }
+
+    /* Register Footer */
+    .register-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gray-100);
+    }
+
+    .register-footer p {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+    }
+
+    .register-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    /* Toast Notifications */
+    .toast-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .toast-success {
+        background: #10b981;
+    }
+
+    .toast-error {
+        background: #ef4444;
+    }
+
+    .toast-warning {
+        background: #f59e0b;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .register-container {
+            flex-direction: column;
+            max-width: 550px;
+        }
+
+        .register-brand {
+            display: none;
+        }
+
+        .register-form-wrapper {
+            padding: 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .register-form-wrapper {
+            padding: 1.25rem;
+        }
+
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .register-header h3 {
+            font-size: 1.2rem;
+        }
+
+        .register-icon {
+            width: 48px;
+            height: 48px;
+        }
+
+        .register-icon i {
+            font-size: 1.5rem;
+        }
+
+        .input-field input {
+            padding: 0.65rem 2.2rem;
+            font-size: 0.8rem;
+        }
+    }

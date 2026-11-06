@@ -1,0 +1,6 @@
+select, input[type="number"] {
+        cursor: pointer;
+    }
+    select option {
+        padding: 0.5rem;
+    }
