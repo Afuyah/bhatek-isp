@@ -47,7 +47,7 @@ implementations, no external CDN dependencies, consistent structure, fast reques
 - Split `app/__init__.py` (381 lines) into `app/factory.py` + `app/celery.py` + `app/error_pages.py`.
 - Replace `datetime.utcnow()` with timezone-aware UTC throughout; declare one timezone source.
 
-### Phase 3 — templates, de-CDN, responsiveness ✅ de-CDN done (commits f37c79a, next)
+### Phase 3 — templates, de-CDN, responsiveness ✅ done except responsive polish
 - Local SVG sprite (49 symbols) + `icon()` Jinja macro replaced 635 Font Awesome tags across 43 templates.
 - `static/js/app.js` replaces jQuery in the public shell (navbar, mobile menu, smooth anchors, toasts, loader).
 - `static/js/icons.js` renders dynamic icons in JS from the same sprite.
@@ -56,9 +56,14 @@ implementations, no external CDN dependencies, consistent structure, fast reques
 - Google Fonts removed everywhere; system font stack.
 - Bootstrap removed from the 3 pages that loaded it (only ~8 utility classes were actually used).
 - `web/super_admin/dashboard.html` deduped into `web/dashboard.html`.
-- **Asset CDN references: 14 → 0.** (`captive.apple.com` remains by design — it is captive-portal detection, not an asset.)
-- Still to do: extract the 35 templates with heavy inline CSS/JS into static files; unify the remaining
-  shell duplication; responsive polish.
+- **Asset CDN references: 14 → 0.**
+- 23 inline `<style>` blocks (84 KB) extracted to `static/css/pages/*.css`, duplicates merged.
+  Trade-off: one extra cacheable request per page instead of 6–12 KB of per-response HTML;
+  a win on repeat visits, roughly neutral on first load.
+- Last jQuery consumer (`hotspot/index.html`, 30 call sites) converted to native DOM.
+- Still to do: responsive polish (mobile nav/tables/tap targets); `hotspot/portal.html` keeps
+  14.3 KB of inline CSS because it interpolates Jinja values.
+
 
 
 ### Phase 4 — performance ✅ mostly done (commits 4242af0, 5313596)
