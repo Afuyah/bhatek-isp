@@ -47,18 +47,19 @@ implementations, no external CDN dependencies, consistent structure, fast reques
 - Split `app/__init__.py` (381 lines) into `app/factory.py` + `app/celery.py` + `app/error_pages.py`.
 - Replace `datetime.utcnow()` with timezone-aware UTC throughout; declare one timezone source.
 
-### Phase 3 — templates, de-CDN, responsiveness
-- **No downloads are possible in this environment**, so libraries are replaced, not vendored:
-  - Bootstrap 5.1 (3 pages) → the project's own Tailwind build (`output.css`).
-  - Font Awesome (5 pages, ~20 icons) → inline SVG sprites.
-  - jQuery (1 page) → vanilla JS.
-  - AOS (1 page) → CSS-only reveal animations.
-  - Google Fonts (5) → system font stack (zero network, no FOIT).
-  - Chart.js (2 dashboards) → small local SVG chart renderer (~150 lines) for the exact charts used.
-- Extract the 35 templates with heavy inline CSS/JS into `static/css/components/*` and `static/js/pages/*`.
-- One shell: `base.html` + `layout/{header,sidebar,footer}`; delete the three competing shells.
-- Dedupe `web/dashboard.html` ≡ `web/super_admin/dashboard.html`.
-- Responsive pass: mobile nav, table overflow, tap targets, fluid grids, reduced motion.
+### Phase 3 — templates, de-CDN, responsiveness ✅ de-CDN done (commits f37c79a, next)
+- Local SVG sprite (49 symbols) + `icon()` Jinja macro replaced 635 Font Awesome tags across 43 templates.
+- `static/js/app.js` replaces jQuery in the public shell (navbar, mobile menu, smooth anchors, toasts, loader).
+- `static/js/icons.js` renders dynamic icons in JS from the same sprite.
+- `static/js/chart.js` is a local drop-in for the 10 Chart.js charts (line/bar/doughnut/pie, SVG, responsive).
+- Shell CSS extracted to `static/css/app.css`; AOS replaced by CSS reveal + `prefers-reduced-motion`.
+- Google Fonts removed everywhere; system font stack.
+- Bootstrap removed from the 3 pages that loaded it (only ~8 utility classes were actually used).
+- `web/super_admin/dashboard.html` deduped into `web/dashboard.html`.
+- **Asset CDN references: 14 → 0.** (`captive.apple.com` remains by design — it is captive-portal detection, not an asset.)
+- Still to do: extract the 35 templates with heavy inline CSS/JS into static files; unify the remaining
+  shell duplication; responsive polish.
+
 
 ### Phase 4 — performance
 - Add indexes for the 38 unindexed FK columns (schema + migration).
