@@ -391,34 +391,41 @@
             });
     }
 
-    function refreshHealth() {
-        const icon = document.getElementById('refreshIcon');
-        icon.classList.add('animate-spin');
+    let healthStream = null;
 
-        fetch(`/api/v1/routers/stats?org_id={{ organization.id }}`)
-            .then(r => r.ok ? r.json() : null)
-            .then(data => {
-                icon.classList.remove('animate-spin');
-                if (!data) return;
-                const counts = data.counts || data;
-                if (counts.total !== undefined) document.getElementById('statTotal').textContent = counts.total;
-                if (counts.online !== undefined) document.getElementById('statOnline').textContent = counts.online;
-                if (counts.offline !== undefined) document.getElementById('statOffline').textContent = counts.offline;
-                if (counts.error !== undefined) document.getElementById('statError').textContent = counts.error;
+    function applyCounts(counts) {
+        if (!counts) return;
+        if (counts.total !== undefined) document.getElementById('statTotal').textContent = counts.total;
+        if (counts.online !== undefined) document.getElementById('statOnline').textContent = counts.online;
+        if (counts.offline !== undefined) document.getElementById('statOffline').textContent = counts.offline;
+        if (counts.error !== undefined) document.getElementById('statError').textContent = counts.error;
 
-                const now = new Date();
-                const el = document.getElementById('lastRefreshed');
-                if (el) el.textContent = now.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' });
-
-                showToast('Health data refreshed', 'success');
-            })
-            .catch(() => {
-                icon.classList.remove('animate-spin');
-                showToast('Failed to refresh health data', 'error');
-            });
+        const stamp = document.getElementById('lastRefreshed');
+        if (stamp) stamp.textContent = new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' });
     }
 
-    // Auto-refresh every 60 seconds
-    setInterval(refreshHealth, 60000);
+    function connectHealthStream() {
+        if (!window.EventSource) return false;
+        if (healthStream) healthStream.close();
+        healthStream = new EventSource(`/organization/{{ organization.id }}/routers/health/stream`);
+        healthStream.addEventListener('update', (event) => {
+            try { applyCounts(JSON.parse(event.data)); } catch (err) { /* ignore a malformed frame */ }
+        });
+        return true;
+    }
+
+    function refreshHealth() {
+        const icon = document.getElementById('refreshIcon');
+        if (icon) icon.classList.add('animate-spin');
+        const streaming = connectHealthStream();
+        setTimeout(() => { if (icon) icon.classList.remove('animate-spin'); }, 600);
+        if (!streaming) {
+            // No EventSource support: re-render server-side instead of polling.
+            location.reload();
+        }
+    }
+
+    // Live updates instead of a 60-second poll.
+    connectHealthStream();
 </script>
 {% endblock %}

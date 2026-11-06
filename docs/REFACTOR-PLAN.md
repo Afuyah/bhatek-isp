@@ -93,8 +93,13 @@ implementations, no external CDN dependencies, consistent structure, fast reques
   observe another's transaction.
 - Captive portal now uses `EventSource` with the original 3 s polling kept as a fallback for browsers
   without it; one connection instead of a request every 3 s.
-- Still to do: dashboard/router-health streams (replace the 60 s poll), and document that SSE needs
-  an async worker (gevent) in production.
+- Router health: `GET /organization/<org_id>/routers/health/stream` (session-authenticated) pushes
+  counters every 15 s. The old page polled `/api/v1/routers/stats`, a JWT endpoint a browser session
+  could never authenticate to — so it could only ever receive a 401.
+- Verified: both stream routes register, unauthenticated access redirects to `/login` (302),
+  health page JS passes `node --check`.
+- Still to do: document that SSE needs a threaded/async worker in production (the gunicorn config
+  already uses `gthread`).
 
 
 ### Phase 6 — verification ◐ first real run done

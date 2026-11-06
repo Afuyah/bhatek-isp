@@ -615,6 +615,39 @@ def edit_pppoe(org_id, pppoe_id, current_user=None, current_organization=None):
 # ROUTER HEALTH
 # =============================================================================
 
+@router_web_bp.route('/health/stream')
+@web_router_access_required
+def health_stream(org_id, current_user=None, current_organization=None):
+    """Push router health counters over SSE.
+
+    Replaces the 60-second page poll, which called the JWT-protected
+    ``/api/v1/routers/stats`` from a browser session and therefore could only
+    ever receive a 401.
+    """
+    from sqlalchemy import func
+
+    from app.core.realtime import poll_stream, sse_response
+    from app.models.router import Router
+
+    org_uuid = current_organization.id
+
+    def counts():
+        rows = (
+            db.session.query(Router.status, func.count(Router.id))
+            .filter(Router.organization_id == org_uuid)
+            .group_by(Router.status)
+            .all()
+        )
+        data = {'total': 0, 'online': 0, 'offline': 0, 'error': 0, 'unknown': 0}
+        for status, count in rows:
+            key = (status or 'unknown').lower()
+            data[key] = data.get(key, 0) + count
+            data['total'] += count
+        return data
+
+    return sse_response(poll_stream(counts, interval=15, timeout=300))
+
+
 @router_web_bp.route('/health')
 @web_router_access_required
 def health(org_id, current_user=None, current_organization=None):
