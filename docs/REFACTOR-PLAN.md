@@ -61,13 +61,20 @@ implementations, no external CDN dependencies, consistent structure, fast reques
   shell duplication; responsive polish.
 
 
-### Phase 4 — performance ✅ started (commit 4242af0)
+### Phase 4 — performance ✅ mostly done (commits 4242af0, 5313596)
 - `app/core/performance.py`: WSGI gzip (unit-verified, 8/8 cases) + static `Cache-Control: immutable`,
   `no-store` for API, `no-cache` for HTML, `X-Content-Type-Options`.
 - `index=True` on all 43 foreign-key columns (was 5).
 - Migration `a1f2c3d4e5f6`: 43 FK indexes + 8 composite indexes, inspector-guarded and re-runnable.
-- Still to do: eager loading (`lazy='dynamic'` blocks it — needs relationship changes), Redis caching
-  of hot reads, request-scoped unit of work instead of 137 inline commits, gunicorn tuning.
+- `gunicorn.conf.py`: gthread workers sized for SSE, timeout 300 s (streams last up to 120 s),
+  max-request recycling, preload, proxy-header handling.
+- Docker: non-root, healthcheck, `.dockerignore`; compose now publishes 8080 (was 5000 while gunicorn
+  listened on 8080 — the web container was unreachable), with healthchecks and a beat service.
+- `app/core/cache.py`: Redis fragment cache that degrades to a miss (unit-verified), applied to
+  network stats with invalidation on every write.
+- Still to do: eager loading (`lazy='dynamic'` blocks it), 137 inline commits → request unit of work,
+  authenticated dashboard reads.
+
 
 ### Phase 5 — real-time ✅ started (SSE for payments)
 - `app/core/realtime.py`: `sse_response()` + `poll_stream()` (change-only frames, heartbeat, timeout,
