@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Dashboard{% endblock %}
 
@@ -27,12 +29,12 @@
         <div onclick="window.location.href='#'" 
              class="bg-white rounded-lg md:rounded-xl p-3 md:p-4 border border-gray-200 cursor-pointer hover:shadow-md transition-shadow duration-150">
             <div class="w-8 h-8 md:w-10 md:h-10 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center mb-2 md:mb-3">
-                <i class="fas fa-users text-[#2d6a4f] text-sm md:text-base"></i>
+                {{ icon('users', 'text-[#2d6a4f] text-sm md:text-base') }}
             </div>
             <div class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{{ stats.total_subscribers|default(0) }}</div>
             <div class="text-xs md:text-sm text-gray-500 mt-0.5">Subscribers</div>
             <div class="inline-flex items-center gap-1 text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 mt-1.5">
-                <i class="fas fa-arrow-up text-[8px]"></i> {{ stats.subscriber_growth|default(0) }}%
+                {{ icon('arrow-up', 'text-[8px]') }} {{ stats.subscriber_growth|default(0) }}%
             </div>
         </div>
 
@@ -40,12 +42,12 @@
         <div onclick="window.location.href='#'" 
              class="bg-white rounded-lg md:rounded-xl p-3 md:p-4 border border-gray-200 cursor-pointer hover:shadow-md transition-shadow duration-150">
             <div class="w-8 h-8 md:w-10 md:h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-2 md:mb-3">
-                <i class="fas fa-wifi text-emerald-500 text-sm md:text-base"></i>
+                {{ icon('wifi', 'text-emerald-500 text-sm md:text-base') }}
             </div>
             <div class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{{ stats.active_sessions|default(0) }}</div>
             <div class="text-xs md:text-sm text-gray-500 mt-0.5">Active Sessions</div>
             <div class="inline-flex items-center gap-1 text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 mt-1.5">
-                <i class="fas fa-arrow-up text-[8px]"></i> {{ stats.session_growth|default(0) }}
+                {{ icon('arrow-up', 'text-[8px]') }} {{ stats.session_growth|default(0) }}
             </div>
         </div>
 
@@ -53,12 +55,12 @@
         <div onclick="window.location.href='{{ url_for('billing_web.dashboard', org_id=organization.id) }}'" 
              class="bg-white rounded-lg md:rounded-xl p-3 md:p-4 border border-gray-200 cursor-pointer hover:shadow-md transition-shadow duration-150">
             <div class="w-8 h-8 md:w-10 md:h-10 bg-amber-500/10 rounded-lg flex items-center justify-center mb-2 md:mb-3">
-                <i class="fas fa-chart-line text-amber-500 text-sm md:text-base"></i>
+                {{ icon('chart-line', 'text-amber-500 text-sm md:text-base') }}
             </div>
             <div class="text-base md:text-xl lg:text-2xl font-bold text-gray-800">KES {{ "{:,.0f}".format(stats.monthly_revenue|default(0)) }}</div>
             <div class="text-xs md:text-sm text-gray-500 mt-0.5">Revenue</div>
             <div class="inline-flex items-center gap-1 text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 mt-1.5">
-                <i class="fas fa-arrow-up text-[8px]"></i> {{ stats.revenue_growth|default(0) }}%
+                {{ icon('arrow-up', 'text-[8px]') }} {{ stats.revenue_growth|default(0) }}%
             </div>
         </div>
 
@@ -66,12 +68,12 @@
         <div onclick="window.location.href='{{ url_for('router_web.index', org_id=organization.id) }}'" 
              class="bg-white rounded-lg md:rounded-xl p-3 md:p-4 border border-gray-200 cursor-pointer hover:shadow-md transition-shadow duration-150">
             <div class="w-8 h-8 md:w-10 md:h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-2 md:mb-3">
-                <i class="fas fa-server text-blue-500 text-sm md:text-base"></i>
+                {{ icon('server', 'text-blue-500 text-sm md:text-base') }}
             </div>
             <div class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{{ stats.active_routers|default(0) }}</div>
             <div class="text-xs md:text-sm text-gray-500 mt-0.5">Routers</div>
             <div class="inline-flex items-center gap-1 text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 mt-1.5">
-                <i class="fas fa-check-circle text-[8px]"></i> {{ stats.online_routers|default(0) }} online
+                {{ icon('check-circle', 'text-[8px]') }} {{ stats.online_routers|default(0) }} online
             </div>
         </div>
     </div>
@@ -80,32 +82,32 @@
     <div class="bg-white rounded-lg md:rounded-xl p-3 md:p-4 border border-gray-200">
         <div class="flex items-center justify-between mb-2 md:mb-3">
             <h5 class="text-sm md:text-base font-semibold text-gray-700">
-                <i class="fas fa-bolt mr-1.5 text-[#2d6a4f]"></i> Quick Actions
+                {{ icon('bolt', 'mr-1.5 text-[#2d6a4f]') }} Quick Actions
             </h5>
         </div>
         <div class="grid grid-cols-3 md:grid-cols-6 gap-1.5 md:gap-2">
             <a href="#" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
-                <i class="fas fa-user-plus text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                {{ icon('user-plus', 'text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block') }}
                 <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Add User</span>
             </a>
             <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
-                <i class="fas fa-ticket-alt text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                {{ icon('ticket-alt', 'text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block') }}
                 <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Voucher</span>
             </a>
             <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
-                <i class="fas fa-plus-circle text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                {{ icon('plus-circle', 'text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block') }}
                 <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Router</span>
             </a>
             <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
-                <i class="fas fa-tag text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                {{ icon('tag', 'text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block') }}
                 <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Plans</span>
             </a>
             <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
-                <i class="fas fa-network-wired text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                {{ icon('network-wired', 'text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block') }}
                 <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Network</span>
             </a>
             <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
-                <i class="fas fa-wifi text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block"></i>
+                {{ icon('wifi', 'text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block') }}
                 <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">AP</span>
             </a>
         </div>
@@ -118,7 +120,7 @@
         <div class="bg-white rounded-lg md:rounded-xl border border-gray-200 overflow-hidden">
             <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200">
                 <h5 class="text-sm md:text-base font-semibold text-gray-700">
-                    <i class="fas fa-clock mr-1.5 text-amber-500"></i> Expiring Soon
+                    {{ icon('clock', 'mr-1.5 text-amber-500') }} Expiring Soon
                 </h5>
                 <span class="bg-[#2d6a4f] text-white text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-full">{{ expiring_subscriptions|length }}</span>
             </div>
@@ -127,7 +129,7 @@
                     {% for sub in expiring_subscriptions %}
                     <div class="flex items-center gap-2 md:gap-3 p-3 md:p-4 hover:bg-gray-50 transition-colors duration-150">
                         <div class="w-8 h-8 md:w-10 md:h-10 bg-amber-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-hourglass-half text-amber-500 text-sm md:text-base"></i>
+                            {{ icon('hourglass-half', 'text-amber-500 text-sm md:text-base') }}
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm md:text-base font-semibold text-gray-800 truncate">
@@ -149,7 +151,7 @@
                     {% endfor %}
                 {% else %}
                     <div class="text-center py-8 md:py-12 text-gray-400">
-                        <i class="fas fa-check-circle text-3xl md:text-4xl mb-2 block opacity-50"></i>
+                        {{ icon('check-circle', 'text-3xl md:text-4xl mb-2 block opacity-50') }}
                         <p class="text-xs md:text-sm">No expiring subscriptions</p>
                     </div>
                 {% endif %}
@@ -160,7 +162,7 @@
         <div class="bg-white rounded-lg md:rounded-xl border border-gray-200 overflow-hidden">
             <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200">
                 <h5 class="text-sm md:text-base font-semibold text-gray-700">
-                    <i class="fas fa-ticket-alt mr-1.5 text-emerald-500"></i> Voucher Batches
+                    {{ icon('ticket-alt', 'mr-1.5 text-emerald-500') }} Voucher Batches
                 </h5>
                 <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" class="text-[10px] md:text-xs text-[#2d6a4f] hover:underline">
                     View All →
@@ -171,7 +173,7 @@
                     {% for batch in voucher_batches %}
                     <div class="flex items-center gap-2 md:gap-3 p-3 md:p-4 hover:bg-gray-50 transition-colors duration-150">
                         <div class="w-8 h-8 md:w-10 md:h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-layer-group text-emerald-500 text-sm md:text-base"></i>
+                            {{ icon('layer-group', 'text-emerald-500 text-sm md:text-base') }}
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm md:text-base font-semibold text-gray-800 truncate">{{ batch.batch_name }}</div>
@@ -191,7 +193,7 @@
                     {% endfor %}
                 {% else %}
                     <div class="text-center py-8 md:py-12 text-gray-400">
-                        <i class="fas fa-ticket-alt text-3xl md:text-4xl mb-2 block opacity-50"></i>
+                        {{ icon('ticket-alt', 'text-3xl md:text-4xl mb-2 block opacity-50') }}
                         <p class="text-xs md:text-sm">No voucher batches</p>
                     </div>
                 {% endif %}
@@ -202,7 +204,7 @@
         <div class="bg-white rounded-lg md:rounded-xl border border-gray-200 overflow-hidden">
             <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200">
                 <h5 class="text-sm md:text-base font-semibold text-gray-700">
-                    <i class="fas fa-server mr-1.5 text-purple-500"></i> Recent Routers
+                    {{ icon('server', 'mr-1.5 text-purple-500') }} Recent Routers
                 </h5>
                 <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="text-[10px] md:text-xs text-[#2d6a4f] hover:underline">
                     View All →
@@ -213,7 +215,7 @@
                     {% for router in recent_routers %}
                     <div class="flex items-center gap-2 md:gap-3 p-3 md:p-4 hover:bg-gray-50 transition-colors duration-150">
                         <div class="w-8 h-8 md:w-10 md:h-10 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-microchip text-purple-500 text-sm md:text-base"></i>
+                            {{ icon('microchip', 'text-purple-500 text-sm md:text-base') }}
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm md:text-base font-semibold text-gray-800 truncate">{{ router.name }}</div>
@@ -230,7 +232,7 @@
                     {% endfor %}
                 {% else %}
                     <div class="text-center py-8 md:py-12 text-gray-400">
-                        <i class="fas fa-server text-3xl md:text-4xl mb-2 block opacity-50"></i>
+                        {{ icon('server', 'text-3xl md:text-4xl mb-2 block opacity-50') }}
                         <p class="text-xs md:text-sm">No routers added</p>
                     </div>
                 {% endif %}
@@ -241,7 +243,7 @@
         <div class="bg-white rounded-lg md:rounded-xl border border-gray-200 overflow-hidden">
             <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200">
                 <h5 class="text-sm md:text-base font-semibold text-gray-700">
-                    <i class="fas fa-wifi mr-1.5 text-blue-500"></i> Access Points
+                    {{ icon('wifi', 'mr-1.5 text-blue-500') }} Access Points
                 </h5>
                 <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="text-[10px] md:text-xs text-[#2d6a4f] hover:underline">
                     View All →
@@ -252,7 +254,7 @@
                     {% for ap in recent_aps %}
                     <div class="flex items-center gap-2 md:gap-3 p-3 md:p-4 hover:bg-gray-50 transition-colors duration-150">
                         <div class="w-8 h-8 md:w-10 md:h-10 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-broadcast-tower text-blue-500 text-sm md:text-base"></i>
+                            {{ icon('broadcast-tower', 'text-blue-500 text-sm md:text-base') }}
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm md:text-base font-semibold text-gray-800 truncate">{{ ap.name }}</div>
@@ -269,7 +271,7 @@
                     {% endfor %}
                 {% else %}
                     <div class="text-center py-8 md:py-12 text-gray-400">
-                        <i class="fas fa-wifi text-3xl md:text-4xl mb-2 block opacity-50"></i>
+                        {{ icon('wifi', 'text-3xl md:text-4xl mb-2 block opacity-50') }}
                         <p class="text-xs md:text-sm">No access points</p>
                     </div>
                 {% endif %}

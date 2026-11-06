@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}Router Health - {{ organization.name }}{% endblock %}
 
@@ -12,9 +14,9 @@
             <nav class="text-xs sm:text-sm mt-0.5">
                 <ol class="flex items-center gap-1 text-gray-500">
                     <li><a href="{{ url_for('web.organization_dashboard', org_id=organization.id) }}" class="hover:text-[#1a56db]">Dashboard</a></li>
-                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li>{{ icon('chevron-right', 'text-gray-400 text-[10px]') }}</li>
                     <li><a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="hover:text-[#1a56db]">Routers</a></li>
-                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li>{{ icon('chevron-right', 'text-gray-400 text-[10px]') }}</li>
                     <li class="text-gray-700">Health</li>
                 </ol>
             </nav>
@@ -23,7 +25,7 @@
             <button type="button" id="testConnectionBtn"
                     onclick="bulkTestConnection()"
                     class="hidden inline-flex items-center gap-2 px-3 py-1.5 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm rounded-lg transition-colors duration-150">
-                <i class="fas fa-plug text-xs"></i>
+                {{ icon('plug', 'text-xs') }}
                 <span>Test Connection</span>
             </button>
             <span id="selectedCount" class="hidden text-xs text-gray-500 font-medium"></span>
@@ -31,7 +33,7 @@
                     onclick="refreshHealth()"
                     class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-colors duration-150"
                     title="Refresh health data">
-                <i class="fas fa-sync-alt text-xs" id="refreshIcon"></i>
+                {{ icon('sync-alt', 'text-xs', '', 'refreshIcon') }}
                 <span class="hidden sm:inline">Refresh</span>
             </button>
         </div>
@@ -43,7 +45,7 @@
         <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 card-hover">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-server text-gray-600 text-lg"></i>
+                    {{ icon('server', 'text-gray-600 text-lg') }}
                 </div>
                 <div>
                     <div class="text-2xl font-bold text-gray-800" id="statTotal">{{ health.total|default(0) }}</div>
@@ -55,7 +57,7 @@
         <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 card-hover">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
+                    {{ icon('check-circle', 'text-emerald-600 text-lg') }}
                 </div>
                 <div>
                     <div class="text-2xl font-bold text-emerald-600" id="statOnline">{{ health.online|default(0) }}</div>
@@ -67,7 +69,7 @@
         <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 card-hover">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-times-circle text-red-600 text-lg"></i>
+                    {{ icon('times-circle', 'text-red-600 text-lg') }}
                 </div>
                 <div>
                     <div class="text-2xl font-bold text-red-600" id="statOffline">{{ health.offline|default(0) }}</div>
@@ -79,7 +81,7 @@
         <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 card-hover">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-exclamation-triangle text-amber-600 text-lg"></i>
+                    {{ icon('exclamation-triangle', 'text-amber-600 text-lg') }}
                 </div>
                 <div>
                     <div class="text-2xl font-bold text-amber-600" id="statError">{{ health.error|default(0) }}</div>
@@ -101,21 +103,21 @@
                 <button type="button" data-filter="online"
                         onclick="applyFilter('online')"
                         class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 text-gray-600 hover:bg-gray-100">
-                    <i class="fas fa-circle text-emerald-500 text-[8px] mr-1"></i> Online
+                    {{ icon('circle', 'text-emerald-500 text-[8px] mr-1') }} Online
                 </button>
                 <button type="button" data-filter="offline"
                         onclick="applyFilter('offline')"
                         class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 text-gray-600 hover:bg-gray-100">
-                    <i class="fas fa-circle text-red-500 text-[8px] mr-1"></i> Offline
+                    {{ icon('circle', 'text-red-500 text-[8px] mr-1') }} Offline
                 </button>
                 <button type="button" data-filter="error"
                         onclick="applyFilter('error')"
                         class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 text-gray-600 hover:bg-gray-100">
-                    <i class="fas fa-exclamation-triangle text-amber-500 text-[8px] mr-1"></i> Error
+                    {{ icon('exclamation-triangle', 'text-amber-500 text-[8px] mr-1') }} Error
                 </button>
             </div>
             <div class="relative ml-auto">
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                {{ icon('search', 'absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs') }}
                 <input type="text" id="routerSearch"
                        class="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]/20 w-48"
                        placeholder="Search router..."
@@ -164,11 +166,7 @@
                                         {% elif router.status == 'offline' %}bg-red-100
                                         {% elif router.status == 'error' %}bg-amber-100
                                         {% else %}bg-gray-100{% endif %}">
-                                        <i class="fas fa-server text-xs
-                                            {% if router.status == 'online' %}text-emerald-600
-                                            {% elif router.status == 'offline' %}text-red-600
-                                            {% elif router.status == 'error' %}text-amber-600
-                                            {% else %}text-gray-500{% endif %}"></i>
+                                        {{ icon('server', 'text-xs ' ~ ('text-emerald-600' if router.status == 'online' else ('text-red-600' if router.status == 'offline' else ('text-amber-600' if router.status == 'error' else 'text-gray-500')))) }}
                                     </div>
                                     <div>
                                         <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}"
@@ -235,18 +233,18 @@
                                     <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}"
                                        class="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition-colors duration-150"
                                        title="View router">
-                                        <i class="fas fa-eye text-sm"></i>
+                                        {{ icon('eye', 'text-sm') }}
                                     </a>
                                     <button type="button"
                                             onclick="testConnection('{{ router.id }}', '{{ router.name|e }}')"
                                             class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150"
                                             title="Test connection">
-                                        <i class="fas fa-plug text-sm"></i>
+                                        {{ icon('plug', 'text-sm') }}
                                     </button>
                                     <a href="{{ url_for('router_web.edit', org_id=organization.id, router_id=router.id) }}"
                                        class="p-1.5 rounded-md text-[#2d6a4f] hover:bg-emerald-50 transition-colors duration-150"
                                        title="Edit router">
-                                        <i class="fas fa-edit text-sm"></i>
+                                        {{ icon('edit', 'text-sm') }}
                                     </a>
                                 </div>
                             </td>
@@ -255,7 +253,7 @@
                     {% else %}
                         <tr>
                             <td colspan="8" class="text-center py-12 text-gray-400">
-                                <i class="fas fa-server text-4xl mb-3 block opacity-30"></i>
+                                {{ icon('server', 'text-4xl mb-3 block opacity-30') }}
                                 <p class="text-sm font-medium">No routers found</p>
                                 <p class="text-xs mt-1">
                                     <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="text-[#1a56db] hover:underline">Add your first router</a>
@@ -270,7 +268,7 @@
         <!-- Last refreshed -->
         <div class="px-4 py-2 border-t border-gray-100 flex items-center justify-between">
             <span class="text-[10px] text-gray-400">
-                <i class="fas fa-clock mr-1"></i>
+                {{ icon('clock', 'mr-1') }}
                 Last refreshed: <span id="lastRefreshed">{{ health.last_updated or 'just now' }}</span>
             </span>
             <span class="text-[10px] text-gray-400" id="visibleCount">

@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} — Routers{% endblock %}
 
@@ -74,7 +76,7 @@
             </p>
         </div>
         <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="btn btn-primary">
-            <i class="fas fa-plus" style="font-size:10px;"></i> Add Router
+            {{ icon('plus', '', 'font-size:10px;') }} Add Router
         </a>
     </div>
 
@@ -86,14 +88,14 @@
     {% set radius_pend = (context.get('radius', {}).get('pending', 0) if context else 0) + (context.get('radius', {}).get('failed', 0) if context else 0) %}
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;">
-        {% for label, value, icon, bg, color in [
+        {% for label, value, stat_icon, bg, color in [
             ('Total',total,'fa-server','#eff6ff','#2563eb'),('Online',online,'fa-check-circle','#ecfdf5','#10b981'),
             ('Offline',offline,'fa-exclamation-triangle','#fef2f2','#ef4444'),('RADIUS Ready',radius_ok,'fa-shield-halved','#eef2ff','#6366f1'),
             ('Pending',radius_pend,'fa-clock','#fffbeb','#f59e0b'),('Networks',networks|length,'fa-globe','#f5f3ff','#8b5cf6')
         ] %}
         <div class="stat-card" style="display:flex;align-items:center;gap:12px;">
             <div style="width:38px;height:38px;border-radius:12px;background:{{ bg }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <i class="{{ icon }}" style="color:{{ color }};font-size:14px;"></i>
+                {{ icon(stat_icon | replace("fa-", ""), "", "color:" ~ color ~ ";font-size:14px") }}
             </div>
             <div>
                 <div style="font-size:20px;font-weight:800;color:var(--text);line-height:1;">{{ value }}</div>
@@ -116,7 +118,7 @@
                 <option value="">All Networks</option>{% for net in networks %}<option value="{{ net.id }}">{{ net.name }}</option>{% endfor %}
             </select>
             <div style="position:relative;flex:1;min-width:180px;">
-                <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:11px;"></i>
+                {{ icon('search', '', 'position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:11px;') }}
                 <input id="searchInput" placeholder="Search..." style="width:100%;padding:7px 12px 7px 30px;border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--text);outline:none;">
             </div>
             <span style="font-size:11px;color:var(--text-muted);"><span id="visibleCount">{{ total }}</span> showing</span>
@@ -135,7 +137,7 @@
                         <td>
                             <div style="display:flex;align-items:center;gap:10px;">
                                 <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                    <i class="fas fa-server" style="color:#fff;font-size:12px;"></i>
+                                    {{ icon('server', '', 'color:#fff;font-size:12px;') }}
                                 </div>
                                 <div>
                                     <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=r.id) }}" style="font-weight:700;color:var(--text);text-decoration:none;font-size:13px;">{{ r.name }}</a>
@@ -160,7 +162,7 @@
             </table>
         </div>
         <div id="noResults" style="display:none;text-align:center;padding:40px;color:var(--text-muted);">
-            <i class="fas fa-search" style="font-size:28px;display:block;margin-bottom:8px;"></i>No routers match filters
+            {{ icon('search', '', 'font-size:28px;display:block;margin-bottom:8px;') }}No routers match filters
         </div>
     </div>
 
@@ -177,7 +179,7 @@
     {% else %}
     <div class="card" style="text-align:center;padding:60px 20px;">
         <div style="width:60px;height:60px;border-radius:20px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-            <i class="fas fa-server" style="font-size:24px;color:#94a3b8;"></i>
+            {{ icon('server', '', 'font-size:24px;color:#94a3b8;') }}
         </div>
         <h3 style="font-weight:700;color:var(--text);">No Routers</h3>
         <p style="font-size:12px;color:var(--text-secondary);margin:4px 0 16px;">Add your first router to begin.</p>
@@ -190,7 +192,7 @@
 <div id="deleteModal" class="modal-overlay" onclick="closeModal(event)">
     <div class="modal-box" onclick="event.stopPropagation()">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-            <div style="width:40px;height:40px;border-radius:12px;background:var(--red-light);display:flex;align-items:center;justify-content:center;"><i class="fas fa-trash-alt" style="color:var(--red);"></i></div>
+            <div style="width:40px;height:40px;border-radius:12px;background:var(--red-light);display:flex;align-items:center;justify-content:center;">{{ icon('trash-alt', '', 'color:var(--red);') }}</div>
             <div><h3 style="font-weight:800;color:var(--text);margin:0;">Delete Router</h3><p style="font-size:11px;color:var(--text-secondary);margin:0;" id="deleteName"></p></div>
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end;">

@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}Billing Dashboard - {{ organization.name }}{% endblock %}
 
@@ -12,7 +14,7 @@
             <nav class="text-xs sm:text-sm mt-0.5">
                 <ol class="flex items-center gap-1 text-gray-500">
                     <li><a href="{{ url_for('web.organization_dashboard', org_id=organization.id) }}" class="hover:text-[#1a56db]">Dashboard</a></li>
-                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li>{{ icon('chevron-right', 'text-gray-400 text-[10px]') }}</li>
                     <li class="text-gray-700">Billing</li>
                 </ol>
             </nav>
@@ -22,21 +24,21 @@
                     onclick="refreshDashboard()"
                     class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-colors duration-150"
                     title="Refresh data">
-                <i class="fas fa-sync-alt text-xs" id="refreshIcon"></i>
+                {{ icon('sync-alt', 'text-xs', '', 'refreshIcon') }}
                 <span class="hidden sm:inline">Refresh</span>
             </button>
             <div class="relative">
                 <button type="button" id="exportDropdownBtn" 
                         class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-colors duration-150">
-                    <i class="fas fa-download text-xs"></i> Export
-                    <i class="fas fa-chevron-down text-[10px]"></i>
+                    {{ icon('download', 'text-xs') }} Export
+                    {{ icon('chevron-down', 'text-[10px]') }}
                 </button>
                 <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
                     <ul class="py-1">
-                        <li><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-file-csv mr-2 text-gray-400"></i>Revenue Report (CSV)</a></li>
-                        <li><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-file-csv mr-2 text-gray-400"></i>Subscriptions Report (CSV)</a></li>
+                        <li><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ icon('file-csv', 'mr-2 text-gray-400') }}Revenue Report (CSV)</a></li>
+                        <li><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ icon('file-csv', 'mr-2 text-gray-400') }}Subscriptions Report (CSV)</a></li>
                         <li><hr class="my-1 border-gray-100"></li>
-                        <li><a href="{{ url_for('billing_web.dashboard', org_id=organization.id) }}#invoices" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-file-invoice mr-2 text-gray-400"></i>View All Invoices</a></li>
+                        <li><a href="{{ url_for('billing_web.dashboard', org_id=organization.id) }}#invoices" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ icon('file-invoice', 'mr-2 text-gray-400') }}View All Invoices</a></li>
                     </ul>
                 </div>
             </div>
@@ -52,29 +54,29 @@
                    role="tab" aria-selected="{{ 'true' if active_period == 'last7' else 'false' }}"
                    class="period-tab px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-[#1a56db] text-white shadow-sm' if active_period == 'last7' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-calendar-day mr-1"></i> Last 7 Days
+                    {{ icon('calendar-day', 'mr-1') }} Last 7 Days
                 </a>
                 <a href="{{ url_for('billing_web.dashboard', org_id=organization.id, period='last30') }}"
                    role="tab" aria-selected="{{ 'true' if active_period == 'last30' else 'false' }}"
                    class="period-tab px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-[#1a56db] text-white shadow-sm' if active_period == 'last30' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-calendar-week mr-1"></i> Last 30 Days
+                    {{ icon('calendar-week', 'mr-1') }} Last 30 Days
                 </a>
                 <a href="{{ url_for('billing_web.dashboard', org_id=organization.id, period='last90') }}"
                    role="tab" aria-selected="{{ 'true' if active_period == 'last90' else 'false' }}"
                    class="period-tab px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-[#1a56db] text-white shadow-sm' if active_period == 'last90' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-calendar-alt mr-1"></i> Last 90 Days
+                    {{ icon('calendar-alt', 'mr-1') }} Last 90 Days
                 </a>
                 <button type="button" id="customPeriodBtn"
                         class="period-tab px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                                {{ 'bg-[#1a56db] text-white shadow-sm' if active_period == 'custom' else 'text-gray-600 hover:bg-gray-100' }}"
                         onclick="toggleCustomPicker()">
-                    <i class="fas fa-sliders-h mr-1"></i> Custom Period
+                    {{ icon('sliders-h', 'mr-1') }} Custom Period
                 </button>
             </div>
             <div class="text-xs text-gray-400">
-                <i class="fas fa-clock mr-1"></i>
+                {{ icon('clock', 'mr-1') }}
                 Updated: <span id="lastUpdated">{{ stats.last_updated or 'just now' }}</span>
             </div>
         </div>
@@ -100,7 +102,7 @@
                 </div>
                 <button type="submit"
                         class="px-4 py-1.5 bg-[#2d6a4f] hover:bg-[#245a42] text-white text-sm font-medium rounded-lg transition-colors duration-150">
-                    <i class="fas fa-filter mr-1"></i> Apply
+                    {{ icon('filter', 'mr-1') }} Apply
                 </button>
             </form>
         </div>
@@ -116,10 +118,10 @@
                     <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">KES {{ "{:,.0f}".format(stats.total_revenue|default(0)) }}</p>
                     <p class="text-xs mt-1.5">
                         {% if stats.revenue_trend is defined and stats.revenue_trend > 0 %}
-                        <span class="text-emerald-600"><i class="fas fa-arrow-up text-[10px] mr-0.5"></i>{{ stats.revenue_trend }}%</span>
+                        <span class="text-emerald-600">{{ icon('arrow-up', 'text-[10px] mr-0.5') }}{{ stats.revenue_trend }}%</span>
                         <span class="text-gray-400 ml-1">vs last period</span>
                         {% elif stats.revenue_trend is defined and stats.revenue_trend < 0 %}
-                        <span class="text-red-600"><i class="fas fa-arrow-down text-[10px] mr-0.5"></i>{{ stats.revenue_trend|abs }}%</span>
+                        <span class="text-red-600">{{ icon('arrow-down', 'text-[10px] mr-0.5') }}{{ stats.revenue_trend|abs }}%</span>
                         <span class="text-gray-400 ml-1">vs last period</span>
                         {% else %}
                         <span class="text-gray-400">No change vs last period</span>
@@ -127,7 +129,7 @@
                     </p>
                 </div>
                 <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-chart-line text-[#1a56db] text-lg sm:text-xl"></i>
+                    {{ icon('chart-line', 'text-[#1a56db] text-lg sm:text-xl') }}
                 </div>
             </div>
         </div>
@@ -139,11 +141,11 @@
                     <p class="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-1">Active Subscriptions</p>
                     <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ stats.active_subscriptions|default(0) }}</p>
                     <p class="text-xs text-gray-500 mt-1.5">
-                        <i class="fas fa-users mr-1"></i> {{ stats.total_subscribers|default(0) }} total subscribers
+                        {{ icon('users', 'mr-1') }} {{ stats.total_subscribers|default(0) }} total subscribers
                     </p>
                 </div>
                 <div class="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-tags text-emerald-600 text-lg sm:text-xl"></i>
+                    {{ icon('tags', 'text-emerald-600 text-lg sm:text-xl') }}
                 </div>
             </div>
         </div>
@@ -155,11 +157,11 @@
                     <p class="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-1">Monthly Recurring Revenue</p>
                     <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">KES {{ "{:,.0f}".format(stats.mrr|default(0)) }}</p>
                     <p class="text-xs text-gray-500 mt-1.5">
-                        <i class="fas fa-calendar mr-1"></i> Based on active subscriptions
+                        {{ icon('calendar', 'mr-1') }} Based on active subscriptions
                     </p>
                 </div>
                 <div class="w-10 h-10 sm:w-12 sm:h-12 bg-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-calendar-check text-cyan-600 text-lg sm:text-xl"></i>
+                    {{ icon('calendar-check', 'text-cyan-600 text-lg sm:text-xl') }}
                 </div>
             </div>
         </div>
@@ -171,11 +173,11 @@
                     <p class="text-[10px] sm:text-xs text-white/80 uppercase tracking-wider mb-1">Pending Payments</p>
                     <p class="text-xl sm:text-2xl lg:text-3xl font-bold">KES {{ "{:,.0f}".format(stats.pending_payments|default(0)) }}</p>
                     <p class="text-xs text-white/80 mt-1.5">
-                        <i class="fas fa-clock mr-1"></i> {{ stats.overdue_invoices|default(0) }} overdue
+                        {{ icon('clock', 'mr-1') }} {{ stats.overdue_invoices|default(0) }} overdue
                     </p>
                 </div>
                 <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-hourglass-half text-white text-lg sm:text-xl"></i>
+                    {{ icon('hourglass-half', 'text-white text-lg sm:text-xl') }}
                 </div>
             </div>
         </div>
@@ -186,7 +188,7 @@
         <div class="flex flex-wrap justify-between items-center gap-2 px-3 py-3 sm:px-4 sm:py-3.5 bg-gray-50 border-b border-gray-200">
             <div class="flex items-center gap-2">
                 <div class="w-7 h-7 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-heartbeat text-[#2d6a4f] text-sm"></i>
+                    {{ icon('heartbeat', 'text-[#2d6a4f] text-sm') }}
                 </div>
                 <h6 class="text-sm font-semibold text-gray-800">Router Health Status</h6>
             </div>
@@ -204,19 +206,19 @@
                 <div class="text-center p-3 bg-emerald-50 rounded-lg">
                     <div class="text-2xl font-bold text-emerald-600" id="routerOnline">{{ router_health.online|default('—') }}</div>
                     <div class="text-[10px] text-emerald-600 uppercase tracking-wider mt-0.5">
-                        <i class="fas fa-circle text-[8px] mr-0.5"></i> Online
+                        {{ icon('circle', 'text-[8px] mr-0.5') }} Online
                     </div>
                 </div>
                 <div class="text-center p-3 bg-red-50 rounded-lg">
                     <div class="text-2xl font-bold text-red-600" id="routerOffline">{{ router_health.offline|default('—') }}</div>
                     <div class="text-[10px] text-red-600 uppercase tracking-wider mt-0.5">
-                        <i class="fas fa-circle text-[8px] mr-0.5"></i> Offline
+                        {{ icon('circle', 'text-[8px] mr-0.5') }} Offline
                     </div>
                 </div>
                 <div class="text-center p-3 bg-amber-50 rounded-lg">
                     <div class="text-2xl font-bold text-amber-600" id="routerError">{{ router_health.error|default('—') }}</div>
                     <div class="text-[10px] text-amber-600 uppercase tracking-wider mt-0.5">
-                        <i class="fas fa-exclamation-triangle text-[8px] mr-0.5"></i> Error
+                        {{ icon('exclamation-triangle', 'text-[8px] mr-0.5') }} Error
                     </div>
                 </div>
             </div>
@@ -230,7 +232,7 @@
             <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
                 <h6 class="text-sm font-semibold text-gray-800">Revenue Trend</h6>
                 <span class="text-[10px] text-gray-400">
-                    <i class="fas fa-calendar-alt mr-1"></i>
+                    {{ icon('calendar-alt', 'mr-1') }}
                     {% if active_period == 'last7' %}Last 7 days
                     {% elif active_period == 'last90' %}Last 90 days
                     {% elif active_period == 'custom' %}Custom period
@@ -247,7 +249,7 @@
             </div>
             <canvas id="planTypeChart" height="180" class="w-full" aria-label="Revenue by plan type chart" role="img"></canvas>
             <p class="text-[10px] text-gray-400 text-center mt-3">
-                <i class="fas fa-chart-pie mr-1"></i> Distribution by plan category
+                {{ icon('chart-pie', 'mr-1') }} Distribution by plan category
             </p>
         </div>
     </div>
@@ -294,7 +296,7 @@
                             {% else %}
                             <tr>
                                 <td colspan="5" class="text-center py-6 text-gray-400">
-                                    <i class="fas fa-tags text-2xl mb-2 block opacity-30"></i>
+                                    {{ icon('tags', 'text-2xl mb-2 block opacity-30') }}
                                     No plans data available
                                 </td>
                             </tr>
@@ -325,7 +327,7 @@
                 </div>
                 {% else %}
                 <div class="text-center py-8 text-gray-400">
-                    <i class="fas fa-receipt text-2xl mb-2 block opacity-30"></i>
+                    {{ icon('receipt', 'text-2xl mb-2 block opacity-30') }}
                     <p class="text-xs">No recent transactions</p>
                 </div>
                 {% endfor %}
@@ -373,7 +375,7 @@
             <div class="flex flex-wrap justify-between items-center gap-2 px-3 py-3 sm:px-4 sm:py-3.5 bg-amber-50 border-b border-amber-100">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 bg-amber-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-clock text-amber-600 text-sm"></i>
+                        {{ icon('clock', 'text-amber-600 text-sm') }}
                     </div>
                     <h6 class="text-sm font-semibold text-gray-800">Expiring Soon
                         <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700">
@@ -389,7 +391,7 @@
                 <div class="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
                     <div class="flex items-center gap-2.5 min-w-0">
                         <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-user text-amber-600 text-xs"></i>
+                            {{ icon('user', 'text-amber-600 text-xs') }}
                         </div>
                         <div class="min-w-0">
                             <div class="text-sm font-medium text-gray-800 truncate">{{ sub.subscriber_name }}</div>
@@ -411,7 +413,7 @@
                 </div>
                 {% else %}
                 <div class="text-center py-8 text-gray-400">
-                    <i class="fas fa-check-circle text-2xl mb-2 block text-emerald-300"></i>
+                    {{ icon('check-circle', 'text-2xl mb-2 block text-emerald-300') }}
                     <p class="text-xs">No subscriptions expiring in the next 7 days</p>
                 </div>
                 {% endfor %}
@@ -423,7 +425,7 @@
             <div class="flex flex-wrap justify-between items-center gap-2 px-3 py-3 sm:px-4 sm:py-3.5 bg-[#2d6a4f]/5 border-b border-[#2d6a4f]/10">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-sync-alt text-[#2d6a4f] text-sm"></i>
+                        {{ icon('sync-alt', 'text-[#2d6a4f] text-sm') }}
                     </div>
                     <h6 class="text-sm font-semibold text-gray-800">Auto-Renewal Status</h6>
                 </div>
@@ -436,13 +438,13 @@
                     <div class="text-center p-3 bg-[#2d6a4f]/5 rounded-lg">
                         <div class="text-2xl font-bold text-[#2d6a4f]">{{ auto_renewal.enabled_count|default(0) }}</div>
                         <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">
-                            <i class="fas fa-check-circle text-[#2d6a4f] mr-0.5"></i> Auto-Renew On
+                            {{ icon('check-circle', 'text-[#2d6a4f] mr-0.5') }} Auto-Renew On
                         </div>
                     </div>
                     <div class="text-center p-3 bg-gray-50 rounded-lg">
                         <div class="text-2xl font-bold text-gray-500">{{ auto_renewal.disabled_count|default(0) }}</div>
                         <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">
-                            <i class="fas fa-times-circle text-gray-400 mr-0.5"></i> Auto-Renew Off
+                            {{ icon('times-circle', 'text-gray-400 mr-0.5') }} Auto-Renew Off
                         </div>
                     </div>
                 </div>
@@ -456,13 +458,13 @@
                         </div>
                         <span class="ml-2 flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
                             {% if sub.auto_renew %}bg-[#2d6a4f]/10 text-[#2d6a4f]{% else %}bg-gray-100 text-gray-500{% endif %}">
-                            <i class="fas {% if sub.auto_renew %}fa-sync-alt{% else %}fa-ban{% endif %} text-[8px]"></i>
+                            {{ icon('sync-alt' if sub.auto_renew else 'ban', 'text-[8px]') }}
                             {{ 'Enabled' if sub.auto_renew else 'Disabled' }}
                         </span>
                     </div>
                     {% else %}
                     <div class="text-center py-6 text-gray-400">
-                        <i class="fas fa-sync-alt text-xl mb-1 block opacity-20"></i>
+                        {{ icon('sync-alt', 'text-xl mb-1 block opacity-20') }}
                         <p class="text-xs">No auto-renewal data</p>
                     </div>
                     {% endfor %}

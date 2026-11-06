@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}Renew Subscription - {{ organization.name }}{% endblock %}
 
@@ -41,7 +43,7 @@
             <!-- Current Subscription Info -->
             <div class="card mb-4">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-tag me-2"></i>Current Subscription</h5>
+                    <h5 class="mb-0">{{ icon('tag', 'me-2') }}Current Subscription</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -90,7 +92,7 @@
             <!-- Renewal Options -->
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-sync-alt me-2"></i>Renewal Options</h5>
+                    <h5 class="mb-0">{{ icon('sync-alt', 'me-2') }}Renewal Options</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('subscriber_web.renew_subscription_post', org_id=organization.id, subscriber_id=subscriber.id) }}">
@@ -106,14 +108,14 @@
                                 </label>
                                 <div class="ms-4 mt-2">
                                     <div class="small text-muted">
-                                        <i class="fas fa-clock me-1"></i> Extend by {{ active_subscription.plan.validity_display }}
+                                        {{ icon('clock', 'me-1') }} Extend by {{ active_subscription.plan.validity_display }}
                                     </div>
                                     <div class="small text-muted">
-                                        <i class="fas fa-calendar-plus me-1"></i> New expiry: 
+                                        {{ icon('calendar-plus', 'me-1') }} New expiry: 
                                         <strong>{{ (active_subscription.expiry_time + active_subscription.plan.validity_timedelta).strftime('%Y-%m-%d %H:%M') }}</strong>
                                     </div>
                                     <div class="small text-muted">
-                                        <i class="fas fa-tachometer-alt me-1"></i> Bandwidth: ↓{{ active_subscription.get_bandwidth_down() }}/↑{{ active_subscription.get_bandwidth_up() }} Mbps
+                                        {{ icon('tachometer-alt', 'me-1') }} Bandwidth: ↓{{ active_subscription.get_bandwidth_down() }}/↑{{ active_subscription.get_bandwidth_up() }} Mbps
                                     </div>
                                 </div>
                             </div>
@@ -156,14 +158,14 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="auto_renew" id="auto_renew" value="true" {% if active_subscription.auto_renew %}checked{% endif %}>
                                 <label class="form-check-label" for="auto_renew">
-                                    <i class="fas fa-sync-alt me-1"></i> Enable auto-renewal
+                                    {{ icon('sync-alt', 'me-1') }} Enable auto-renewal
                                 </label>
                                 <div class="small text-muted">Subscription will automatically renew on expiry</div>
                             </div>
                         </div>
                         
                         <div class="alert alert-info mb-4">
-                            <i class="fas fa-info-circle me-2"></i>
+                            {{ icon('info-circle', 'me-2') }}
                             <strong>Note:</strong> Renewal will charge the subscriber according to the plan price. 
                             {% if active_subscription.expiry_time < now %}
                             The subscription has already expired. Renewal will activate it immediately.
@@ -174,10 +176,10 @@
                         
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-success">
-                                <i class="fas fa-check me-1"></i> Confirm Renewal
+                                {{ icon('check', 'me-1') }} Confirm Renewal
                             </button>
                             <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="btn btn-secondary">
-                                <i class="fas fa-times me-1"></i> Cancel
+                                {{ icon('times', 'me-1') }} Cancel
                             </a>
                         </div>
                     </form>
@@ -189,7 +191,7 @@
             <!-- Summary Card -->
             <div class="card mb-3">
                 <div class="card-header bg-success text-white">
-                    <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Renewal Summary</h6>
+                    <h6 class="mb-0">{{ icon('chart-line', 'me-2') }}Renewal Summary</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-2">
@@ -229,13 +231,13 @@
             <!-- Help Card -->
             <div class="card">
                 <div class="card-header bg-secondary text-white">
-                    <h6 class="mb-0"><i class="fas fa-question-circle me-2"></i>Need Help?</h6>
+                    <h6 class="mb-0">{{ icon('question-circle', 'me-2') }}Need Help?</h6>
                 </div>
                 <div class="card-body">
                     <div class="small">
-                        <i class="fas fa-check-circle text-success me-2"></i> Renewal extends the subscription validity.<br><br>
-                        <i class="fas fa-arrow-up text-info me-2"></i> Upgrade option allows changing to a different plan.<br><br>
-                        <i class="fas fa-sync-alt text-warning me-2"></i> Enable auto-renew for automatic billing.
+                        {{ icon('check-circle', 'text-success me-2') }} Renewal extends the subscription validity.<br><br>
+                        {{ icon('arrow-up', 'text-info me-2') }} Upgrade option allows changing to a different plan.<br><br>
+                        {{ icon('sync-alt', 'text-warning me-2') }} Enable auto-renew for automatic billing.
                     </div>
                 </div>
             </div>

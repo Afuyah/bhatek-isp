@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - {{ batch.batch_name }}{% endblock %}
 
@@ -14,7 +16,7 @@
             </div>
             <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" 
                class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs sm:text-sm rounded-lg transition-colors duration-150 shrink-0">
-                <i class="fas fa-arrow-left text-xs"></i> Back
+                {{ icon('arrow-left', 'text-xs') }} Back
             </a>
         </div>
     </div>
@@ -78,7 +80,7 @@
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-50 border-b border-gray-200">
                 <h3 class="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <i class="fas fa-check-circle text-emerald-500"></i> Active Vouchers
+                    {{ icon('check-circle', 'text-emerald-500') }} Active Vouchers
                 </h3>
             </div>
             <div class="overflow-x-auto">
@@ -104,7 +106,7 @@
                                             <code class="font-mono text-xs font-semibold bg-gray-100 px-1.5 py-0.5 rounded text-gray-800 break-all">{{ voucher.code }}</code>
                                             <button onclick="copyToClipboard('{{ voucher.code }}')" 
                                                     class="p-1 rounded text-gray-400 hover:text-blue-600 transition-colors" title="Copy code">
-                                                <i class="fas fa-copy text-xs"></i>
+                                                {{ icon('copy', 'text-xs') }}
                                             </button>
                                         </div>
                                     </td>
@@ -125,7 +127,7 @@
                                     <td class="px-2 py-2 sm:px-4 sm:py-3">
                                         <button onclick="copyToClipboard('{{ voucher.code }}')" 
                                                 class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded-lg transition-colors">
-                                            <i class="fas fa-copy text-[10px]"></i> Copy
+                                            {{ icon('copy', 'text-[10px]') }} Copy
                                         </button>
                                     </td>
                                 </tr>
@@ -133,7 +135,7 @@
                             {% else %}
                                 <tr>
                                     <td colspan="5" class="text-center py-8 text-gray-400">
-                                        <i class="fas fa-ticket-alt text-2xl mb-2 block opacity-50"></i>
+                                        {{ icon('ticket-alt', 'text-2xl mb-2 block opacity-50') }}
                                         <p class="text-sm">No active vouchers</p>
                                     </td>
                                 </tr>
@@ -150,7 +152,7 @@
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-50 border-b border-gray-200">
                 <h3 class="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <i class="fas fa-check-double text-red-500"></i> Used Vouchers
+                    {{ icon('check-double', 'text-red-500') }} Used Vouchers
                 </h3>
             </div>
             <div class="overflow-x-auto">
@@ -184,7 +186,7 @@
                             {% else %}
                                 <tr>
                                     <td colspan="4" class="text-center py-8 text-gray-400">
-                                        <i class="fas fa-ticket-alt text-2xl mb-2 block opacity-50"></i>
+                                        {{ icon('ticket-alt', 'text-2xl mb-2 block opacity-50') }}
                                         <p class="text-sm">No used vouchers</p>
                                     </td>
                                 </tr>
@@ -201,7 +203,7 @@
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-50 border-b border-gray-200">
                 <h3 class="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <i class="fas fa-hourglass-end text-amber-500"></i> Expired Vouchers
+                    {{ icon('hourglass-end', 'text-amber-500') }} Expired Vouchers
                 </h3>
             </div>
             <div class="overflow-x-auto">
@@ -231,7 +233,7 @@
                             {% else %}
                                 <tr>
                                     <td colspan="3" class="text-center py-8 text-gray-400">
-                                        <i class="fas fa-ticket-alt text-2xl mb-2 block opacity-50"></i>
+                                        {{ icon('ticket-alt', 'text-2xl mb-2 block opacity-50') }}
                                         <p class="text-sm">No expired vouchers</p>
                                     </td>
                                 </tr>
@@ -295,7 +297,7 @@
                 warning: 'bg-amber-500'
             };
             toast.className = `fixed bottom-5 right-5 z-50 ${colors[type] || colors.success} text-white px-4 py-2 rounded-lg shadow-lg text-sm animate-slide-in`;
-            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>${message}`;
+            toast.innerHTML = `${window.icon(type === "success" ? "check-circle" : "exclamation-circle", "mr-2")}${message}`;
             document.body.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';

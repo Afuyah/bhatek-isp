@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}Invoices - {{ organization.name }}{% endblock %}
 
@@ -12,9 +14,9 @@
             <nav class="text-xs sm:text-sm mt-0.5">
                 <ol class="flex items-center gap-1 text-gray-500">
                     <li><a href="{{ url_for('web.organization_dashboard', org_id=organization.id) }}" class="hover:text-[#1a56db]">Dashboard</a></li>
-                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li>{{ icon('chevron-right', 'text-gray-400 text-[10px]') }}</li>
                     <li><a href="{{ url_for('billing_web.dashboard', org_id=organization.id) }}" class="hover:text-[#1a56db]">Billing</a></li>
-                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li>{{ icon('chevron-right', 'text-gray-400 text-[10px]') }}</li>
                     <li class="text-gray-700">Invoices</li>
                 </ol>
             </nav>
@@ -24,7 +26,7 @@
             <button type="button" id="bulkReminderBtn"
                     onclick="bulkSendReminders()"
                     class="hidden inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm rounded-lg transition-colors duration-150">
-                <i class="fas fa-paper-plane text-xs"></i>
+                {{ icon('paper-plane', 'text-xs') }}
                 <span>Send Reminders</span>
             </button>
             <span id="selectedCount" class="hidden text-xs text-gray-500 font-medium"></span>
@@ -40,19 +42,19 @@
                    role="tab" aria-selected="{{ 'true' if active_period == 'daily' else 'false' }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-[#1a56db] text-white shadow-sm' if active_period == 'daily' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-calendar-day mr-1"></i> Daily
+                    {{ icon('calendar-day', 'mr-1') }} Daily
                 </a>
                 <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period='weekly') }}"
                    role="tab" aria-selected="{{ 'true' if active_period == 'weekly' else 'false' }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-[#1a56db] text-white shadow-sm' if active_period == 'weekly' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-calendar-week mr-1"></i> Weekly
+                    {{ icon('calendar-week', 'mr-1') }} Weekly
                 </a>
                 <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period='monthly') }}"
                    role="tab" aria-selected="{{ 'true' if active_period == 'monthly' else 'false' }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-[#1a56db] text-white shadow-sm' if active_period == 'monthly' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-calendar-alt mr-1"></i> Monthly
+                    {{ icon('calendar-alt', 'mr-1') }} Monthly
                 </a>
             </div>
 
@@ -87,7 +89,7 @@
                 {% endif %}
                 <button type="submit"
                         class="px-3 py-1.5 bg-[#2d6a4f] hover:bg-[#245a42] text-white text-sm font-medium rounded-lg transition-colors duration-150">
-                    <i class="fas fa-filter mr-1"></i> Apply
+                    {{ icon('filter', 'mr-1') }} Apply
                 </button>
             </form>
         </div>
@@ -130,21 +132,21 @@
                 <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period=active_period, status='paid') }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-emerald-600 text-white' if status_filter == 'paid' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-check-circle mr-1"></i> Paid
+                    {{ icon('check-circle', 'mr-1') }} Paid
                 </a>
                 <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period=active_period, status='pending') }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-[#1a56db] text-white' if status_filter == 'pending' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-clock mr-1"></i> Pending
+                    {{ icon('clock', 'mr-1') }} Pending
                 </a>
                 <a href="{{ url_for('billing_web.invoices', org_id=organization.id, period=active_period, status='overdue') }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-red-600 text-white' if status_filter == 'overdue' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-exclamation-triangle mr-1"></i> Overdue
+                    {{ icon('exclamation-triangle', 'mr-1') }} Overdue
                 </a>
             </div>
             <div class="relative ml-auto">
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                {{ icon('search', 'absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs') }}
                 <input type="text" id="invoiceSearch"
                        class="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]/20 w-48"
                        placeholder="Search invoice..."
@@ -193,7 +195,7 @@
                             <td class="px-3 py-3">
                                 <div class="flex items-center gap-2">
                                     <div class="w-7 h-7 bg-[#1a56db]/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <i class="fas fa-user text-[#1a56db] text-[10px]"></i>
+                                        {{ icon('user', 'text-[#1a56db] text-[10px]') }}
                                     </div>
                                     <div>
                                         <div class="font-medium text-gray-800 text-xs">{{ inv.subscriber_name }}</div>
@@ -207,23 +209,23 @@
                             <td class="px-3 py-3">
                                 {% if inv.status == 'paid' %}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
-                                    <i class="fas fa-check-circle text-[8px]"></i> Paid
+                                    {{ icon('check-circle', 'text-[8px]') }} Paid
                                 </span>
                                 {% elif inv.status == 'sent' %}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-[#1a56db]">
-                                    <i class="fas fa-paper-plane text-[8px]"></i> Sent
+                                    {{ icon('paper-plane', 'text-[8px]') }} Sent
                                 </span>
                                 {% elif inv.status == 'overdue' %}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">
-                                    <i class="fas fa-exclamation-triangle text-[8px]"></i> Overdue
+                                    {{ icon('exclamation-triangle', 'text-[8px]') }} Overdue
                                 </span>
                                 {% elif inv.status == 'cancelled' %}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
-                                    <i class="fas fa-ban text-[8px]"></i> Cancelled
+                                    {{ icon('ban', 'text-[8px]') }} Cancelled
                                 </span>
                                 {% else %}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
-                                    <i class="fas fa-file text-[8px]"></i> Draft
+                                    {{ icon('file', 'text-[8px]') }} Draft
                                 </span>
                                 {% endif %}
                             </td>
@@ -239,14 +241,14 @@
                                     <a href="{{ url_for('billing_web.invoice_show', org_id=organization.id, invoice_id=inv.id) }}"
                                        class="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition-colors duration-150"
                                        title="View invoice">
-                                        <i class="fas fa-eye text-sm"></i>
+                                        {{ icon('eye', 'text-sm') }}
                                     </a>
                                     {% if inv.status not in ['paid', 'cancelled'] %}
                                     <button type="button"
                                             onclick="sendInvoiceReminder('{{ inv.id }}', '{{ inv.subscriber_name|e }}')"
                                             class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150"
                                             title="Send reminder">
-                                        <i class="fas fa-paper-plane text-sm"></i>
+                                        {{ icon('paper-plane', 'text-sm') }}
                                     </button>
                                     {% endif %}
                                 </div>
@@ -256,7 +258,7 @@
                     {% else %}
                         <tr>
                             <td colspan="8" class="text-center py-12 text-gray-400">
-                                <i class="fas fa-file-invoice text-4xl mb-3 block opacity-30"></i>
+                                {{ icon('file-invoice', 'text-4xl mb-3 block opacity-30') }}
                                 <p class="text-sm font-medium">No invoices found</p>
                                 <p class="text-xs mt-1">
                                     {% if status_filter != 'all' %}
@@ -282,13 +284,13 @@
                 {% if pagination.has_prev %}
                 <a href="?page={{ pagination.page - 1 }}&period={{ active_period }}&status={{ status_filter }}"
                    class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <i class="fas fa-chevron-left mr-1"></i> Prev
+                    {{ icon('chevron-left', 'mr-1') }} Prev
                 </a>
                 {% endif %}
                 {% if pagination.has_next %}
                 <a href="?page={{ pagination.page + 1 }}&period={{ active_period }}&status={{ status_filter }}"
                    class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    Next <i class="fas fa-chevron-right ml-1"></i>
+                    Next {{ icon('chevron-right', 'ml-1') }}
                 </a>
                 {% endif %}
             </div>

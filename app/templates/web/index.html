@@ -1,4 +1,6 @@
 {% extends "web/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}Bhatek ISP | Enterprise ISP Management Platform{% endblock %}
 
@@ -34,7 +36,7 @@
                 <button onclick="document.getElementById('registrationForm').scrollIntoView({behavior: 'smooth'})" 
                         class="bg-[#2d6a4f] hover:bg-[#1f5a44] text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
                     Start Free Trial
-                    <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                    {{ icon('arrow-right', 'ml-2 text-sm') }}
                 </button>
             </div>
             
@@ -80,7 +82,7 @@
                     
                     <button type="submit" id="startTrialBtn" 
                             class="w-full bg-[#2d6a4f] hover:bg-[#1f5a44] text-white font-medium py-2.5 rounded-lg transition-all duration-200">
-                        <i class="fas fa-paper-plane mr-2 text-sm"></i>Start Free Trial
+                        {{ icon('paper-plane', 'mr-2 text-sm') }}Start Free Trial
                     </button>
                 </form>
                 
@@ -104,7 +106,7 @@
             <!-- Feature 1 -->
             <div class="bg-white rounded-xl p-6 border border-gray-100 hover:border-gray-200 transition-all">
                 <div class="w-10 h-10 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-wifi text-[#2d6a4f] text-lg"></i>
+                    {{ icon('wifi', 'text-[#2d6a4f] text-lg') }}
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2">Hotspot Management</h3>
                 <p class="text-sm text-gray-600">Captive portal, vouchers, and bandwidth control</p>
@@ -113,7 +115,7 @@
             <!-- Feature 2 -->
             <div class="bg-white rounded-xl p-6 border border-gray-100 hover:border-gray-200 transition-all">
                 <div class="w-10 h-10 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-network-wired text-[#2d6a4f] text-lg"></i>
+                    {{ icon('network-wired', 'text-[#2d6a4f] text-lg') }}
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2">PPPoE Support</h3>
                 <p class="text-sm text-gray-600">User accounts and session monitoring</p>
@@ -122,7 +124,7 @@
             <!-- Feature 3 -->
             <div class="bg-white rounded-xl p-6 border border-gray-100 hover:border-gray-200 transition-all">
                 <div class="w-10 h-10 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-money-bill-wave text-[#2d6a4f] text-lg"></i>
+                    {{ icon('money-bill-wave', 'text-[#2d6a4f] text-lg') }}
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2">Automated Billing</h3>
                 <p class="text-sm text-gray-600">M-Pesa, invoices, and recurring payments</p>
@@ -131,7 +133,7 @@
             <!-- Feature 4 -->
             <div class="bg-white rounded-xl p-6 border border-gray-100 hover:border-gray-200 transition-all">
                 <div class="w-10 h-10 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-server text-[#2d6a4f] text-lg"></i>
+                    {{ icon('server', 'text-[#2d6a4f] text-lg') }}
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2">Router Management</h3>
                 <p class="text-sm text-gray-600">MikroTik and network infrastructure</p>
@@ -140,7 +142,7 @@
             <!-- Feature 5 -->
             <div class="bg-white rounded-xl p-6 border border-gray-100 hover:border-gray-200 transition-all">
                 <div class="w-10 h-10 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-chart-line text-[#2d6a4f] text-lg"></i>
+                    {{ icon('chart-line', 'text-[#2d6a4f] text-lg') }}
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2">Analytics</h3>
                 <p class="text-sm text-gray-600">Real-time usage and revenue reports</p>
@@ -149,7 +151,7 @@
             <!-- Feature 6 -->
             <div class="bg-white rounded-xl p-6 border border-gray-100 hover:border-gray-200 transition-all">
                 <div class="w-10 h-10 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-shield-alt text-[#2d6a4f] text-lg"></i>
+                    {{ icon('shield-alt', 'text-[#2d6a4f] text-lg') }}
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2">Enterprise Security</h3>
                 <p class="text-sm text-gray-600">256-bit encryption and RBAC</p>
@@ -180,7 +182,7 @@ if (registrationForm) {
         }
         
         startTrialBtn.disabled = true;
-        startTrialBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+        startTrialBtn.innerHTML = '{{ icon('spin', 'mr-2') }}Sending...';
         
         try {
             const response = await fetch('/api/v1/auth/send-verification', {
@@ -204,7 +206,7 @@ if (registrationForm) {
             showToast('Network error. Please try again.', 'error');
         } finally {
             startTrialBtn.disabled = false;
-            startTrialBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Start Free Trial';
+            startTrialBtn.innerHTML = '{{ icon('paper-plane', 'mr-2') }}Start Free Trial';
         }
     });
 }
@@ -222,7 +224,7 @@ function showVerificationModal(email) {
         <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" id="verificationModal">
             <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center">
                 <div class="w-16 h-16 bg-[#2d6a4f]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-envelope text-2xl text-[#2d6a4f]"></i>
+                    {{ icon('envelope', 'text-2xl text-[#2d6a4f]') }}
                 </div>
                 <h3 class="text-xl font-semibold mb-2">Check Your Email</h3>
                 <p class="text-gray-600 text-sm mb-2">We've sent a verification link to</p>

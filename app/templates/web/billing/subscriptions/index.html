@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}Subscriptions - {{ organization.name }}{% endblock %}
 
@@ -12,9 +14,9 @@
             <nav class="text-xs sm:text-sm mt-0.5">
                 <ol class="flex items-center gap-1 text-gray-500">
                     <li><a href="{{ url_for('web.organization_dashboard', org_id=organization.id) }}" class="hover:text-[#1a56db]">Dashboard</a></li>
-                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li>{{ icon('chevron-right', 'text-gray-400 text-[10px]') }}</li>
                     <li><a href="{{ url_for('billing_web.dashboard', org_id=organization.id) }}" class="hover:text-[#1a56db]">Billing</a></li>
-                    <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                    <li>{{ icon('chevron-right', 'text-gray-400 text-[10px]') }}</li>
                     <li class="text-gray-700">Subscriptions</li>
                 </ol>
             </nav>
@@ -24,13 +26,13 @@
             <button type="button" id="bulkReminderBtn"
                     onclick="bulkAction('send_reminders')"
                     class="hidden inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm rounded-lg transition-colors duration-150">
-                <i class="fas fa-bell text-xs"></i>
+                {{ icon('bell', 'text-xs') }}
                 <span>Send Reminders</span>
             </button>
             <button type="button" id="bulkAutoRenewBtn"
                     onclick="bulkAction('enable_auto_renew')"
                     class="hidden inline-flex items-center gap-2 px-3 py-1.5 bg-[#2d6a4f] hover:bg-[#245a42] text-white text-sm rounded-lg transition-colors duration-150">
-                <i class="fas fa-sync-alt text-xs"></i>
+                {{ icon('sync-alt', 'text-xs') }}
                 <span>Enable Auto-Renew</span>
             </button>
             <span id="selectedCount" class="hidden text-xs text-gray-500 font-medium"></span>
@@ -71,27 +73,27 @@
                 <a href="{{ url_for('billing_web.subscriptions', org_id=organization.id, filter='active') }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-emerald-600 text-white' if active_filter == 'active' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-check-circle mr-1"></i> Active
+                    {{ icon('check-circle', 'mr-1') }} Active
                 </a>
                 <a href="{{ url_for('billing_web.subscriptions', org_id=organization.id, filter='expiring') }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-amber-500 text-white' if active_filter == 'expiring' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-clock mr-1"></i> Expiring Soon
+                    {{ icon('clock', 'mr-1') }} Expiring Soon
                 </a>
                 <a href="{{ url_for('billing_web.subscriptions', org_id=organization.id, filter='expired') }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-red-600 text-white' if active_filter == 'expired' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-times-circle mr-1"></i> Expired
+                    {{ icon('times-circle', 'mr-1') }} Expired
                 </a>
                 <a href="{{ url_for('billing_web.subscriptions', org_id=organization.id, filter='auto_renew') }}"
                    class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150
                           {{ 'bg-[#2d6a4f] text-white' if active_filter == 'auto_renew' else 'text-gray-600 hover:bg-gray-100' }}">
-                    <i class="fas fa-sync-alt mr-1"></i> Auto-Renew
+                    {{ icon('sync-alt', 'mr-1') }} Auto-Renew
                 </a>
             </div>
             <!-- Search -->
             <div class="relative ml-auto">
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                {{ icon('search', 'absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs') }}
                 <input type="text" id="subSearchInput"
                        class="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]/20 w-48"
                        placeholder="Search subscriber..."
@@ -145,7 +147,7 @@
                             <td class="px-3 py-3">
                                 <div class="flex items-center gap-2.5">
                                     <div class="w-8 h-8 bg-[#1a56db]/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <i class="fas fa-user text-[#1a56db] text-xs"></i>
+                                        {{ icon('user', 'text-[#1a56db] text-xs') }}
                                     </div>
                                     <div>
                                         <div class="font-medium text-gray-800">{{ sub.subscriber_name }}</div>
@@ -198,11 +200,11 @@
                             <td class="px-3 py-3 hidden lg:table-cell">
                                 {% if sub.auto_renew %}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#2d6a4f]/10 text-[#2d6a4f]">
-                                    <i class="fas fa-sync-alt text-[8px]"></i> On
+                                    {{ icon('sync-alt', 'text-[8px]') }} On
                                 </span>
                                 {% else %}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
-                                    <i class="fas fa-ban text-[8px]"></i> Off
+                                    {{ icon('ban', 'text-[8px]') }} Off
                                 </span>
                                 {% endif %}
                             </td>
@@ -211,13 +213,13 @@
                                     <a href="{{ url_for('billing_web.subscription_show', org_id=organization.id, subscription_id=sub.id) }}"
                                        class="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition-colors duration-150"
                                        title="View details">
-                                        <i class="fas fa-eye text-sm"></i>
+                                        {{ icon('eye', 'text-sm') }}
                                     </a>
                                     <button type="button"
                                             onclick="sendReminder('{{ sub.id }}', '{{ sub.subscriber_name|e }}')"
                                             class="p-1.5 rounded-md text-amber-600 hover:bg-amber-50 transition-colors duration-150"
                                             title="Send renewal reminder">
-                                        <i class="fas fa-bell text-sm"></i>
+                                        {{ icon('bell', 'text-sm') }}
                                     </button>
                                 </div>
                             </td>
@@ -226,7 +228,7 @@
                     {% else %}
                         <tr>
                             <td colspan="8" class="text-center py-12 text-gray-400">
-                                <i class="fas fa-file-contract text-4xl mb-3 block opacity-30"></i>
+                                {{ icon('file-contract', 'text-4xl mb-3 block opacity-30') }}
                                 <p class="text-sm font-medium">No subscriptions found</p>
                                 <p class="text-xs mt-1">
                                     {% if active_filter != 'all' %}
@@ -252,13 +254,13 @@
                 {% if pagination.has_prev %}
                 <a href="?page={{ pagination.page - 1 }}&filter={{ active_filter }}"
                    class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <i class="fas fa-chevron-left mr-1"></i> Prev
+                    {{ icon('chevron-left', 'mr-1') }} Prev
                 </a>
                 {% endif %}
                 {% if pagination.has_next %}
                 <a href="?page={{ pagination.page + 1 }}&filter={{ active_filter }}"
                    class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    Next <i class="fas fa-chevron-right ml-1"></i>
+                    Next {{ icon('chevron-right', 'ml-1') }}
                 </a>
                 {% endif %}
             </div>

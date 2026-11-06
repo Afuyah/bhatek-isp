@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Add Device{% endblock %}
 
@@ -13,7 +15,7 @@
         </div>
         <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber_id) }}" 
            class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-xl transition-all duration-150 shadow-sm">
-            <i class="fas fa-arrow-left text-xs"></i>
+            {{ icon('arrow-left', 'text-xs') }}
             <span>Back</span>
         </a>
     </div>
@@ -26,7 +28,7 @@
             <div class="px-4 py-3 md:px-6 md:py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-microchip text-blue-600 text-lg md:text-xl"></i>
+                        {{ icon('microchip', 'text-blue-600 text-lg md:text-xl') }}
                     </div>
                     <div>
                         <h3 class="text-base md:text-lg font-semibold text-gray-800">Device Details</h3>
@@ -46,7 +48,7 @@
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-network-wired text-gray-400 text-sm"></i>
+                                {{ icon('network-wired', 'text-gray-400 text-sm') }}
                             </div>
                             <input type="text" name="mac_address" id="macAddress"
                                    class="w-full pl-10 pr-3 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-mono uppercase"
@@ -54,7 +56,7 @@
                                    placeholder="AA:BB:CC:DD:EE:FF">
                         </div>
                         <div class="flex items-center gap-2 mt-2">
-                            <i class="fas fa-info-circle text-gray-400 text-xs"></i>
+                            {{ icon('info-circle', 'text-gray-400 text-xs') }}
                             <p class="text-xs text-gray-500">Format: XX:XX:XX:XX:XX:XX (hexadecimal)</p>
                         </div>
                         <div id="macError" class="text-xs text-red-500 mt-1 hidden"></div>
@@ -67,7 +69,7 @@
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-tag text-gray-400 text-sm"></i>
+                                {{ icon('tag', 'text-gray-400 text-sm') }}
                             </div>
                             <input type="text" name="device_name" 
                                    class="w-full pl-10 pr-3 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
@@ -84,7 +86,7 @@
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-mobile-alt text-gray-400 text-sm"></i>
+                                {{ icon('mobile-alt', 'text-gray-400 text-sm') }}
                             </div>
                             <select name="device_type" 
                                     class="w-full pl-10 pr-8 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none bg-white">
@@ -96,7 +98,7 @@
                                 <option value="other">🔌 Other</option>
                             </select>
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                {{ icon('chevron-down', 'text-gray-400 text-xs') }}
                             </div>
                         </div>
                     </div>
@@ -105,7 +107,7 @@
                     <div class="mt-6 mb-4 p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100">
                         <div class="flex items-center gap-3">
                             <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-microchip text-blue-600 text-xl"></i>
+                                {{ icon('microchip', 'text-blue-600 text-xl') }}
                             </div>
                             <div>
                                 <p class="text-xs text-gray-500">Device Preview</p>
@@ -122,7 +124,7 @@
                         </a>
                         <button type="submit" id="submitBtn"
                                 class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-xl transition-all duration-150 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                            <i class="fas fa-plus-circle text-sm"></i>
+                            {{ icon('plus-circle', 'text-sm') }}
                             <span>Add Device</span>
                         </button>
                     </div>
@@ -133,7 +135,7 @@
         <!-- Help Card -->
         <div class="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
             <div class="flex gap-2">
-                <i class="fas fa-lightbulb text-blue-500 text-sm mt-0.5"></i>
+                {{ icon('lightbulb', 'text-blue-500 text-sm mt-0.5') }}
                 <div>
                     <p class="text-xs font-semibold text-blue-800 mb-0.5">MAC Address Format</p>
                     <p class="text-xs text-blue-600">Enter the MAC address in standard format (e.g., AA:BB:CC:DD:EE:FF). The device will be automatically registered and ready for use.</p>
@@ -200,7 +202,7 @@
                     this.classList.remove('border-red-500', 'focus:border-red-500');
                     this.classList.add('border-green-500', 'focus:border-green-500');
                     if (previewText) {
-                        previewText.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-1"></i> ${result.formatted}`;
+                        previewText.innerHTML = `{{ icon('check-circle', 'text-green-500 mr-1') }} ${result.formatted}`;
                     }
                 } else {
                     macError.textContent = result.message;
@@ -275,7 +277,7 @@
             // Show loading state
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm mr-2"></i>Adding Device...';
+                submitBtn.innerHTML = '{{ icon('spin', 'text-sm mr-2') }}Adding Device...';
             }
         });
     }
@@ -290,7 +292,7 @@
         
         if (deviceName) {
             if (previewText && previewText.textContent !== 'Enter MAC address' && !previewText.textContent.includes('Invalid')) {
-                previewText.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-1"></i> ${deviceName} (${deviceType})`;
+                previewText.innerHTML = `{{ icon('check-circle', 'text-green-500 mr-1') }} ${deviceName} (${deviceType})`;
             }
         }
     }

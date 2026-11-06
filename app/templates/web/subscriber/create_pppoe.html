@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Add PPPoE Subscriber{% endblock %}
 
@@ -13,7 +15,7 @@
         </div>
         <a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" 
            class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-all duration-150">
-            <i class="fas fa-arrow-left text-xs"></i> Back
+            {{ icon('arrow-left', 'text-xs') }} Back
         </a>
     </div>
 
@@ -24,7 +26,7 @@
             <!-- Form Header -->
             <div class="px-4 py-3 md:px-5 md:py-4 bg-gray-50 border-b border-gray-200">
                 <h3 class="text-sm md:text-base font-semibold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-network-wired text-[#1a56db]"></i>
+                    {{ icon('network-wired', 'text-[#1a56db]') }}
                     PPPoE Subscriber Details
                 </h3>
             </div>
@@ -36,7 +38,7 @@
                     <!-- Login Credentials Section -->
                     <div class="mb-4">
                         <h4 class="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3 flex items-center gap-2">
-                            <i class="fas fa-key text-[#1a56db] text-xs"></i>
+                            {{ icon('key', 'text-[#1a56db] text-xs') }}
                             Login Credentials
                         </h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -46,7 +48,7 @@
                                 </label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                        <i class="fas fa-user text-sm"></i>
+                                        {{ icon('user', 'text-sm') }}
                                     </span>
                                     <input type="text" name="username" id="username"
                                            class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
@@ -62,7 +64,7 @@
                                 </label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                        <i class="fas fa-lock text-sm"></i>
+                                        {{ icon('lock', 'text-sm') }}
                                     </span>
                                     <input type="password" name="password" id="password"
                                            class="w-full pl-9 pr-10 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
@@ -70,7 +72,7 @@
                                            placeholder="********">
                                     <button type="button" id="togglePassword"
                                             class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                                        <i class="fas fa-eye text-sm"></i>
+                                        {{ icon('eye', 'text-sm') }}
                                     </button>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-1.5 ml-7">Minimum 6 characters</p>
@@ -87,7 +89,7 @@
                     <!-- Personal Information Section -->
                     <div class="mb-4">
                         <h4 class="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3 flex items-center gap-2">
-                            <i class="fas fa-id-card text-[#1a56db] text-xs"></i>
+                            {{ icon('id-card', 'text-[#1a56db] text-xs') }}
                             Personal Information
                         </h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -95,7 +97,7 @@
                                 <label class="block text-xs font-semibold text-gray-700 mb-1.5">First Name</label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                        <i class="fas fa-user text-sm"></i>
+                                        {{ icon('user', 'text-sm') }}
                                     </span>
                                     <input type="text" name="first_name" 
                                            class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
@@ -107,7 +109,7 @@
                                 <label class="block text-xs font-semibold text-gray-700 mb-1.5">Last Name</label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                        <i class="fas fa-user text-sm"></i>
+                                        {{ icon('user', 'text-sm') }}
                                     </span>
                                     <input type="text" name="last_name" 
                                            class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
@@ -120,7 +122,7 @@
                             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Phone Number</label>
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                    <i class="fas fa-phone text-sm"></i>
+                                    {{ icon('phone', 'text-sm') }}
                                 </span>
                                 <input type="tel" name="phone" id="phoneNumber"
                                        class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
@@ -135,7 +137,7 @@
                     <!-- Subscription Plan Section -->
                     <div class="mb-4">
                         <h4 class="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3 flex items-center gap-2">
-                            <i class="fas fa-tag text-[#1a56db] text-xs"></i>
+                            {{ icon('tag', 'text-[#1a56db] text-xs') }}
                             Subscription Plan
                         </h4>
                         <div>
@@ -167,7 +169,7 @@
                         </a>
                         <button type="submit" id="submitBtn"
                                 class="px-4 py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm hover:shadow-md flex items-center gap-2">
-                            <i class="fas fa-save text-xs"></i>
+                            {{ icon('save', 'text-xs') }}
                             <span>Create PPPoE Subscriber</span>
                         </button>
                     </div>
@@ -388,7 +390,7 @@
             // Show loading state
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs mr-2"></i>Creating...';
+                submitBtn.innerHTML = '{{ icon('spin', 'text-xs mr-2') }}Creating...';
             }
         });
     }

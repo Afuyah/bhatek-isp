@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Create Voucher{% endblock %}
 
@@ -13,7 +15,7 @@
         </div>
         <a href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}" 
            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs sm:text-sm rounded-lg transition-colors duration-150 shrink-0">
-            <i class="fas fa-arrow-left text-xs"></i> Back
+            {{ icon('arrow-left', 'text-xs') }} Back
         </a>
     </div>
 
@@ -23,7 +25,7 @@
         <!-- Form Header -->
         <div class="px-3 py-3 sm:px-4 sm:py-3.5 md:px-5 md:py-4 bg-gray-50 border-b border-gray-200">
             <h3 class="text-sm sm:text-base font-semibold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-ticket-alt text-blue-500"></i>
+                {{ icon('ticket-alt', 'text-blue-500') }}
                 Voucher Details
             </h3>
         </div>
@@ -39,7 +41,7 @@
                     </label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                            <i class="fas fa-ticket-alt text-sm"></i>
+                            {{ icon('ticket-alt', 'text-sm') }}
                         </span>
                         <select name="plan_id" id="planSelect" 
                                 class="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none bg-white"
@@ -57,18 +59,18 @@
                             {% endfor %}
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                            {{ icon('chevron-down', 'text-gray-400 text-xs') }}
                         </div>
                     </div>
                     <div id="planInfo" class="hidden mt-2 p-2 bg-blue-50 rounded-lg text-xs text-blue-700">
-                        <i class="fas fa-info-circle mr-1"></i>
+                        {{ icon('info-circle', 'mr-1') }}
                         <span id="planInfoText"></span>
                     </div>
                 </div>
 
                 <!-- Validity Override Section -->
                 <div class="mb-4 p-2.5 bg-blue-50 rounded-lg border border-blue-100 text-xs text-blue-700 flex items-start gap-2">
-                    <i class="fas fa-info-circle text-blue-500 mt-0.5 shrink-0"></i>
+                    {{ icon('info-circle', 'text-blue-500 mt-0.5 shrink-0') }}
                     <span>Leave validity fields empty to use the plan's default validity period</span>
                 </div>
 
@@ -78,7 +80,7 @@
                         <label class="block text-xs font-semibold text-gray-700 mb-1.5">Validity Value</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                <i class="fas fa-hashtag text-sm"></i>
+                                {{ icon('hashtag', 'text-sm') }}
                             </span>
                             <input type="number" name="validity_value" id="validityValue"
                                    class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
@@ -91,7 +93,7 @@
                         <label class="block text-xs font-semibold text-gray-700 mb-1.5">Validity Unit</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                <i class="fas fa-hourglass-half text-sm"></i>
+                                {{ icon('hourglass-half', 'text-sm') }}
                             </span>
                             <select name="validity_unit" id="validityUnit"
                                     class="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none bg-white">
@@ -103,7 +105,7 @@
                                 <option value="years" {% if form_data and form_data.validity_unit == 'years' %}selected{% endif %}>Years</option>
                             </select>
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                {{ icon('chevron-down', 'text-gray-400 text-xs') }}
                             </div>
                         </div>
                         <p class="text-xs text-gray-500 mt-1">Override plan's validity unit</p>
@@ -116,7 +118,7 @@
                         <label class="block text-xs font-semibold text-gray-700 mb-1.5">Max Uses</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                <i class="fas fa-repeat text-sm"></i>
+                                {{ icon('repeat', 'text-sm') }}
                             </span>
                             <input type="number" name="max_uses" 
                                    class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
@@ -129,7 +131,7 @@
                         <label class="block text-xs font-semibold text-gray-700 mb-1.5">Activation Type</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                <i class="fas fa-play-circle text-sm"></i>
+                                {{ icon('play-circle', 'text-sm') }}
                             </span>
                             <select name="activation_type" 
                                     class="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none bg-white">
@@ -137,11 +139,11 @@
                                 <option value="first_use" {% if form_data and form_data.activation_type == 'first_use' %}selected{% endif %}>First Use</option>
                             </select>
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                {{ icon('chevron-down', 'text-gray-400 text-xs') }}
                             </div>
                         </div>
                         <p class="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                            <i class="fas fa-info-circle text-gray-400 text-[10px]"></i>
+                            {{ icon('info-circle', 'text-gray-400 text-[10px]') }}
                             Immediate = starts now, First Use = starts when customer redeems
                         </p>
                     </div>
@@ -152,7 +154,7 @@
                     <label class="block text-xs font-semibold text-gray-700 mb-1.5">Notes <span class="text-gray-400 font-normal">(Optional)</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-3 text-gray-400">
-                            <i class="fas fa-pencil-alt text-sm"></i>
+                            {{ icon('pencil-alt', 'text-sm') }}
                         </span>
                         <textarea name="notes" rows="3" 
                                   class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-y"
@@ -164,7 +166,7 @@
                 <!-- Summary Preview -->
                 <div class="mt-5 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <h5 class="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-                        <i class="fas fa-chart-simple text-blue-500"></i>
+                        {{ icon('chart-simple', 'text-blue-500') }}
                         Voucher Summary
                     </h5>
                     <div class="space-y-1 text-xs">
@@ -197,7 +199,7 @@
                     </a>
                     <button type="submit" id="submitBtn"
                             class="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
-                        <i class="fas fa-save text-sm"></i>
+                        {{ icon('save', 'text-sm') }}
                         <span>Create Voucher</span>
                     </button>
                 </div>
@@ -238,7 +240,7 @@
             
             // Show plan info
             if (planInfo && planInfoText) {
-                planInfoText.innerHTML = `<i class="fas fa-ticket-alt mr-1"></i> ${planData[planId].name} - ${planData[planId].validity}`;
+                planInfoText.innerHTML = `{{ icon('ticket-alt', 'mr-1') }} ${planData[planId].name} - ${planData[planId].validity}`;
                 planInfo.classList.remove('hidden');
             }
         } else {
@@ -286,7 +288,7 @@
             
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm mr-2"></i>Creating...';
+                submitBtn.innerHTML = '{{ icon('spin', 'text-sm mr-2') }}Creating...';
             }
         });
     }

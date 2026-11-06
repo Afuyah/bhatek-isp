@@ -1,4 +1,6 @@
 {% extends "web/base.html" %}
+{% from '_icons.html' import icon %}
+
 {% block title %}Complete Registration | Bha links{% endblock %}
 
 {% block content %}
@@ -9,13 +11,13 @@
         <div class="register-brand">
             <div class="brand-content">
                 <div class="brand-logo">
-                    <i class="fas fa-broadcast-tower"></i>
+                    {{ icon('broadcast-tower') }}
                     <span>Bha Links</span>
                 </div>
                 
                 <div class="progress-steps">
                     <div class="step completed">
-                        <div class="step-number"><i class="fas fa-check"></i></div>
+                        <div class="step-number">{{ icon('check') }}</div>
                         <div class="step-info">
                             <span class="step-label">Step 1</span>
                             <span class="step-name">Email Verification</span>
@@ -38,7 +40,7 @@
                 </div>
 
                 <div class="brand-testimonial">
-                    <i class="fas fa-quote-left"></i>
+                    {{ icon('quote-left') }}
                     <p>“The most comprehensive ISP management platform we've ever used. Setup was seamless and support is exceptional.”</p>
                     <div class="testimonial-author">
                         <strong>John M.</strong>
@@ -54,7 +56,7 @@
                 <!-- Header -->
                 <div class="register-header">
                     <div class="register-icon">
-                        <i class="fas fa-user-plus"></i>
+                        {{ icon('user-plus') }}
                     </div>
                     <h3>Complete Registration</h3>
                     <p>Set up your organization account</p>
@@ -66,7 +68,7 @@
                         <div class="input-group-custom">
                             <label>First Name <span class="required">*</span></label>
                             <div class="input-field">
-                                <i class="fas fa-user"></i>
+                                {{ icon('user') }}
                                 <input type="text" id="firstName" placeholder="John" required>
                             </div>
                         </div>
@@ -74,7 +76,7 @@
                         <div class="input-group-custom">
                             <label>Last Name <span class="required">*</span></label>
                             <div class="input-field">
-                                <i class="fas fa-user"></i>
+                                {{ icon('user') }}
                                 <input type="text" id="lastName" placeholder="Doe" required>
                             </div>
                         </div>
@@ -84,7 +86,7 @@
                     <div class="input-group-custom">
                         <label>Email Address</label>
                         <div class="input-field">
-                            <i class="fas fa-envelope"></i>
+                            {{ icon('envelope') }}
                             <input type="email" id="email" readonly>
                         </div>
                         <small>This email cannot be changed</small>
@@ -94,7 +96,7 @@
                     <div class="input-group-custom">
                         <label>Phone Number <span class="required">*</span></label>
                         <div class="input-field">
-                            <i class="fas fa-phone"></i>
+                            {{ icon('phone') }}
                             <input type="tel" id="phone" placeholder="254712345678" required>
                         </div>
                         <small>Include country code (e.g., 2547XXXXXXXX)</small>
@@ -105,7 +107,7 @@
                         <div class="input-group-custom">
                             <label>Organization Name <span class="required">*</span></label>
                             <div class="input-field">
-                                <i class="fas fa-building"></i>
+                                {{ icon('building') }}
                                 <input type="text" id="orgName" placeholder="My ISP Company" required>
                             </div>
                         </div>
@@ -113,7 +115,7 @@
                         <div class="input-group-custom">
                             <label>Organization Slug <span class="required">*</span></label>
                             <div class="input-field">
-                                <i class="fas fa-link"></i>
+                                {{ icon('link') }}
                                 <input type="text" id="orgSlug" placeholder="my-isp-company" required>
                             </div>
                         </div>
@@ -125,10 +127,10 @@
                         <div class="input-group-custom">
                             <label>Password <span class="required">*</span></label>
                             <div class="input-field">
-                                <i class="fas fa-lock"></i>
+                                {{ icon('lock') }}
                                 <input type="password" id="password" placeholder="Create a strong password" required>
                                 <button type="button" class="toggle-password" onclick="togglePassword('password')">
-                                    <i class="fas fa-eye" id="passwordIcon"></i>
+                                    {{ icon('eye', '', '', 'passwordIcon') }}
                                 </button>
                             </div>
                         </div>
@@ -136,10 +138,10 @@
                         <div class="input-group-custom">
                             <label>Confirm Password <span class="required">*</span></label>
                             <div class="input-field">
-                                <i class="fas fa-lock"></i>
+                                {{ icon('lock') }}
                                 <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
                                 <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">
-                                    <i class="fas fa-eye" id="confirmPasswordIcon"></i>
+                                    {{ icon('eye', '', '', 'confirmPasswordIcon') }}
                                 </button>
                             </div>
                         </div>
@@ -154,7 +156,7 @@
                     <!-- Submit Button -->
                     <button type="submit" class="btn-register" id="registerBtn">
                         <span>Create My Account</span>
-                        <i class="fas fa-arrow-right"></i>
+                        {{ icon('arrow-right') }}
                     </button>
                 </form>
 
@@ -741,7 +743,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const originalText = btn.innerHTML;
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+    btn.innerHTML = '{{ icon('spin') }} Creating Account...';
 
     try {
         const response = await fetch('/api/v1/auth/register-organization', {

@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Edit {{ plan.name }}{% endblock %}
 
@@ -13,7 +15,7 @@
         </div>
         <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" 
            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs sm:text-sm rounded-lg transition-colors duration-150">
-            <i class="fas fa-arrow-left text-xs"></i> Back
+            {{ icon('arrow-left', 'text-xs') }} Back
         </a>
     </div>
 
@@ -25,7 +27,7 @@
                 <!-- Basic Information -->
                 <div>
                     <h6 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-info-circle text-blue-500 text-xs"></i> Basic Information
+                        {{ icon('info-circle', 'text-blue-500 text-xs') }} Basic Information
                     </h6>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         <div>
@@ -63,7 +65,7 @@
                 <!-- Validity Configuration -->
                 <div class="pt-2 border-t border-gray-100">
                     <h6 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-clock text-blue-500 text-xs"></i> Validity Configuration
+                        {{ icon('clock', 'text-blue-500 text-xs') }} Validity Configuration
                     </h6>
                     
                     <!-- Current Validity Display -->
@@ -140,7 +142,7 @@
                 <!-- Bandwidth Configuration -->
                 <div class="pt-2 border-t border-gray-100">
                     <h6 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-tachometer-alt text-blue-500 text-xs"></i> Bandwidth Configuration
+                        {{ icon('tachometer-alt', 'text-blue-500 text-xs') }} Bandwidth Configuration
                     </h6>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         <div>
@@ -172,7 +174,7 @@
                 <!-- Pricing -->
                 <div class="pt-2 border-t border-gray-100">
                     <h6 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-tag text-blue-500 text-xs"></i> Pricing
+                        {{ icon('tag', 'text-blue-500 text-xs') }} Pricing
                     </h6>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
@@ -201,7 +203,7 @@
                 <!-- Description -->
                 <div class="pt-2 border-t border-gray-100">
                     <h6 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-align-left text-blue-500 text-xs"></i> Description
+                        {{ icon('align-left', 'text-blue-500 text-xs') }} Description
                     </h6>
                     <textarea name="description" rows="3" 
                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-y"
@@ -211,7 +213,7 @@
                 <!-- Status Switches -->
                 <div class="pt-2 border-t border-gray-100">
                     <h6 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-toggle-on text-blue-500 text-xs"></i> Status
+                        {{ icon('toggle-on', 'text-blue-500 text-xs') }} Status
                     </h6>
                     <div class="space-y-3">
                         <!-- Active Toggle -->
@@ -223,7 +225,7 @@
                                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                     <span class="ml-3 text-sm font-medium text-gray-700" id="activeStatusLabel">
                                         <span class="{% if plan.is_active %}text-emerald-600{% else %}text-red-600{% endif %}">
-                                            <i class="fas {% if plan.is_active %}fa-check-circle{% else %}fa-times-circle{% endif %} mr-1"></i>
+                                            {{ icon('check-circle' if plan.is_active else 'times-circle', 'mr-1') }}
                                             {% if plan.is_active %}Active{% else %}Inactive{% endif %}
                                         </span>
                                     </span>
@@ -241,7 +243,7 @@
                                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                     <span class="ml-3 text-sm font-medium text-gray-700" id="publicStatusLabel">
                                         <span class="{% if plan.is_public %}text-emerald-600{% else %}text-red-600{% endif %}">
-                                            <i class="fas {% if plan.is_public %}fa-globe{% else %}fa-lock{% endif %} mr-1"></i>
+                                            {{ icon('globe' if plan.is_public else 'lock', 'mr-1') }}
                                             {% if plan.is_public %}Public{% else %}Private{% endif %}
                                         </span>
                                     </span>
@@ -260,7 +262,7 @@
                     </a>
                     <button type="submit" id="submitBtn"
                             class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm hover:shadow-md flex items-center gap-2">
-                        <i class="fas fa-save text-sm"></i> Save Changes
+                        {{ icon('save', 'text-sm') }} Save Changes
                     </button>
                 </div>
             </div>
@@ -288,9 +290,9 @@
     if (activeToggle) {
         activeToggle.addEventListener('change', function() {
             if (this.checked) {
-                activeStatusLabel.innerHTML = '<span class="text-emerald-600"><i class="fas fa-check-circle mr-1"></i>Active</span>';
+                activeStatusLabel.innerHTML = '<span class="text-emerald-600">{{ icon('check-circle', 'mr-1') }}Active</span>';
             } else {
-                activeStatusLabel.innerHTML = '<span class="text-red-600"><i class="fas fa-times-circle mr-1"></i>Inactive</span>';
+                activeStatusLabel.innerHTML = '<span class="text-red-600">{{ icon('times-circle', 'mr-1') }}Inactive</span>';
             }
         });
     }
@@ -298,9 +300,9 @@
     if (publicToggle) {
         publicToggle.addEventListener('change', function() {
             if (this.checked) {
-                publicStatusLabel.innerHTML = '<span class="text-emerald-600"><i class="fas fa-globe mr-1"></i>Public</span>';
+                publicStatusLabel.innerHTML = '<span class="text-emerald-600">{{ icon('globe', 'mr-1') }}Public</span>';
             } else {
-                publicStatusLabel.innerHTML = '<span class="text-red-600"><i class="fas fa-lock mr-1"></i>Private</span>';
+                publicStatusLabel.innerHTML = '<span class="text-red-600">{{ icon('lock', 'mr-1') }}Private</span>';
             }
         });
     }
@@ -362,7 +364,7 @@
             // Show loading state
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm mr-2"></i>Saving...';
+                submitBtn.innerHTML = '{{ icon('spin', 'text-sm mr-2') }}Saving...';
             }
         });
     }

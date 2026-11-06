@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Edit {{ router.name }}{% endblock %}
 
@@ -366,7 +368,7 @@
             <p>Update configuration for {{ router.name }}</p>
         </div>
         <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Router
+            {{ icon('arrow-left') }} Back to Router
         </a>
     </div>
 
@@ -429,13 +431,13 @@
 
             <!-- RADIUS Configuration Section -->
             <div class="section-title">
-                <span><i class="fas fa-shield-alt"></i> RADIUS Configuration</span>
+                <span>{{ icon('shield-alt') }} RADIUS Configuration</span>
                 {% if router.radius_config_status == 'configured' %}
-                <span class="badge-radius badge-configured"><i class="fas fa-check-circle"></i> Configured</span>
+                <span class="badge-radius badge-configured">{{ icon('check-circle') }} Configured</span>
                 {% elif router.radius_config_status == 'failed' %}
-                <span class="badge-radius badge-failed"><i class="fas fa-exclamation-triangle"></i> Failed</span>
+                <span class="badge-radius badge-failed">{{ icon('exclamation-triangle') }} Failed</span>
                 {% elif router.radius_config_status == 'pending' %}
-                <span class="badge-radius badge-pending"><i class="fas fa-clock"></i> Pending</span>
+                <span class="badge-radius badge-pending">{{ icon('clock') }} Pending</span>
                 {% endif %}
             </div>
 
@@ -445,23 +447,23 @@
                 {% if router.radius_secret %}
                 <div class="radius-info">
                     <div style="margin-bottom: 0.5rem;">
-                        <strong><i class="fas fa-server"></i> RADIUS Server:</strong>
+                        <strong>{{ icon('server') }} RADIUS Server:</strong>
                         <code id="radiusServerValue">{{ radius_server_ip or '163.245.217.16' }}</code>
-                        <button class="copy-btn" onclick="copyToClipboard('radiusServerValue')"><i class="fas fa-copy"></i></button>
+                        <button class="copy-btn" onclick="copyToClipboard('radiusServerValue')">{{ icon('copy') }}</button>
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong><i class="fas fa-key"></i> Shared Secret:</strong>
+                        <strong>{{ icon('key') }} Shared Secret:</strong>
                         <code id="radiusSecretValue">{{ router.radius_secret }}</code>
-                        <button class="copy-btn" onclick="copyToClipboard('radiusSecretValue')"><i class="fas fa-copy"></i></button>
+                        <button class="copy-btn" onclick="copyToClipboard('radiusSecretValue')">{{ icon('copy') }}</button>
                     </div>
                     <div style="font-size: 0.65rem; color: var(--gray-500);">
-                        <i class="fas fa-info-circle"></i> Authentication Port: 1812 | Accounting Port: 1813
+                        {{ icon('info-circle') }} Authentication Port: 1812 | Accounting Port: 1813
                     </div>
                 </div>
 
                 {% if router.radius_config_status != 'configured' %}
                 <div class="alert-small" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); margin-bottom: 0.75rem;">
-                    <i class="fas fa-exclamation-triangle"></i> Auto-configuration pending. Run these commands on your MikroTik router:
+                    {{ icon('exclamation-triangle') }} Auto-configuration pending. Run these commands on your MikroTik router:
                 </div>
                 <div style="background: var(--gray-800); color: white; padding: 0.75rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.65rem; margin-bottom: 0.75rem; overflow-x: auto;">
                     /radius add address={{ radius_server_ip or '163.245.217.16' }} secret={{ router.radius_secret }} service=hotspot,ppp<br>
@@ -472,13 +474,13 @@
                 <!-- RETRY RADIUS - FORM (NO JAVASCRIPT) -->
                 <form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}" class="inline-form">
                     <button type="submit" class="btn-retry btn-sm-custom">
-                        <i class="fas fa-sync-alt"></i> Retry RADIUS Auto-Configuration
+                        {{ icon('sync-alt') }} Retry RADIUS Auto-Configuration
                     </button>
                 </form>
                 
                 {% elif router.radius_configured_at %}
                 <div class="alert-small" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
-                    <i class="fas fa-check-circle"></i> RADIUS configured successfully on {{ router.radius_configured_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                    {{ icon('check-circle') }} RADIUS configured successfully on {{ router.radius_configured_at.strftime('%Y-%m-%d %H:%M:%S') }}
                 </div>
                 {% endif %}
 
@@ -488,7 +490,7 @@
                           onsubmit="return confirm('⚠️ WARNING: Regenerating the RADIUS secret will break existing connections until you reconfigure your MikroTik router.\n\nDo you want to proceed?')"
                           class="inline-form">
                         <button type="submit" class="btn-refresh btn-sm-custom">
-                            <i class="fas fa-sync-alt"></i> Regenerate Secret
+                            {{ icon('sync-alt') }} Regenerate Secret
                         </button>
                     </form>
                     <span class="form-text" style="margin-left: 0.5rem;">⚠️ Reconfigure router if you change the secret</span>
@@ -496,14 +498,14 @@
 
                 {% else %}
                 <div class="alert-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); margin-bottom: 0.75rem;">
-                    <i class="fas fa-exclamation-triangle"></i> No RADIUS secret configured. Generate one to enable RADIUS authentication.
+                    {{ icon('exclamation-triangle') }} No RADIUS secret configured. Generate one to enable RADIUS authentication.
                 </div>
                 <!-- GENERATE SECRET - FORM (NO JAVASCRIPT) -->
                 <form method="POST" action="{{ url_for('router_web.regenerate_radius_secret', org_id=organization.id, router_id=router.id) }}" 
                       onsubmit="return confirm('Generate a new RADIUS secret? This will enable RADIUS authentication for this router.')"
                       class="inline-form">
                     <button type="submit" class="btn-retry btn-sm-custom">
-                        <i class="fas fa-key"></i> Generate RADIUS Secret
+                        {{ icon('key') }} Generate RADIUS Secret
                     </button>
                 </form>
                 {% endif %}
@@ -514,7 +516,7 @@
                     Cancel
                 </a>
                 <button type="submit" class="btn-save" id="saveBtn">
-                    <i class="fas fa-save"></i> Save Changes
+                    {{ icon('save') }} Save Changes
                 </button>
             </div>
         </form>

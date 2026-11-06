@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Networks{% endblock %}
 
@@ -13,7 +15,7 @@
         </div>
         <a href="{{ url_for('network_web.create', org_id=organization.id) }}" 
            class="inline-flex items-center justify-center gap-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-150">
-            <i class="fas fa-plus text-xs"></i> Add Network
+            {{ icon('plus', 'text-xs') }} Add Network
         </a>
     </div>
 
@@ -49,11 +51,11 @@
             </div>
             <div class="flex gap-2">
                 <button type="submit" class="px-4 py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium rounded-lg transition-colors duration-150">
-                    <i class="fas fa-search text-xs mr-1"></i> Filter
+                    {{ icon('search', 'text-xs mr-1') }} Filter
                 </button>
                 <a href="{{ url_for('network_web.index', org_id=organization.id) }}" 
                    class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-150">
-                    <i class="fas fa-times text-xs mr-1"></i> Reset
+                    {{ icon('times', 'text-xs mr-1') }} Reset
                 </a>
             </div>
         </form>
@@ -87,7 +89,7 @@
                                 {% if network.type == 'hotspot' %}bg-blue-50 text-blue-700
                                 {% elif network.type == 'pppoe' %}bg-emerald-50 text-emerald-700
                                 {% else %}bg-amber-50 text-amber-700{% endif %}">
-                                <i class="fas {% if network.type == 'hotspot' %}fa-wifi{% elif network.type == 'pppoe' %}fa-network-wired{% else %}fa-code-branch{% endif %} text-xs"></i>
+                                {{ icon('wifi' if network.type == 'hotspot' else ('network-wired' if network.type == 'pppoe' else 'code-branch'), "text-xs") }}
                                 {{ network.type|upper }}
                             </span>
                         </td>
@@ -112,11 +114,11 @@
                             <div class="flex items-center justify-center gap-1">
                                 <a href="{{ url_for('network_web.show', org_id=organization.id, network_id=network.id) }}" 
                                    class="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="View">
-                                    <i class="fas fa-eye text-sm"></i>
+                                    {{ icon('eye', 'text-sm') }}
                                 </a>
                                 <a href="{{ url_for('network_web.edit', org_id=organization.id, network_id=network.id) }}" 
                                    class="p-1.5 rounded-md text-gray-600 hover:bg-gray-100 transition-colors duration-150" title="Edit">
-                                    <i class="fas fa-edit text-sm"></i>
+                                    {{ icon('edit', 'text-sm') }}
                                 </a>
                                 
                             </div>
@@ -134,7 +136,7 @@
         {% if pagination.page > 1 %}
         <a href="{{ url_for('network_web.index', org_id=organization.id, page=pagination.page-1, **request.args) }}" 
            class="inline-flex items-center justify-center min-w-[32px] px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors duration-150">
-            <i class="fas fa-chevron-left text-xs"></i>
+            {{ icon('chevron-left', 'text-xs') }}
         </a>
         {% endif %}
         
@@ -166,7 +168,7 @@
         {% if pagination.page < pagination.pages %}
         <a href="{{ url_for('network_web.index', org_id=organization.id, page=pagination.page+1, **request.args) }}" 
            class="inline-flex items-center justify-center min-w-[32px] px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors duration-150">
-            <i class="fas fa-chevron-right text-xs"></i>
+            {{ icon('chevron-right', 'text-xs') }}
         </a>
         {% endif %}
     </div>
@@ -175,11 +177,11 @@
     {% else %}
     <!-- Empty State -->
     <div class="bg-white rounded-lg border border-gray-200 text-center py-12">
-        <i class="fas fa-network-wired text-5xl text-gray-300 mb-3 block"></i>
+        {{ icon('network-wired', 'text-5xl text-gray-300 mb-3 block') }}
         <p class="text-gray-500 text-sm mb-4">No networks found</p>
         <a href="{{ url_for('network_web.create', org_id=organization.id) }}" 
            class="inline-flex items-center gap-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-150">
-            <i class="fas fa-plus text-xs"></i> Create Network
+            {{ icon('plus', 'text-xs') }} Create Network
         </a>
     </div>
     {% endif %}
@@ -192,7 +194,7 @@
         <div class="flex justify-between items-center p-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Confirm Delete</h3>
             <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
+                {{ icon('times') }}
             </button>
         </div>
         <div class="p-4">

@@ -1,13 +1,13 @@
+{% from '_icons.html' import icon %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="js">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}{{ organization.name }} - ISP Manager{% endblock %}</title>
     
     <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
     
     <style>
         * {
@@ -83,7 +83,7 @@
     <!-- Mobile Menu Button -->
     <button onclick="toggleSidebar()" 
             class="lg:hidden fixed bottom-5 right-5 z-50 bg-[#2d6a4f] text-white w-12 h-12 rounded-full shadow-lg active:scale-95 transition-transform duration-100">
-        <i class="fas fa-bars text-lg"></i>
+        {{ icon('bars', 'text-lg') }}
     </button>
 
     <div id="sidebarOverlay" onclick="toggleSidebar()" 
@@ -96,7 +96,7 @@
         <div class="p-5 border-b border-white/10">
             <div class="flex items-center gap-2 mb-4">
                 <div class="w-8 h-8 bg-[#2d6a4f] rounded-lg flex items-center justify-center">
-                    <i class="fas fa-globe text-white text-sm"></i>
+                    {{ icon('globe', 'text-white text-sm') }}
                 </div>
                 <span class="text-white font-bold text-lg tracking-tight">ISP Manager</span>
             </div>
@@ -113,12 +113,12 @@
                 <div class="space-y-0.5">
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if request.endpoint and 'dashboard' in request.endpoint %}active{% endif %}" 
                        href="{{ url_for('web.organization_dashboard', org_id=organization.id) }}">
-                        <i class="fas fa-tachometer-alt w-4 text-sm"></i>
+                        {{ icon('tachometer-alt', 'w-4 text-sm') }}
                         <span>Dashboard</span>
                     </a>
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'subscribers' in request.path %}active{% endif %}" 
                        href="{{ url_for('subscriber_web.index', org_id=organization.id) }}">
-                        <i class="fas fa-users w-4 text-sm"></i>
+                        {{ icon('users', 'w-4 text-sm') }}
                         <span>Subscribers</span>
                     </a>
                 </div>
@@ -131,22 +131,22 @@
                 <div class="space-y-0.5">
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'routers' in request.path and 'health' not in request.path %}active{% endif %}" 
                        href="{{ url_for('router_web.index', org_id=organization.id) }}">
-                        <i class="fas fa-server w-4 text-sm"></i>
+                        {{ icon('server', 'w-4 text-sm') }}
                         <span>Routers</span>
                     </a>
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'health' in request.path %}active{% endif %}" 
                        href="{{ url_for('router_web.health', org_id=organization.id) }}">
-                        <i class="fas fa-heartbeat w-4 text-sm"></i>
+                        {{ icon('heartbeat', 'w-4 text-sm') }}
                         <span>Router Health</span>
                     </a>
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'access-points' in request.path %}active{% endif %}" 
                        href="{{ url_for('ap_web.index', org_id=organization.id) }}">
-                        <i class="fas fa-wifi w-4 text-sm"></i>
+                        {{ icon('wifi', 'w-4 text-sm') }}
                         <span>Access Points</span>
                     </a>
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'networks' in request.path %}active{% endif %}" 
                        href="{{ url_for('network_web.index', org_id=organization.id) }}">
-                        <i class="fas fa-network-wired w-4 text-sm"></i>
+                        {{ icon('network-wired', 'w-4 text-sm') }}
                         <span>Networks</span>
                     </a>
                 </div>
@@ -159,27 +159,27 @@
                 <div class="space-y-0.5">
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'billing' in request.path and 'plans' not in request.path and 'subscriptions' not in request.path and 'invoices' not in request.path and 'vouchers' not in request.path %}active{% endif %}" 
                        href="{{ url_for('billing_web.dashboard', org_id=organization.id) }}">
-                        <i class="fas fa-credit-card w-4 text-sm"></i>
+                        {{ icon('credit-card', 'w-4 text-sm') }}
                         <span>Billing</span>
                     </a>
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'plans' in request.path %}active{% endif %}" 
                        href="{{ url_for('billing_web.plans', org_id=organization.id) }}">
-                        <i class="fas fa-tag w-4 text-sm"></i>
+                        {{ icon('tag', 'w-4 text-sm') }}
                         <span>Service Plans</span>
                     </a>
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'subscriptions' in request.path %}active{% endif %}" 
                        href="{{ url_for('billing_web.subscriptions', org_id=organization.id) }}">
-                        <i class="fas fa-file-contract w-4 text-sm"></i>
+                        {{ icon('file-contract', 'w-4 text-sm') }}
                         <span>Subscriptions</span>
                     </a>
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'invoices' in request.path %}active{% endif %}" 
                        href="{{ url_for('billing_web.dashboard', org_id=organization.id) }}#invoices">
-                        <i class="fas fa-file-invoice w-4 text-sm"></i>
+                        {{ icon('file-invoice', 'w-4 text-sm') }}
                         <span>Invoices</span>
                     </a>
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'vouchers' in request.path %}active{% endif %}" 
                        href="{{ url_for('billing_web.vouchers', org_id=organization.id) }}">
-                        <i class="fas fa-ticket-alt w-4 text-sm"></i>
+                        {{ icon('ticket-alt', 'w-4 text-sm') }}
                         <span>Vouchers</span>
                     </a>
                 </div>
@@ -192,11 +192,11 @@
                 <div class="space-y-0.5">
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'reports' in request.path %}active{% endif %}" 
                        href="{{ url_for('web.organization_reports', org_id=organization.id) }}">
-                        <i class="fas fa-chart-line w-4 text-sm"></i>
+                        {{ icon('chart-line', 'w-4 text-sm') }}
                         <span>Reports</span>
                     </a>
                     <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150" href="#">
-                        <i class="fas fa-cog w-4 text-sm"></i>
+                        {{ icon('cog', 'w-4 text-sm') }}
                         <span>Settings</span>
                     </a>
                 </div>
@@ -218,12 +218,12 @@
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-[#2d6a4f] rounded-lg flex items-center justify-center">
-                            <i class="fas fa-building text-white text-sm"></i>
+                            {{ icon('building', 'text-white text-sm') }}
                         </div>
                         <div class="hidden sm:block">
                             <h4 class="text-sm font-semibold text-gray-800 leading-tight">{{ organization.name }}</h4>
                             <p class="text-xs text-gray-500">
-                                <i class="fas fa-map-marker-alt mr-1 text-[10px]"></i>
+                                {{ icon('map-marker-alt', 'mr-1 text-[10px]') }}
                                 {{ organization.city or organization.location or 'Location not set' }}
                             </p>
                         </div>
@@ -233,7 +233,7 @@
                         <div class="relative">
                             <button id="notificationBtn" 
                                     class="relative w-9 h-9 rounded-lg hover:bg-gray-100 transition-colors duration-150">
-                                <i class="fas fa-bell text-gray-500 text-sm"></i>
+                                {{ icon('bell', 'text-gray-500 text-sm') }}
                                 <span id="notificationCount" 
                                       class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center hidden">
                                     0
@@ -246,7 +246,7 @@
                                 </div>
                                 <div class="max-h-80 overflow-y-auto">
                                     <div class="text-center py-6 text-gray-400 text-xs">
-                                        <i class="fas fa-bell-slash text-xl mb-2 block"></i>
+                                        {{ icon('bell-slash', 'text-xl mb-2 block') }}
                                         No notifications
                                     </div>
                                 </div>
@@ -265,7 +265,7 @@
                                     </p>
                                     <p class="text-[10px] text-gray-500">{{ user.role|capitalize if user.role else 'User' }}</p>
                                 </div>
-                                <i class="fas fa-chevron-down text-gray-400 text-[10px] hidden md:block"></i>
+                                {{ icon('chevron-down', 'text-gray-400 text-[10px] hidden md:block') }}
                             </button>
                             
                             <div id="userDropdown" 
@@ -275,15 +275,15 @@
                                 </div>
                                 <div class="py-1">
                                     <a href="#" class="flex items-center gap-3 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50">
-                                        <i class="fas fa-user w-3 text-gray-400"></i> Profile
+                                        {{ icon('user', 'w-3 text-gray-400') }} Profile
                                     </a>
                                     <a href="#" class="flex items-center gap-3 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50">
-                                        <i class="fas fa-cog w-3 text-gray-400"></i> Settings
+                                        {{ icon('cog', 'w-3 text-gray-400') }} Settings
                                     </a>
                                 </div>
                                 <div class="border-t border-gray-100 py-1">
                                     <a href="{{ url_for('web.logout') }}" class="flex items-center gap-3 px-4 py-2 text-xs text-red-600 hover:bg-red-50">
-                                        <i class="fas fa-sign-out-alt w-3"></i> Logout
+                                        {{ icon('sign-out-alt', 'w-3') }} Logout
                                     </a>
                                 </div>
                             </div>
@@ -303,10 +303,10 @@
                                     {% elif category == 'danger' %}bg-red-50 border-red-200 text-red-700
                                     {% elif category == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-700
                                     {% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %}">
-                            <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %} text-xs mt-0.5"></i>
+                            {{ icon('check-circle' if category == 'success' else ('exclamation-triangle' if category == 'danger' else 'info-circle'), "text-xs mt-0.5") }}
                             <div class="flex-1 text-xs">{{ message }}</div>
                             <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100">
-                                <i class="fas fa-times text-xs"></i>
+                                {{ icon('times', 'text-xs') }}
                             </button>
                         </div>
                     {% endfor %}
@@ -414,11 +414,11 @@
             toast.innerHTML = `
                 <div class="flex items-center justify-between p-3">
                     <div class="flex items-center gap-2">
-                        <i class="fas ${c.icon} text-sm"></i>
+                        ${window.icon(c.icon, "text-sm")}
                         <span class="text-xs font-medium">${message}</span>
                     </div>
                     <button onclick="this.closest('.toast-animation').remove()" class="text-white/70 hover:text-white">
-                        <i class="fas fa-times text-xs"></i>
+                        {{ icon('times', 'text-xs') }}
                     </button>
                 </div>
             `;
@@ -446,6 +446,11 @@
         sessionStorage.setItem('organization_slug', '{{ organization.slug }}');
     </script>
     
-    {% block extra_js %}{% endblock %}
+    {% include '_sprite.html' %}
+
+<script src="{{ url_for('static', filename='js/icons.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Create Plan{% endblock %}
 
@@ -13,7 +15,7 @@
         </div>
         <a href="{{ url_for('billing_web.plans', org_id=organization.id) }}" 
            class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-all duration-150">
-            <i class="fas fa-arrow-left text-xs"></i> Back to Plans
+            {{ icon('arrow-left', 'text-xs') }} Back to Plans
         </a>
     </div>
 
@@ -24,7 +26,7 @@
             <!-- Basic Information -->
             <div class="border-b border-gray-100 p-4 md:p-5">
                 <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-info-circle text-[#1a56db]"></i> Basic Information
+                    {{ icon('info-circle', 'text-[#1a56db]') }} Basic Information
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -65,7 +67,7 @@
             <!-- Validity Configuration -->
             <div class="border-b border-gray-100 p-4 md:p-5">
                 <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-clock text-[#1a56db]"></i> Validity Configuration
+                    {{ icon('clock', 'text-[#1a56db]') }} Validity Configuration
                 </h3>
                 <div class="grid grid-cols-1 gap-4">
                     <div>
@@ -126,7 +128,7 @@
             <!-- Bandwidth Configuration -->
             <div class="border-b border-gray-100 p-4 md:p-5">
                 <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-tachometer-alt text-[#1a56db]"></i> Bandwidth Configuration
+                    {{ icon('tachometer-alt', 'text-[#1a56db]') }} Bandwidth Configuration
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
@@ -156,7 +158,7 @@
             <!-- Pricing -->
             <div class="border-b border-gray-100 p-4 md:p-5">
                 <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-tag text-[#1a56db]"></i> Pricing
+                    {{ icon('tag', 'text-[#1a56db]') }} Pricing
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -181,7 +183,7 @@
             <!-- Description -->
             <div class="border-b border-gray-100 p-4 md:p-5">
                 <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-align-left text-[#1a56db]"></i> Description
+                    {{ icon('align-left', 'text-[#1a56db]') }} Description
                 </h3>
                 <textarea name="description" rows="3" 
                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all resize-y"
@@ -191,7 +193,7 @@
             <!-- Status Switches -->
             <div class="border-b border-gray-100 p-4 md:p-5">
                 <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-toggle-on text-[#1a56db]"></i> Status
+                    {{ icon('toggle-on', 'text-[#1a56db]') }} Status
                 </h3>
                 <div class="space-y-3">
                     <label class="flex items-center gap-2 cursor-pointer">
@@ -220,7 +222,7 @@
                 </a>
                 <button type="submit" id="submitBtn"
                         class="px-4 py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm hover:shadow-md">
-                    <i class="fas fa-save mr-2"></i> Create Plan
+                    {{ icon('save', 'mr-2') }} Create Plan
                 </button>
             </div>
         </form>
@@ -308,7 +310,7 @@
             // Show loading state
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating...';
+                submitBtn.innerHTML = '{{ icon('spin', 'mr-2') }} Creating...';
             }
         });
     }

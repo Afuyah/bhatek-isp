@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Add Router{% endblock %}
 
@@ -586,7 +588,7 @@
             <p>Add a new router to {{ organization.name }}</p>
         </div>
         <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back
+            {{ icon('arrow-left') }} Back
         </a>
     </div>
 
@@ -611,7 +613,7 @@
         <!-- Error Alert -->
         {% if error %}
         <div class="alert alert-danger">
-            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+            {{ icon('exclamation-triangle') }} {{ error }}
         </div>
         {% endif %}
 
@@ -695,7 +697,7 @@
                     Cancel
                 </a>
                 <button type="submit" class="btn-save" id="submitBtn">
-                    <i class="fas fa-save"></i> Add Router
+                    {{ icon('save') }} Add Router
                 </button>
             </div>
         </form>
@@ -706,7 +708,7 @@
 <div id="successModal" class="modal-overlay">
     <div class="success-modal">
         <div class="success-icon">
-            <i class="fas fa-check"></i>
+            {{ icon('check') }}
         </div>
         <h5 style="text-align: center; margin-bottom: 0.5rem;" id="modalTitle">Router Added Successfully!</h5>
         <p style="text-align: center; font-size: 0.8rem; color: var(--gray-500);" id="modalMessage">Your router has been added to the system.</p>
@@ -720,18 +722,18 @@
                 <strong>RADIUS Server:</strong> <span id="radiusServer"></span><br>
                 <strong>Shared Secret:</strong> 
                 <code id="radiusSecret" class="radius-secret"></code>
-                <button class="copy-btn" onclick="copyToClipboard('radiusSecret')"><i class="fas fa-copy"></i> Copy</button>
+                <button class="copy-btn" onclick="copyToClipboard('radiusSecret')">{{ icon('copy') }} Copy</button>
             </div>
             
             <div id="autoConfigSuccess" style="display: none;">
                 <div class="alert" style="background: rgba(16,185,129,0.1); color: var(--success); border-color: rgba(16,185,129,0.2);">
-                    <i class="fas fa-check-circle"></i> RADIUS was automatically configured on your router!
+                    {{ icon('check-circle') }} RADIUS was automatically configured on your router!
                 </div>
             </div>
             
             <div id="manualConfigInstructions" style="display: none;">
                 <div class="alert" style="background: rgba(245,158,11,0.1); color: var(--warning); border-color: rgba(245,158,11,0.2); margin-bottom: 0.75rem;">
-                    <i class="fas fa-exclamation-triangle"></i> Auto-configuration failed. Please configure manually:
+                    {{ icon('exclamation-triangle') }} Auto-configuration failed. Please configure manually:
                 </div>
                 <div class="instruction-code">
                     /radius add address=<span id="manualRadiusServer"></span> secret=<span id="manualRadiusSecret"></span> service=hotspot,ppp<br><br>
@@ -772,7 +774,7 @@
         navigator.clipboard.writeText(text).then(() => {
             const btn = event.target;
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            btn.innerHTML = '{{ icon('check') }} Copied!';
             setTimeout(() => {
                 btn.innerHTML = originalText;
             }, 2000);
@@ -868,14 +870,14 @@
                 
                 if (testResponse.ok && testResult.success) {
                     testResultDiv.className = 'test-result test-success';
-                    testResultDiv.innerHTML = '<i class="fas fa-check-circle"></i> Connection successful! Proceeding to add router...';
+                    testResultDiv.innerHTML = '{{ icon('check-circle') }} Connection successful! Proceeding to add router...';
                 } else {
                     testResultDiv.className = 'test-result test-warning';
-                    testResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (testResult.error || testResult.message || 'Connection failed') + '. Router will be added in offline mode.';
+                    testResultDiv.innerHTML = '{{ icon('exclamation-triangle') }} ' + (testResult.error || testResult.message || 'Connection failed') + '. Router will be added in offline mode.';
                 }
             } catch (error) {
                 testResultDiv.className = 'test-result test-warning';
-                testResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + error.message + '. Router will be added in offline mode.';
+                testResultDiv.innerHTML = '{{ icon('exclamation-triangle') }} ' + error.message + '. Router will be added in offline mode.';
             }
             
             // Wait a moment to show test result
@@ -922,7 +924,7 @@
         } catch (error) {
             console.error('Error:', error);
             testResultDiv.className = 'test-result test-failed';
-            testResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error: ' + error.message;
+            testResultDiv.innerHTML = '{{ icon('exclamation-triangle') }} Error: ' + error.message;
             testResultDiv.style.display = 'block';
             updateStep(1);
         } finally {

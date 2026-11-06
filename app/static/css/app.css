@@ -1,0 +1,104 @@
+/* Shell utilities: icons, navbar state, mobile menu, toasts, loader.
+   Extracted from inline <style> blocks so it is cached once, not per page. */
+
+/* ---------- icons ---------- */
+.icon {
+  display: inline-block;
+  vertical-align: -0.125em;
+  flex: none;
+  overflow: visible;
+}
+
+/* ---------- navbar ---------- */
+#navbar {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+#navbar.navbar-raised {
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  background-color: rgba(255, 255, 255, 0.98);
+}
+#navbar.navbar-hidden {
+  transform: translateY(-100%);
+}
+
+/* ---------- mobile menu ---------- */
+#mobileMenu.menu-open {
+  display: block !important;
+}
+#mobileMenu {
+  animation: menuDrop 0.22s ease-out;
+}
+@keyframes menuDrop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- toasts ---------- */
+.toast {
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.toast.toast-out {
+  opacity: 0;
+  transform: translateX(100%);
+}
+.toast-animation {
+  animation: toastIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+.toast-progress {
+  width: 100%;
+  animation-name: shrink;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes shrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+/* ---------- global loader ---------- */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(45, 106, 79, 0.15);
+  border-top-color: #2d6a4f;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- generic motion ---------- */
+.animate-fade-in  { animation: fadeIn 0.2s ease-out; }
+.animate-fade-out { animation: fadeOut 0.2s ease-in forwards; }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* Scroll-reveal replacement for AOS: elements start hidden only when JS is
+   available and motion is allowed, so no-JS users always see content. */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .js .reveal { opacity: 1; transform: none; }
+}

@@ -1,5 +1,6 @@
+{% from '_icons.html' import icon %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="js">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -9,13 +10,9 @@
     
     <!-- Tailwind CSS -->
     <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
-    
-    <!-- Font Awesome & Google Fonts -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
-    
-    <!-- AOS Animation Library -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Local shell styles: icons, navbar, toasts, loader -->
+    <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
     
     <style>
         * {
@@ -25,7 +22,7 @@
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #fafbfc 0%, #f0f4f8 100%);
             color: #1a2e2a;
             min-height: 100vh;
@@ -227,14 +224,14 @@
                     <!-- Sign In Button - Clean Outline Design -->
                     <a href="/login"
                        class="btn-login group inline-flex items-center gap-2 px-5 py-2 md:px-6 md:py-2.5 border-2 border-[#2d6a4f] text-[#2d6a4f] font-semibold rounded-full hover:bg-[#2d6a4f] hover:text-white transition-all duration-300 text-sm lg:text-base">
-                        <i class="fas fa-user-circle text-sm md:text-base"></i>
+                        {{ icon('user-circle', 'text-sm md:text-base') }}
                         <span class="hidden sm:inline">Sign In</span>
                     </a>
 
                     <!-- Mobile Menu Button -->
                     <button id="mobileMenuButton"
                             class="md:hidden w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
-                        <i class="fas fa-bars text-gray-700 text-lg"></i>
+                        {{ icon('bars', 'text-gray-700 text-lg') }}
                     </button>
                 </div>
             </div>
@@ -256,7 +253,7 @@
         {% block content %}
         <!-- Hero Section - Balanced & Modern -->
         <div class="container mx-auto px-5 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
-            <div class="text-center max-w-4xl mx-auto" data-aos="fade-up">
+            <div class="text-center max-w-4xl mx-auto" class="reveal">
                 <div class="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-full px-4 py-1.5 mb-6 shadow-sm border border-gray-100">
                     <span class="w-2 h-2 bg-[#2d6a4f] rounded-full animate-pulse"></span>
                     <span class="text-xs md:text-sm text-gray-600 font-medium">Premium ISP Solutions</span>
@@ -269,10 +266,10 @@
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="/login" class="inline-flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-[#2d6a4f] to-[#1f5a44] text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                        Get Started <i class="fas fa-arrow-right ml-1"></i>
+                        Get Started {{ icon('arrow-right', 'ml-1') }}
                     </a>
                     <a href="#features" class="inline-flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-white text-gray-700 font-semibold rounded-full shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200">
-                        Learn More <i class="fas fa-play-circle ml-1 text-[#2d6a4f]"></i>
+                        Learn More {{ icon('play-circle', 'ml-1 text-[#2d6a4f]') }}
                     </a>
                 </div>
             </div>
@@ -301,13 +298,13 @@
                     </p>
                     <div class="flex gap-3">
                         <a href="#" class="w-8 h-8 rounded-full bg-gray-800 hover:bg-[#2d6a4f] flex items-center justify-center transition-all hover:scale-110">
-                            <i class="fab fa-facebook-f text-sm"></i>
+                            {{ icon('facebook-f', 'text-sm') }}
                         </a>
                         <a href="#" class="w-8 h-8 rounded-full bg-gray-800 hover:bg-[#2d6a4f] flex items-center justify-center transition-all hover:scale-110">
-                            <i class="fab fa-twitter text-sm"></i>
+                            {{ icon('twitter', 'text-sm') }}
                         </a>
                         <a href="#" class="w-8 h-8 rounded-full bg-gray-800 hover:bg-[#2d6a4f] flex items-center justify-center transition-all hover:scale-110">
-                            <i class="fab fa-linkedin-in text-sm"></i>
+                            {{ icon('linkedin-in', 'text-sm') }}
                         </a>
                     </div>
                 </div>
@@ -316,10 +313,10 @@
                 <div class="md:col-span-3">
                     <h6 class="text-white font-semibold mb-4 text-sm md:text-base">Quick Links</h6>
                     <ul class="space-y-2.5 text-sm">
-                        <li><a href="/" class="hover:text-white transition-colors flex items-center gap-2"><i class="fas fa-chevron-right text-[10px] text-[#2d6a4f]"></i>Home</a></li>
-                        <li><a href="#features" class="hover:text-white transition-colors flex items-center gap-2"><i class="fas fa-chevron-right text-[10px] text-[#2d6a4f]"></i>Features</a></li>
-                        <li><a href="/pricing" class="hover:text-white transition-colors flex items-center gap-2"><i class="fas fa-chevron-right text-[10px] text-[#2d6a4f]"></i>Pricing</a></li>
-                        <li><a href="/support" class="hover:text-white transition-colors flex items-center gap-2"><i class="fas fa-chevron-right text-[10px] text-[#2d6a4f]"></i>Support</a></li>
+                        <li><a href="/" class="hover:text-white transition-colors flex items-center gap-2">{{ icon('chevron-right', 'text-[10px] text-[#2d6a4f]') }}Home</a></li>
+                        <li><a href="#features" class="hover:text-white transition-colors flex items-center gap-2">{{ icon('chevron-right', 'text-[10px] text-[#2d6a4f]') }}Features</a></li>
+                        <li><a href="/pricing" class="hover:text-white transition-colors flex items-center gap-2">{{ icon('chevron-right', 'text-[10px] text-[#2d6a4f]') }}Pricing</a></li>
+                        <li><a href="/support" class="hover:text-white transition-colors flex items-center gap-2">{{ icon('chevron-right', 'text-[10px] text-[#2d6a4f]') }}Support</a></li>
                     </ul>
                 </div>
                 
@@ -328,19 +325,19 @@
                     <h6 class="text-white font-semibold mb-4 text-sm md:text-base">Contact Us</h6>
                     <ul class="space-y-3 text-sm">
                         <li class="flex items-start gap-3">
-                            <i class="fas fa-headset text-[#2d6a4f] mt-0.5 text-sm"></i>
+                            {{ icon('headset', 'text-[#2d6a4f] mt-0.5 text-sm') }}
                             <span>24/7 Premium Support</span>
                         </li>
                         <li class="flex items-start gap-3">
-                            <i class="fas fa-envelope text-[#2d6a4f] mt-0.5 text-sm"></i>
+                            {{ icon('envelope', 'text-[#2d6a4f] mt-0.5 text-sm') }}
                             <a href="mailto:hello@bhalinks.com" class="hover:text-white transition-colors">hello@bhalinks.com</a>
                         </li>
                         <li class="flex items-start gap-3">
-                            <i class="fas fa-phone text-[#2d6a4f] mt-0.5 text-sm"></i>
+                            {{ icon('phone', 'text-[#2d6a4f] mt-0.5 text-sm') }}
                             <a href="tel:+254759508081" class="hover:text-white transition-colors">+254 759 508 081</a>
                         </li>
                         <li class="flex items-start gap-3">
-                            <i class="fas fa-map-marker-alt text-[#2d6a4f] mt-0.5 text-sm"></i>
+                            {{ icon('map-marker-alt', 'text-[#2d6a4f] mt-0.5 text-sm') }}
                             <span>Nairobi, Kenya</span>
                         </li>
                     </ul>
@@ -355,8 +352,8 @@
                     <a href="/terms" class="hover:text-white transition-colors">Terms</a>
                 </div>
                 <div class="flex gap-4 text-gray-500">
-                    <span class="flex items-center gap-1"><i class="fas fa-shield-alt text-[#2d6a4f] text-xs"></i> SSL Secure</span>
-                    <span class="flex items-center gap-1"><i class="fas fa-chart-line text-[#2d6a4f] text-xs"></i> Enterprise Grade</span>
+                    <span class="flex items-center gap-1">{{ icon('shield-alt', 'text-[#2d6a4f] text-xs') }} SSL Secure</span>
+                    <span class="flex items-center gap-1">{{ icon('chart-line', 'text-[#2d6a4f] text-xs') }} Enterprise Grade</span>
                 </div>
             </div>
         </div>
@@ -365,205 +362,12 @@
     <!-- Toast Notification Container -->
     <div class="toast-container fixed bottom-6 right-6 z-50 space-y-3"></div>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    
-    <script>
-        (function() {
-            // Initialize AOS
-            AOS.init({ 
-                duration: 700, 
-                once: true,
-                offset: 80
-            });
+    {% include '_sprite.html' %}
 
-            // Navbar scroll effect with subtle shadow
-            let lastScroll = 0;
-            $(window).scroll(function() {
-                const currentScroll = $(this).scrollTop();
-                if (currentScroll > 30) {
-                    $('#navbar').addClass('shadow-md');
-                    $('#navbar').css('background', 'rgba(255, 255, 255, 0.98)');
-                } else {
-                    $('#navbar').removeClass('shadow-md');
-                    $('#navbar').css('background', 'rgba(255, 255, 255, 0.96)');
-                }
-                
-                // Auto-hide navbar on scroll down for better UX
-                if (currentScroll > lastScroll && currentScroll > 120) {
-                    $('#navbar').css('transform', 'translateY(-100%)');
-                } else {
-                    $('#navbar').css('transform', 'translateY(0)');
-                }
-                lastScroll = currentScroll;
-            });
-            
-            // Reset transform on hover to keep navbar accessible
-            $('#navbar').hover(function() {
-                if ($(window).scrollTop() > 120) {
-                    $(this).css('transform', 'translateY(0)');
-                }
-            }, function() {
-                if ($(window).scrollTop() > 120 && lastScroll > $(window).scrollTop()) {
-                    $(this).css('transform', 'translateY(-100%)');
-                } else if ($(window).scrollTop() <= 120) {
-                    $(this).css('transform', 'translateY(0)');
-                }
-            });
+    <!-- Local scripts: no jQuery, no CDN -->
+    <script src="{{ url_for('static', filename='js/icons.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 
-            // Mobile Menu Toggle with smooth animation
-            $('#mobileMenuButton').click(function() {
-                $('#mobileMenu').slideToggle(280);
-                $(this).find('i').toggleClass('fa-bars fa-times');
-                $(this).toggleClass('bg-gray-200');
-            });
-            
-            // Close mobile menu when clicking a link
-            $('#mobileMenu a').click(function() {
-                $('#mobileMenu').slideUp(200);
-                $('#mobileMenuButton').find('i').removeClass('fa-times').addClass('fa-bars');
-                $('#mobileMenuButton').removeClass('bg-gray-200');
-            });
-            
-            // Smooth scroll for anchor links
-            $('a[href^="#"]').on('click', function(e) {
-                const target = $(this.getAttribute('href'));
-                if (target.length) {
-                    e.preventDefault();
-                    $('html, body').animate({
-                        scrollTop: target.offset().top - 85
-                    }, 600, 'swing');
-                }
-            });
-            
-            // Enhanced Toast Notification System
-            window.showToast = function(message, type = 'success', duration = 4000) {
-                const icons = {
-                    success: '<i class="fas fa-check-circle"></i>',
-                    error: '<i class="fas fa-exclamation-circle"></i>',
-                    warning: '<i class="fas fa-exclamation-triangle"></i>',
-                    info: '<i class="fas fa-info-circle"></i>'
-                };
-                
-                const colors = {
-                    success: 'from-green-500 to-green-600',
-                    error: 'from-red-500 to-red-600',
-                    warning: 'from-yellow-500 to-orange-500',
-                    info: 'from-blue-500 to-blue-600'
-                };
-                
-                const toastHTML = `
-                    <div class="toast transform transition-all duration-300 hover:scale-105" role="alert">
-                        <div class="bg-gradient-to-r ${colors[type]} rounded-xl shadow-2xl overflow-hidden min-w-[280px] md:min-w-[320px] max-w-md">
-                            <div class="relative p-3 md:p-4">
-                                <div class="absolute top-0 left-0 right-0 h-1 bg-white/30"></div>
-                                <div class="flex items-start gap-3">
-                                    <div class="text-white text-base md:text-lg">
-                                        ${icons[type]}
-                                    </div>
-                                    <div class="flex-1 text-white text-xs md:text-sm font-medium leading-relaxed">
-                                        ${message}
-                                    </div>
-                                    <button class="toast-close text-white/70 hover:text-white transition-colors text-xl leading-none">
-                                        &times;
-                                    </button>
-                                </div>
-                                <div class="absolute bottom-0 left-0 h-1 bg-white/40 toast-progress" style="width: 100%; animation: shrink ${duration}ms linear forwards;"></div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                $('.toast-container').append(toastHTML);
-                const toastElement = $('.toast-container .toast').last();
-                
-                toastElement.find('.toast-close').click(function() {
-                    closeToast(toastElement);
-                });
-                
-                setTimeout(() => {
-                    closeToast(toastElement);
-                }, duration);
-                
-                function closeToast(element) {
-                    element.addClass('opacity-0 translate-x-full');
-                    setTimeout(() => {
-                        element.remove();
-                    }, 300);
-                }
-            };
-            
-            // Add progress bar animation CSS if not exists
-            if (!document.querySelector('#toast-animation-style')) {
-                const style = document.createElement('style');
-                style.id = 'toast-animation-style';
-                style.textContent = `
-                    @keyframes shrink {
-                        from { width: 100%; }
-                        to { width: 0%; }
-                    }
-                    .toast {
-                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    }
-                    .toast.opacity-0 {
-                        opacity: 0;
-                        transform: translateX(100%);
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-            
-            // Global loading indicator
-            window.showLoading = function(message = 'Loading...') {
-                if ($('#globalLoading').length) return;
-                const loadingHTML = `
-                    <div id="globalLoading" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center animate-fade-in">
-                        <div class="bg-white rounded-2xl p-6 md:p-8 shadow-2xl text-center max-w-xs md:max-w-sm mx-4">
-                            <div class="loading-spinner mx-auto mb-3 md:mb-4"></div>
-                            <p class="text-gray-700 font-medium text-sm md:text-base">${message}</p>
-                        </div>
-                    </div>
-                `;
-                $('body').append(loadingHTML);
-            };
-            
-            window.hideLoading = function() {
-                $('#globalLoading').fadeOut(300, function() {
-                    $(this).remove();
-                });
-            };
-            
-            // Add loading spinner styles
-            if (!document.querySelector('#loading-spinner-style')) {
-                const spinnerStyle = document.createElement('style');
-                spinnerStyle.id = 'loading-spinner-style';
-                spinnerStyle.textContent = `
-                    .loading-spinner {
-                        border: 3px solid rgba(45, 106, 79, 0.1);
-                        border-radius: 50%;
-                        border-top: 3px solid #2d6a4f;
-                        width: 40px;
-                        height: 40px;
-                        animation: spin 1s linear infinite;
-                    }
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                    .animate-fade-in {
-                        animation: fadeIn 0.2s ease-out;
-                    }
-                    @keyframes fadeIn {
-                        from { opacity: 0; }
-                        to { opacity: 1; }
-                    }
-                `;
-                document.head.appendChild(spinnerStyle);
-            }
-        })();
-    </script>
-    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

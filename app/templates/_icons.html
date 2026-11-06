@@ -1,0 +1,38 @@
+{#- Local icon system: no external icon font, no network request. -#}
+{% macro icon(name, cls='', style='', id='') -%}
+{%- set M = {
+  'check-circle':'check','check':'check','check-double':'check','circle-check':'check',
+  'times':'x','times-circle':'x','close':'x','ban':'ban','bell-slash':'bell-off',
+  'exclamation-triangle':'alert','exclamation-circle':'alert','triangle-exclamation':'alert',
+  'info-circle':'info','circle-info':'info','question-circle':'info',
+  'wifi':'wifi','broadcast-tower':'wifi','signal':'wifi',
+  'server':'server','database':'server','microchip':'server','layer-group':'server','hard-drive':'server',
+  'network-wired':'network','code-branch':'network','plug':'network','link':'link','share-nodes':'network',
+  'clock':'clock','hourglass-half':'clock','hourglass-end':'clock','history':'clock','stopwatch':'clock',
+  'calendar':'calendar','calendar-alt':'calendar','calendar-day':'calendar','calendar-week':'calendar',
+  'calendar-check':'calendar','calendar-plus':'calendar',
+  'user':'user','user-circle':'user','id-card':'user','user-edit':'user','user-plus':'user',
+  'users':'users','user-friends':'users',
+  'plus':'plus','plus-circle':'plus','minus':'minus',
+  'tag':'tag','tags':'tag','ticket-alt':'tag','ticket':'tag',
+  'sync-alt':'refresh','spinner':'refresh','repeat':'refresh','undo-alt':'refresh','rotate':'refresh',
+  'file':'file','file-invoice':'file','file-csv':'file','file-contract':'file','receipt':'file',
+  'eye':'eye','search':'search',
+  'chart-line':'chart','chart-pie':'chart','chart-simple':'chart','chart-bar':'chart',
+  'tachometer-alt':'chart','activity':'chart','heartbeat':'chart','gauge':'chart',
+  'edit':'edit','pencil-alt':'edit','pen':'edit',
+  'trash':'trash','trash-alt':'trash',
+  'chevron-right':'chevron-right','chevron-left':'chevron-left','chevron-down':'chevron-down',
+  'arrow-left':'arrow-left','arrow-right':'arrow-right','arrow-up':'arrow-up','arrow-down':'arrow-down',
+  'credit-card':'card','money-bill-wave':'card','money-bill':'card','wallet':'card',
+  'lock':'lock','key':'key','shield-alt':'shield','shield':'shield',
+  'envelope':'mail','paper-plane':'mail','mail-bulk':'mail',
+  'phone':'phone','mobile-alt':'phone','mobile':'phone','headset':'phone',
+  'map-marker-alt':'pin','building':'building','home':'home','bed':'home',
+  'bars':'menu','sliders-h':'settings','filter':'settings','cog':'settings','toggle-on':'settings',
+  'sign-out-alt':'logout','globe':'globe','external-link-alt':'external','copy':'copy',
+  'hashtag':'copy','align-left':'copy','quote-left':'copy','lightbulb':'bulb','bolt':'bolt',
+  'play-circle':'play','pause-circle':'pause','facebook-f':'globe','twitter':'globe','linkedin-in':'globe'
+} -%}
+<svg class="icon {{ cls }}"{% if id %} id="{{ id }}"{% endif %}{% if style %} style="{{ style }}"{% endif %} width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><use href="#i-{{ M.get(name, 'circle') }}"></use></svg>
+{%- endmacro %}

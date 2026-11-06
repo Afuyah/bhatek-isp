@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}Create Network - {{ organization.name }}{% endblock %}
 
@@ -13,7 +15,7 @@
         </div>
         <a href="{{ url_for('network_web.index', org_id=organization.id) }}" 
            class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-colors duration-150">
-            <i class="fas fa-arrow-left text-xs"></i> Back
+            {{ icon('arrow-left', 'text-xs') }} Back
         </a>
     </div>
 
@@ -42,7 +44,7 @@
                        placeholder="auto-generated from name">
                 <p class="text-xs text-gray-500 mt-1">Leave empty to auto-generate from name. Use only lowercase letters, numbers, and hyphens.</p>
                 <div id="slugPreview" class="hidden mt-2 bg-gray-50 rounded-lg p-2 text-xs font-mono text-[#2d6a4f] border border-gray-200">
-                    <i class="fas fa-link mr-2"></i>
+                    {{ icon('link', 'mr-2') }}
                     <span id="slugPreviewUrl"></span>
                 </div>
             </div>
@@ -58,7 +60,7 @@
                          data-type="hotspot">
                         <input type="radio" name="type" value="hotspot" id="typeHotspot" class="hidden"
                                {% if form_data and form_data.type == 'hotspot' %}checked{% endif %}>
-                        <i class="fas fa-wifi text-2xl md:text-3xl text-blue-500 mb-2 block"></i>
+                        {{ icon('wifi', 'text-2xl md:text-3xl text-blue-500 mb-2 block') }}
                         <div class="font-semibold text-sm md:text-base text-gray-800 mb-0.5">Hotspot</div>
                         <div class="text-xs text-gray-500">Public WiFi with captive portal</div>
                     </div>
@@ -68,7 +70,7 @@
                          data-type="pppoe">
                         <input type="radio" name="type" value="pppoe" id="typePppoe" class="hidden"
                                {% if form_data and form_data.type == 'pppoe' %}checked{% endif %}>
-                        <i class="fas fa-network-wired text-2xl md:text-3xl text-emerald-500 mb-2 block"></i>
+                        {{ icon('network-wired', 'text-2xl md:text-3xl text-emerald-500 mb-2 block') }}
                         <div class="font-semibold text-sm md:text-base text-gray-800 mb-0.5">PPPoE</div>
                         <div class="text-xs text-gray-500">Point-to-Point Protocol over Ethernet</div>
                     </div>
@@ -78,7 +80,7 @@
                          data-type="hybrid">
                         <input type="radio" name="type" value="hybrid" id="typeHybrid" class="hidden"
                                {% if not form_data or form_data.type == 'hybrid' %}checked{% endif %}>
-                        <i class="fas fa-code-branch text-2xl md:text-3xl text-amber-500 mb-2 block"></i>
+                        {{ icon('code-branch', 'text-2xl md:text-3xl text-amber-500 mb-2 block') }}
                         <div class="font-semibold text-sm md:text-base text-gray-800 mb-0.5">Hybrid</div>
                         <div class="text-xs text-gray-500">Both Hotspot and PPPoE</div>
                     </div>
@@ -124,7 +126,7 @@
                 </a>
                 <button type="submit" id="submitBtn" 
                         class="px-4 py-2 bg-gradient-to-r from-[#2d6a4f] to-[#40916c] hover:from-[#1b4332] hover:to-[#2d6a4f] text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm hover:shadow-md">
-                    <i class="fas fa-save mr-2"></i> Create Network
+                    {{ icon('save', 'mr-2') }} Create Network
                 </button>
             </div>
         </form>
@@ -235,7 +237,7 @@
             
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating...';
+                submitBtn.innerHTML = '{{ icon('spin', 'mr-2') }} Creating...';
             }
             return true;
         });

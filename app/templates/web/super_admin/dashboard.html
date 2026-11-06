@@ -1,3 +1,4 @@
+{% from '_icons.html' import icon %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -162,37 +163,37 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <i class="fas fa-wifi fa-2x mb-2"></i>
+            {{ icon('2x', 'mb-2') }}
             <h3>ISP Manager</h3>
             <p>Super Admin Portal</p>
         </div>
         <div class="sidebar-menu">
             <a href="/dashboard" class="menu-item active">
-                <i class="fas fa-tachometer-alt"></i>
+                {{ icon('tachometer-alt') }}
                 <span>Dashboard</span>
             </a>
             <a href="#" class="menu-item">
-                <i class="fas fa-building"></i>
+                {{ icon('building') }}
                 <span>Organizations</span>
             </a>
             <a href="#" class="menu-item">
-                <i class="fas fa-users"></i>
+                {{ icon('users') }}
                 <span>Users</span>
             </a>
             <a href="#" class="menu-item">
-                <i class="fas fa-server"></i>
+                {{ icon('server') }}
                 <span>Routers</span>
             </a>
             <a href="#" class="menu-item">
-                <i class="fas fa-user-friends"></i>
+                {{ icon('user-friends') }}
                 <span>Subscribers</span>
             </a>
             <a href="#" class="menu-item">
-                <i class="fas fa-credit-card"></i>
+                {{ icon('credit-card') }}
                 <span>Billing</span>
             </a>
             <a href="#" class="menu-item">
-                <i class="fas fa-cog"></i>
+                {{ icon('cog') }}
                 <span>Settings</span>
             </a>
         </div>
@@ -203,7 +204,7 @@
         <!-- Top Navbar -->
         <div class="top-navbar">
             <h4 class="mb-0">
-                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                {{ icon('tachometer-alt', 'me-2') }}Dashboard
             </h4>
             <div class="d-flex align-items-center gap-3">
                 <span>Welcome, <strong>{{ user.first_name or user.email }}</strong></span>
@@ -211,7 +212,7 @@
                     {{ (user.first_name or user.email)[0].upper() }}
                 </div>
                 <a href="/logout" class="btn-logout" title="Logout">
-                    <i class="fas fa-sign-out-alt fa-lg"></i>
+                    {{ icon('lg') }}
                 </a>
             </div>
         </div>
@@ -219,7 +220,7 @@
         <!-- Welcome Card -->
         <div class="card">
             <div class="welcome-message">
-                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                {{ icon('4x', 'text-success mb-3') }}
                 <h2>Welcome to ISP Manager</h2>
                 <p class="text-muted">You are logged in as <strong>{{ user.email }}</strong> with <strong>{{ user.role }}</strong> privileges.</p>
                 <hr class="my-4">

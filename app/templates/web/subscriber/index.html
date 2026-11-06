@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Subscribers{% endblock %}
 
@@ -14,12 +16,12 @@
         <div class="flex gap-2">
             <a href="{{ url_for('subscriber_web.create_hotspot', org_id=organization.id) }}" 
                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors duration-150">
-                <i class="fas fa-mobile-alt"></i>
+                {{ icon('mobile-alt') }}
                 <span class="hidden sm:inline">Hotspot</span>
             </a>
             <a href="{{ url_for('subscriber_web.create_pppoe', org_id=organization.id) }}" 
                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1a56db] hover:bg-[#1e40af] text-white text-xs rounded-lg transition-colors duration-150">
-                <i class="fas fa-plus"></i>
+                {{ icon('plus') }}
                 <span class="hidden sm:inline">PPPoE</span>
             </a>
         </div>
@@ -54,15 +56,15 @@
             </button>
             <button data-tab="hotspot" 
                     class="tab-btn px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
-                <i class="fas fa-wifi"></i> Hotspot <span class="ml-1 text-xs text-gray-400">({{ stats.hotspot_users|default(0) }})</span>
+                {{ icon('wifi') }} Hotspot <span class="ml-1 text-xs text-gray-400">({{ stats.hotspot_users|default(0) }})</span>
             </button>
             <button data-tab="pppoe" 
                     class="tab-btn px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
-                <i class="fas fa-network-wired"></i> PPPoE <span class="ml-1 text-xs text-gray-400">({{ stats.pppoe_users|default(0) }})</span>
+                {{ icon('network-wired') }} PPPoE <span class="ml-1 text-xs text-gray-400">({{ stats.pppoe_users|default(0) }})</span>
             </button>
             <button data-tab="active" 
                     class="tab-btn px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
-                <i class="fas fa-check-circle"></i> Active <span class="ml-1 text-xs text-gray-400">({{ stats.active_subscriptions|default(0) }})</span>
+                {{ icon('check-circle') }} Active <span class="ml-1 text-xs text-gray-400">({{ stats.active_subscriptions|default(0) }})</span>
             </button>
         </div>
     </div>
@@ -122,7 +124,7 @@
                             <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium
                                 {% if subscriber.subscriber_type == 'hotspot' %}bg-blue-50 text-blue-700
                                 {% else %}bg-emerald-50 text-emerald-700{% endif %}">
-                                <i class="fas {% if subscriber.subscriber_type == 'hotspot' %}fa-wifi{% else %}fa-network-wired{% endif %} text-[9px]"></i>
+                                {{ icon('wifi' if subscriber.subscriber_type == 'hotspot' else 'network-wired', 'text-[9px]') }}
                                 {{ subscriber.subscriber_type|upper }}
                             </span>
                         </td>
@@ -157,16 +159,16 @@
                             <div class="flex items-center justify-center gap-1">
                                 <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" 
                                    class="p-1 rounded text-blue-600 hover:bg-blue-50 transition-colors duration-150" title="View">
-                                    <i class="fas fa-eye text-sm"></i>
+                                    {{ icon('eye', 'text-sm') }}
                                 </a>
                                 <a href="{{ url_for('subscriber_web.edit', org_id=organization.id, subscriber_id=subscriber.id) }}" 
                                    class="p-1 rounded text-gray-600 hover:bg-gray-100 transition-colors duration-150" title="Edit">
-                                    <i class="fas fa-edit text-sm"></i>
+                                    {{ icon('edit', 'text-sm') }}
                                 </a>
                                 <button type="button" 
                                         onclick="openDeleteModal('{{ subscriber.id }}', '{{ subscriber.get_full_name() or subscriber.display_name }}')"
                                         class="p-1 rounded text-red-600 hover:bg-red-50 transition-colors duration-150" title="Delete">
-                                    <i class="fas fa-trash text-sm"></i>
+                                    {{ icon('trash', 'text-sm') }}
                                 </button>
                             </div>
                         </td>
@@ -183,7 +185,7 @@
         {% if pagination.page > 1 %}
         <a href="?page={{ pagination.page-1 }}{% for key, value in request.args.items() if key != 'page' %}&{{ key }}={{ value }}{% endfor %}" 
            class="inline-flex items-center justify-center min-w-[28px] px-2 py-1 text-xs bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">
-            <i class="fas fa-chevron-left text-[10px]"></i>
+            {{ icon('chevron-left', 'text-[10px]') }}
         </a>
         {% endif %}
         
@@ -215,7 +217,7 @@
         {% if pagination.page < pagination.pages %}
         <a href="?page={{ pagination.page+1 }}{% for key, value in request.args.items() if key != 'page' %}&{{ key }}={{ value }}{% endfor %}" 
            class="inline-flex items-center justify-center min-w-[28px] px-2 py-1 text-xs bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">
-            <i class="fas fa-chevron-right text-[10px]"></i>
+            {{ icon('chevron-right', 'text-[10px]') }}
         </a>
         {% endif %}
     </div>
@@ -224,11 +226,11 @@
     {% else %}
     <!-- Empty State -->
     <div class="bg-white rounded-lg border border-gray-200 text-center py-8">
-        <i class="fas fa-users text-4xl text-gray-300 mb-2 block"></i>
+        {{ icon('users', 'text-4xl text-gray-300 mb-2 block') }}
         <p class="text-gray-500 text-sm mb-3">No subscribers found</p>
         <a href="{{ url_for('subscriber_web.create_hotspot', org_id=organization.id) }}" 
            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1a56db] hover:bg-[#1e40af] text-white text-xs rounded-lg">
-            <i class="fas fa-plus"></i> Add First Subscriber
+            {{ icon('plus') }} Add First Subscriber
         </a>
     </div>
     {% endif %}
@@ -241,7 +243,7 @@
         <div class="flex justify-between items-center p-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Confirm Delete</h3>
             <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
+                {{ icon('times') }}
             </button>
         </div>
         <div class="p-4">

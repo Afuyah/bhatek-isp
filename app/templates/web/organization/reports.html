@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Reports{% endblock %}
 
@@ -182,7 +184,7 @@ async function loadKPIs() {
     document.getElementById('kpiCards').innerHTML = `
         <div class="bg-white rounded-xl p-4 border border-gray-200">
             <div class="w-9 h-9 bg-[#2d6a4f]/10 rounded-lg flex items-center justify-center mb-3">
-                <i class="fas fa-users text-[#2d6a4f]"></i>
+                {{ icon('users', 'text-[#2d6a4f]') }}
             </div>
             <div class="text-2xl font-bold text-gray-800">${d.active_subscribers || 0}</div>
             <div class="text-sm text-gray-500">Active Subscribers</div>
@@ -190,7 +192,7 @@ async function loadKPIs() {
         </div>
         <div class="bg-white rounded-xl p-4 border border-gray-200">
             <div class="w-9 h-9 bg-amber-500/10 rounded-lg flex items-center justify-center mb-3">
-                <i class="fas fa-chart-line text-amber-500"></i>
+                {{ icon('chart-line', 'text-amber-500') }}
             </div>
             <div class="text-2xl font-bold text-gray-800">KES ${(d.monthly_revenue || 0).toLocaleString('en-KE', {maximumFractionDigits:0})}</div>
             <div class="text-sm text-gray-500">Monthly Revenue</div>
@@ -200,7 +202,7 @@ async function loadKPIs() {
         </div>
         <div class="bg-white rounded-xl p-4 border border-gray-200">
             <div class="w-9 h-9 bg-blue-500/10 rounded-lg flex items-center justify-center mb-3">
-                <i class="fas fa-wifi text-blue-500"></i>
+                {{ icon('wifi', 'text-blue-500') }}
             </div>
             <div class="text-2xl font-bold text-gray-800">${d.active_sessions || 0}</div>
             <div class="text-sm text-gray-500">Active Sessions</div>
@@ -208,7 +210,7 @@ async function loadKPIs() {
         </div>
         <div class="bg-white rounded-xl p-4 border border-gray-200">
             <div class="w-9 h-9 bg-purple-500/10 rounded-lg flex items-center justify-center mb-3">
-                <i class="fas fa-server text-purple-500"></i>
+                {{ icon('server', 'text-purple-500') }}
             </div>
             <div class="text-2xl font-bold text-gray-800">${d.online_routers || 0}/${d.total_routers || 0}</div>
             <div class="text-sm text-gray-500">Routers Online</div>
@@ -438,7 +440,7 @@ async function loadRecentActivity() {
     document.getElementById('recentActivity').innerHTML = items.slice(0, 10).map(item => `
         <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
             <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                <i class="fas ${item.icon} text-xs ${item.color}"></i>
+                ${window.icon(item.icon, "text-xs " + item.color)}
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm text-gray-700 truncate">${item.text}</p>

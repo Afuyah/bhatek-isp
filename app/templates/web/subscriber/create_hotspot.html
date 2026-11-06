@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Add Hotspot Subscriber{% endblock %}
 
@@ -13,7 +15,7 @@
         </div>
         <a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" 
            class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-all duration-150">
-            <i class="fas fa-arrow-left text-xs"></i> Back
+            {{ icon('arrow-left', 'text-xs') }} Back
         </a>
     </div>
 
@@ -24,7 +26,7 @@
             <!-- Form Header -->
             <div class="px-4 py-3 md:px-5 md:py-4 bg-gray-50 border-b border-gray-200">
                 <h3 class="text-sm md:text-base font-semibold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-mobile-alt text-[#1a56db]"></i>
+                    {{ icon('mobile-alt', 'text-[#1a56db]') }}
                     Hotspot Subscriber Details
                 </h3>
             </div>
@@ -40,7 +42,7 @@
                         </label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                <i class="fas fa-phone text-sm"></i>
+                                {{ icon('phone', 'text-sm') }}
                             </span>
                             <input type="tel" name="phone" id="phoneNumber"
                                    class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
@@ -48,7 +50,7 @@
                                    placeholder="254712345678 or 0712345678">
                         </div>
                         <div class="flex items-center gap-2 mt-1.5">
-                            <i class="fas fa-info-circle text-gray-400 text-[10px]"></i>
+                            {{ icon('info-circle', 'text-gray-400 text-[10px]') }}
                             <p class="text-xs text-gray-500">Format: 2547XXXXXXXX (12 digits), 07XXXXXXXX (10 digits), or 01XXXXXXXX (10 digits)</p>
                         </div>
                         <div id="phoneError" class="text-xs text-red-500 mt-1 hidden"></div>
@@ -61,7 +63,7 @@
                         </label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                <i class="fas fa-user text-sm"></i>
+                                {{ icon('user', 'text-sm') }}
                             </span>
                             <input type="text" name="name" 
                                    class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-2 focus:ring-[#1a56db]/20 transition-all"
@@ -79,7 +81,7 @@
                         </a>
                         <button type="submit" id="submitBtn"
                                 class="px-4 py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm font-medium rounded-lg transition-all duration-150 shadow-sm hover:shadow-md flex items-center gap-2">
-                            <i class="fas fa-save text-xs"></i>
+                            {{ icon('save', 'text-xs') }}
                             <span>Create Subscriber</span>
                         </button>
                     </div>
@@ -232,7 +234,7 @@
             // Show loading state
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs mr-2"></i>Creating...';
+                submitBtn.innerHTML = '{{ icon('spin', 'text-xs mr-2') }}Creating...';
             }
         });
     }

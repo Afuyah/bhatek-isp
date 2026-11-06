@@ -1,4 +1,6 @@
 {% extends "web/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}Login | BhaLinks Portal{% endblock %}
 
@@ -26,19 +28,19 @@
                 <!-- Feature List -->
                 <div class="space-y-3">
                     <div class="flex items-center gap-3 text-sm">
-                        <i class="fas fa-check-circle text-white/90 text-xs"></i>
+                        {{ icon('check-circle', 'text-white/90 text-xs') }}
                         <span class="text-white/85">Real-time bandwidth monitoring</span>
                     </div>
                     <div class="flex items-center gap-3 text-sm">
-                        <i class="fas fa-check-circle text-white/90 text-xs"></i>
+                        {{ icon('check-circle', 'text-white/90 text-xs') }}
                         <span class="text-white/85">Automated billing & M-Pesa</span>
                     </div>
                     <div class="flex items-center gap-3 text-sm">
-                        <i class="fas fa-check-circle text-white/90 text-xs"></i>
+                        {{ icon('check-circle', 'text-white/90 text-xs') }}
                         <span class="text-white/85">Multi-router management</span>
                     </div>
                     <div class="flex items-center gap-3 text-sm">
-                        <i class="fas fa-check-circle text-white/90 text-xs"></i>
+                        {{ icon('check-circle', 'text-white/90 text-xs') }}
                         <span class="text-white/85">24/7 network insights</span>
                     </div>
                 </div>
@@ -51,7 +53,7 @@
                 <!-- Header -->
                 <div class="text-center mb-6">
                     <div class="w-14 h-14 bg-[#2d6a4f]/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-user-circle text-[#2d6a4f] text-2xl"></i>
+                        {{ icon('user-circle', 'text-[#2d6a4f] text-2xl') }}
                     </div>
                     <h3 class="text-2xl font-bold text-gray-800 mb-1">Welcome Back</h3>
                     <p class="text-sm text-gray-500">Sign in to your dashboard</p>
@@ -60,7 +62,7 @@
                 <!-- Error Message -->
                 {% if error %}
                 <div class="flex items-center gap-2 bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-5 border border-red-100">
-                    <i class="fas fa-exclamation-circle text-sm"></i>
+                    {{ icon('exclamation-circle', 'text-sm') }}
                     <span>{{ error }}</span>
                 </div>
                 {% endif %}
@@ -71,7 +73,7 @@
                     <div class="mb-4">
                         <label class="block text-xs font-semibold text-gray-700 mb-1.5">Email Address</label>
                         <div class="relative">
-                            <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                            {{ icon('envelope', 'absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm') }}
                             <input type="email" id="email" name="email" required 
                                    class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
                                    placeholder="admin@bhalinks.com">
@@ -82,13 +84,13 @@
                     <div class="mb-4">
                         <label class="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
                         <div class="relative">
-                            <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                            {{ icon('lock', 'absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm') }}
                             <input type="password" id="password" name="password" required 
                                    class="w-full pl-9 pr-10 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#2d6a4f] focus:ring-2 focus:ring-[#2d6a4f]/20 transition-all"
                                    placeholder="Enter your password">
                             <button type="button" onclick="togglePassword()" 
                                     class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                                <i class="fas fa-eye" id="toggleIcon"></i>
+                                {{ icon('eye', '', '', 'toggleIcon') }}
                             </button>
                         </div>
                     </div>
@@ -106,7 +108,7 @@
                     <button type="submit" id="loginBtn" 
                             class="w-full bg-gradient-to-r from-[#2d6a4f] to-[#40916c] hover:from-[#1b4332] hover:to-[#2d6a4f] text-white font-semibold py-2.5 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
                         <span>Sign In</span>
-                        <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                        {{ icon('arrow-right', 'ml-2 text-sm') }}
                     </button>
                 </form>
                 
@@ -142,7 +144,7 @@
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         const btn = document.getElementById('loginBtn');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Signing In...';
+        btn.innerHTML = '{{ icon('spin', 'mr-2') }}Signing In...';
     });
 </script>
 

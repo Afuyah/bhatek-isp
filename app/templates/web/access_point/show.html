@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - {{ access_point.name }}{% endblock %}
 
@@ -338,7 +340,7 @@
             <h4>{{ access_point.name }}</h4>
             <div class="badge-group">
                 <span class="status-badge status-{{ access_point.status if access_point.status in ['online','offline'] else 'unknown' }}">
-                    <i class="fas fa-circle" style="font-size: 0.4rem;"></i>
+                    {{ icon('circle', '', 'font-size: 0.4rem;') }}
                     {{ access_point.status|capitalize if access_point.status else 'Unknown' }}
                 </span>
                 {% if not access_point.is_active %}
@@ -348,10 +350,10 @@
         </div>
         <div class="btn-group-custom">
             <a href="{{ url_for('ap_web.edit', org_id=organization.id, ap_id=access_point.id) }}" class="btn-edit">
-                <i class="fas fa-edit"></i> Edit
+                {{ icon('edit') }} Edit
             </a>
             <button class="btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                <i class="fas fa-trash"></i> Delete
+                {{ icon('trash') }} Delete
             </button>
         </div>
     </div>
@@ -362,7 +364,7 @@
         <div class="col-12 col-md-6">
             <div class="info-card">
                 <div class="card-title">
-                    <i class="fas fa-info-circle"></i> Basic Information
+                    {{ icon('info-circle') }} Basic Information
                 </div>
                 <div class="info-row">
                     <div class="info-label">Name</div>
@@ -382,7 +384,7 @@
                 </div>
                 <div class="info-row">
                     <div class="info-label">Location</div>
-                    <div class="info-value"><i class="fas fa-map-marker-alt"></i> {{ access_point.location }}</div>
+                    <div class="info-value">{{ icon('map-marker-alt') }} {{ access_point.location }}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Router</div>
@@ -399,13 +401,13 @@
         <div class="col-12 col-md-6">
             <div class="info-card">
                 <div class="card-title">
-                    <i class="fas fa-chart-line"></i> Status & Health
+                    {{ icon('chart-line') }} Status & Health
                 </div>
                 <div class="info-row">
                     <div class="info-label">Status</div>
                     <div class="info-value">
                         <span class="status-badge status-{{ access_point.status if access_point.status in ['online','offline'] else 'unknown' }}">
-                            <i class="fas fa-circle" style="font-size: 0.4rem;"></i>
+                            {{ icon('circle', '', 'font-size: 0.4rem;') }}
                             {{ access_point.status|capitalize if access_point.status else 'Unknown' }}
                         </span>
                     </div>

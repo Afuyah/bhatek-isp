@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Add Access Point{% endblock %}
 
@@ -324,7 +326,7 @@
             <p>Add a new WiFi access point to {{ organization.name }}</p>
         </div>
         <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back
+            {{ icon('arrow-left') }} Back
         </a>
     </div>
 
@@ -397,7 +399,7 @@
                     Cancel
                 </a>
                 <button type="submit" class="btn-submit">
-                    <i class="fas fa-save"></i> Create Access Point
+                    {{ icon('save') }} Create Access Point
                 </button>
             </div>
         </form>

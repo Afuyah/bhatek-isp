@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - Service Plans{% endblock %}
 
@@ -13,7 +15,7 @@
         </div>
         <a href="{{ url_for('billing_web.plan_create', org_id=organization.id) }}" 
            class="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-[#1a56db] hover:bg-[#1e40af] text-white text-sm rounded-lg transition-all duration-150 shadow-sm hover:shadow-md">
-            <i class="fas fa-plus text-xs"></i>
+            {{ icon('plus', 'text-xs') }}
             <span>Add Plan</span>
         </a>
     </div>
@@ -27,11 +29,11 @@
             </button>
             <button data-tab="hotspot" 
                     class="tab-btn px-3 py-2 md:px-5 md:py-2.5 text-xs md:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
-                <i class="fas fa-wifi mr-1"></i> Hotspot <span class="ml-1 text-xs text-gray-400">({{ hotspot_plans|length }})</span>
+                {{ icon('wifi', 'mr-1') }} Hotspot <span class="ml-1 text-xs text-gray-400">({{ hotspot_plans|length }})</span>
             </button>
             <button data-tab="pppoe" 
                     class="tab-btn px-3 py-2 md:px-5 md:py-2.5 text-xs md:text-sm font-medium text-gray-500 hover:text-[#1a56db] transition-colors border-b-2 border-transparent">
-                <i class="fas fa-network-wired mr-1"></i> PPPoE <span class="ml-1 text-xs text-gray-400">({{ pppoe_plans|length }})</span>
+                {{ icon('network-wired', 'mr-1') }} PPPoE <span class="ml-1 text-xs text-gray-400">({{ pppoe_plans|length }})</span>
             </button>
         </div>
     </div>
@@ -39,7 +41,7 @@
     <!-- Search & Filter Bar -->
     <div class="flex flex-wrap items-center gap-2">
         <div class="relative">
-            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            {{ icon('search', 'absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs') }}
             <input type="text" id="searchInput" 
                    class="w-full md:w-72 pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db]"
                    placeholder="Search by plan name, description..."
@@ -49,13 +51,13 @@
                 onclick="toggleAutoRenewFilter()"
                 class="inline-flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-gray-600"
                 aria-pressed="false">
-            <i class="fas fa-sync-alt text-xs text-[#2d6a4f]"></i>
+            {{ icon('sync-alt', 'text-xs text-[#2d6a4f]') }}
             Auto-Renew Enabled
         </button>
         <span id="filterIndicator" class="hidden text-xs text-[#1a56db] font-medium">
-            <i class="fas fa-filter mr-1"></i> Filtered
+            {{ icon('filter', 'mr-1') }} Filtered
             <button onclick="clearAutoRenewFilter()" class="ml-1 text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times text-[10px]"></i>
+                {{ icon('times', 'text-[10px]') }}
             </button>
         </span>
     </div>
@@ -97,7 +99,7 @@
                                 </td>
                                 <td class="px-3 py-3 hidden md:table-cell">
                                     <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-600">
-                                        <i class="fas fa-hourglass-half text-gray-400"></i>
+                                        {{ icon('hourglass-half', 'text-gray-400') }}
                                         {% if plan.validity_type == 'time_based' %}
                                             {% if plan.validity_value and plan.validity_unit %}
                                                 {{ plan.validity_value }} {{ plan.validity_unit|lower }}
@@ -117,18 +119,18 @@
                                 </td>
                                 <td class="px-3 py-3 hidden lg:table-cell">
                                     <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-md text-xs font-medium text-[#1a56db]">
-                                        <i class="fas fa-users text-[10px]"></i>
+                                        {{ icon('users', 'text-[10px]') }}
                                         {{ plan.active_subscriptions_count|default(0) }}
                                     </span>
                                 </td>
                                 <td class="px-3 py-3 hidden lg:table-cell">
                                     {% if plan.auto_renew_enabled|default(false) %}
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#2d6a4f]/10 text-[#2d6a4f]">
-                                        <i class="fas fa-sync-alt text-[8px]"></i> Enabled
+                                        {{ icon('sync-alt', 'text-[8px]') }} Enabled
                                     </span>
                                     {% else %}
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
-                                        <i class="fas fa-ban text-[8px]"></i> Disabled
+                                        {{ icon('ban', 'text-[8px]') }} Disabled
                                     </span>
                                     {% endif %}
                                 </td>
@@ -142,7 +144,7 @@
                                         </span>
                                         {% if plan.is_public %}
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700">
-                                            <i class="fas fa-globe text-[8px]"></i> Public
+                                            {{ icon('globe', 'text-[8px]') }} Public
                                         </span>
                                         {% endif %}
                                     </div>
@@ -151,12 +153,12 @@
                                     <div class="flex items-center justify-center gap-1">
                                         <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" 
                                            class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150" title="Edit plan">
-                                            <i class="fas fa-edit text-sm"></i>
+                                            {{ icon('edit', 'text-sm') }}
                                         </a>
                                         <button type="button" 
                                                 onclick="openDeleteModal('{{ plan.id }}', '{{ plan.name }}')"
                                                 class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Deactivate plan">
-                                            <i class="fas fa-trash text-sm"></i>
+                                            {{ icon('trash', 'text-sm') }}
                                         </button>
                                     </div>
                                 </td>
@@ -165,7 +167,7 @@
                         {% else %}
                             <tr>
                                 <td colspan="8" class="text-center py-8 text-gray-400">
-                                    <i class="fas fa-tags text-3xl mb-2 block opacity-50"></i>
+                                    {{ icon('tags', 'text-3xl mb-2 block opacity-50') }}
                                     <p class="text-sm">No plans created yet</p>
                                 </td>
                             </tr>
@@ -213,7 +215,7 @@
                                 </td>
                                 <td class="px-3 py-3 hidden md:table-cell">
                                     <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-600">
-                                        <i class="fas fa-hourglass-half text-gray-400"></i>
+                                        {{ icon('hourglass-half', 'text-gray-400') }}
                                         {% if plan.validity_type == 'time_based' %}
                                             {{ plan.validity_days }} days
                                         {% elif plan.validity_type == 'data_based' %}
@@ -229,18 +231,18 @@
                                 </td>
                                 <td class="px-3 py-3 hidden lg:table-cell">
                                     <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-md text-xs font-medium text-[#1a56db]">
-                                        <i class="fas fa-users text-[10px]"></i>
+                                        {{ icon('users', 'text-[10px]') }}
                                         {{ plan.active_subscriptions_count|default(0) }}
                                     </span>
                                 </td>
                                 <td class="px-3 py-3 hidden lg:table-cell">
                                     {% if plan.auto_renew_enabled|default(false) %}
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#2d6a4f]/10 text-[#2d6a4f]">
-                                        <i class="fas fa-sync-alt text-[8px]"></i> Enabled
+                                        {{ icon('sync-alt', 'text-[8px]') }} Enabled
                                     </span>
                                     {% else %}
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
-                                        <i class="fas fa-ban text-[8px]"></i> Disabled
+                                        {{ icon('ban', 'text-[8px]') }} Disabled
                                     </span>
                                     {% endif %}
                                 </td>
@@ -257,12 +259,12 @@
                                     <div class="flex items-center justify-center gap-1">
                                         <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" 
                                            class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150" title="Edit plan">
-                                            <i class="fas fa-edit text-sm"></i>
+                                            {{ icon('edit', 'text-sm') }}
                                         </a>
                                         <button type="button" 
                                                 onclick="openDeleteModal('{{ plan.id }}', '{{ plan.name }}')"
                                                 class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Deactivate plan">
-                                            <i class="fas fa-trash text-sm"></i>
+                                            {{ icon('trash', 'text-sm') }}
                                         </button>
                                     </div>
                                 </td>
@@ -271,7 +273,7 @@
                         {% else %}
                             <tr>
                                 <td colspan="8" class="text-center py-8 text-gray-400">
-                                    <i class="fas fa-wifi text-3xl mb-2 block opacity-50"></i>
+                                    {{ icon('wifi', 'text-3xl mb-2 block opacity-50') }}
                                     <p class="text-sm">No hotspot plans created yet</p>
                                 </td>
                             </tr>
@@ -319,7 +321,7 @@
                                 </td>
                                 <td class="px-3 py-3 hidden md:table-cell">
                                     <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-600">
-                                        <i class="fas fa-hourglass-half text-gray-400"></i>
+                                        {{ icon('hourglass-half', 'text-gray-400') }}
                                         {% if plan.validity_type == 'time_based' %}
                                             {{ plan.validity_days }} days
                                         {% elif plan.validity_type == 'data_based' %}
@@ -335,18 +337,18 @@
                                 </td>
                                 <td class="px-3 py-3 hidden lg:table-cell">
                                     <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-md text-xs font-medium text-[#1a56db]">
-                                        <i class="fas fa-users text-[10px]"></i>
+                                        {{ icon('users', 'text-[10px]') }}
                                         {{ plan.active_subscriptions_count|default(0) }}
                                     </span>
                                 </td>
                                 <td class="px-3 py-3 hidden lg:table-cell">
                                     {% if plan.auto_renew_enabled|default(false) %}
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#2d6a4f]/10 text-[#2d6a4f]">
-                                        <i class="fas fa-sync-alt text-[8px]"></i> Enabled
+                                        {{ icon('sync-alt', 'text-[8px]') }} Enabled
                                     </span>
                                     {% else %}
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">
-                                        <i class="fas fa-ban text-[8px]"></i> Disabled
+                                        {{ icon('ban', 'text-[8px]') }} Disabled
                                     </span>
                                     {% endif %}
                                 </td>
@@ -363,12 +365,12 @@
                                     <div class="flex items-center justify-center gap-1">
                                         <a href="{{ url_for('billing_web.plan_edit', org_id=organization.id, plan_id=plan.id) }}" 
                                            class="p-1.5 rounded-md text-[#1a56db] hover:bg-blue-50 transition-colors duration-150" title="Edit plan">
-                                            <i class="fas fa-edit text-sm"></i>
+                                            {{ icon('edit', 'text-sm') }}
                                         </a>
                                         <button type="button" 
                                                 onclick="openDeleteModal('{{ plan.id }}', '{{ plan.name }}')"
                                                 class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150" title="Deactivate plan">
-                                            <i class="fas fa-trash text-sm"></i>
+                                            {{ icon('trash', 'text-sm') }}
                                         </button>
                                     </div>
                                 </td>
@@ -377,7 +379,7 @@
                         {% else %}
                             <tr>
                                 <td colspan="8" class="text-center py-8 text-gray-400">
-                                    <i class="fas fa-network-wired text-3xl mb-2 block opacity-50"></i>
+                                    {{ icon('network-wired', 'text-3xl mb-2 block opacity-50') }}
                                     <p class="text-sm">No PPPoE plans created yet</p>
                                 </td>
                             </tr>
@@ -396,7 +398,7 @@
         <div class="flex justify-between items-center p-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Confirm Deactivation</h3>
             <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
+                {{ icon('times') }}
             </button>
         </div>
         <div class="p-4">

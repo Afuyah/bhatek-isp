@@ -1,4 +1,6 @@
 {% extends "web/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} |WiFi Hotspot{% endblock %}
 
@@ -170,7 +172,7 @@
                 <div class="card-modern" style="background: white; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1);">
                     <!-- Header -->
                     <div style="background: linear-gradient(135deg, #1a2e2a 0%, #2d6a4f 100%); padding: 2rem; text-align: center; color: white;">
-                        <i class="fas fa-wifi fa-2x mb-2" style="opacity: 0.9;"></i>
+                        {{ icon('2x', 'mb-2', 'opacity: 0.9;') }}
                         <h3 style="font-weight: 700; margin-bottom: 0.25rem;">{{ organization.name }} WiFi</h3>
                         <p style="opacity: 0.8; margin-bottom: 0;">High-speed internet</p>
                     </div>
@@ -210,14 +212,14 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <button class="method-btn w-100" onclick="selectMethod('phone')">
-                                        <i class="fas fa-phone" style="font-size: 2rem; color: #2d6a4f; margin-bottom: 0.75rem; display: block;"></i>
+                                        {{ icon('phone', '', 'font-size: 2rem; color: #2d6a4f; margin-bottom: 0.75rem; display: block;') }}
                                         <strong style="font-size: 1rem;">Phone Number</strong>
                                         <small class="d-block text-muted" style="font-size: 0.75rem;">Existing account</small>
                                     </button>
                                 </div>
                                 <div class="col-md-6">
                                     <button class="method-btn w-100" onclick="selectMethod('voucher')">
-                                        <i class="fas fa-ticket-alt" style="font-size: 2rem; color: #2d6a4f; margin-bottom: 0.75rem; display: block;"></i>
+                                        {{ icon('ticket-alt', '', 'font-size: 2rem; color: #2d6a4f; margin-bottom: 0.75rem; display: block;') }}
                                         <strong style="font-size: 1rem;">Voucher Code</strong>
                                         <small class="d-block text-muted" style="font-size: 0.75rem;">Prepaid access</small>
                                     </button>
@@ -233,7 +235,7 @@
                             <form id="phoneForm">
                                 <div class="mb-3">
                                     <label class="form-label" style="font-weight: 500; color: #1a2e2a;">
-                                        <i class="fas fa-mobile-alt me-1" style="color: #2d6a4f;"></i> Phone Number
+                                        {{ icon('mobile-alt', 'me-1', 'color: #2d6a4f;') }} Phone Number
                                     </label>
                                     <input type="tel" class="form-control-modern w-100" id="phone" 
                                            placeholder="0712345678 or 254712345678" required>
@@ -241,7 +243,7 @@
                                 </div>
                                 <div class="d-grid gap-2">
                                     <button type="submit" class="btn btn-primary" style="background: #2d6a4f; padding: 0.875rem; border-radius: 14px; font-weight: 600;">
-                                        Continue <i class="fas fa-arrow-right ms-2"></i>
+                                        Continue {{ icon('arrow-right', 'ms-2') }}
                                     </button>
                                     <button type="button" class="btn btn-link" onclick="goToStep(1)" style="color: #6b7a75;">Back</button>
                                 </div>
@@ -256,14 +258,14 @@
                             <form id="voucherForm">
                                 <div class="mb-3">
                                     <label class="form-label" style="font-weight: 500; color: #1a2e2a;">
-                                        <i class="fas fa-key me-1" style="color: #2d6a4f;"></i> Voucher Code
+                                        {{ icon('key', 'me-1', 'color: #2d6a4f;') }} Voucher Code
                                     </label>
                                     <input type="text" class="form-control-modern w-100" id="voucherCode" 
                                            placeholder="XXXX-XXXX-XXXX" required>
                                 </div>
                                 <div class="d-grid gap-2">
                                     <button type="submit" class="btn btn-primary" style="background: #2d6a4f; padding: 0.875rem; border-radius: 14px; font-weight: 600;">
-                                        Redeem & Connect <i class="fas fa-check ms-2"></i>
+                                        Redeem & Connect {{ icon('check', 'ms-2') }}
                                     </button>
                                     <button type="button" class="btn btn-link" onclick="goToStep(1)" style="color: #6b7a75;">Back</button>
                                 </div>
@@ -286,7 +288,7 @@
                             <div id="paymentSection" style="display: none;">
                                 <hr style="border-color: #eef2f0; margin: 1.5rem 0;">
                                 <h5 style="font-weight: 600; color: #1a2e2a; margin-bottom: 1rem;">
-                                    <i class="fas fa-credit-card me-2" style="color: #2d6a4f;"></i>Payment Details
+                                    {{ icon('credit-card', 'me-2', 'color: #2d6a4f;') }}Payment Details
                                 </h5>
                                 <form id="paymentForm">
                                     <div class="mb-3">
@@ -297,7 +299,7 @@
                                     </div>
                                     <div class="d-grid gap-2">
                                         <button type="submit" class="btn btn-primary" style="background: #2d6a4f; padding: 0.875rem; border-radius: 14px; font-weight: 600;">
-                                            Pay with M-Pesa <i class="fas fa-arrow-right ms-2"></i>
+                                            Pay with M-Pesa {{ icon('arrow-right', 'ms-2') }}
                                         </button>
                                         <button type="button" class="btn btn-link" onclick="goToStep(2, 'phone')" style="color: #6b7a75;">Back</button>
                                     </div>
@@ -308,17 +310,17 @@
                         <!-- Step 4: Success -->
                         <div id="step4" class="step text-center">
                             <div class="success-icon">
-                                <i class="fas fa-check-circle" style="font-size: 3rem; color: #2d6a4f;"></i>
+                                {{ icon('check-circle', '', 'font-size: 3rem; color: #2d6a4f;') }}
                             </div>
                             <h4 style="font-weight: 700; color: #1a2e2a; margin-bottom: 0.5rem;">Connected Successfully!</h4>
                             <p style="color: #6b7a75; margin-bottom: 1rem;">You are now connected to high-speed internet</p>
                             <div class="alert" style="background: #f4f9f7; border-radius: 16px; padding: 1rem; margin-bottom: 1.5rem;">
                                 <small style="color: #2d6a4f;">
-                                    <i class="fas fa-clock me-1"></i> Session expires in <strong><span id="expiryTimer"></span></strong>
+                                    {{ icon('clock', 'me-1') }} Session expires in <strong><span id="expiryTimer"></span></strong>
                                 </small>
                             </div>
                             <a href="http://captive.apple.com" class="btn btn-primary" style="background: #2d6a4f; border-radius: 14px; padding: 0.875rem 2rem; font-weight: 600;">
-                                Start Browsing <i class="fas fa-external-link-alt ms-2"></i>
+                                Start Browsing {{ icon('external-link-alt', 'ms-2') }}
                             </a>
                         </div>
                     </div>
@@ -485,8 +487,8 @@
                             <div style="font-size: 2rem; font-weight: 700; color: #2d6a4f;">KES ${plan.price}</div>
                             <small class="text-muted">${plan.validity_days} days validity</small>
                             <div class="mt-3 d-flex justify-content-center gap-2">
-                                <span class="badge-speed"><i class="fas fa-tachometer-alt me-1"></i>${plan.bandwidth_down_mbps} Mbps</span>
-                                <span class="badge-speed"><i class="fas fa-mobile-alt me-1"></i>${plan.device_limit} device(s)</span>
+                                <span class="badge-speed">{{ icon('tachometer-alt', 'me-1') }}${plan.bandwidth_down_mbps} Mbps</span>
+                                <span class="badge-speed">{{ icon('mobile-alt', 'me-1') }}${plan.device_limit} device(s)</span>
                             </div>
                         </div>
                     </div>

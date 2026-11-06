@@ -1,4 +1,6 @@
 {% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
 
 {% block title %}{{ organization.name }} - {{ subscriber.display_name }}{% endblock %}
 
@@ -10,18 +12,18 @@
         <nav class="text-xs md:text-sm">
             <ol class="flex items-center gap-1 text-gray-500">
                 <li><a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" class="hover:text-blue-600 transition-colors">Subscribers</a></li>
-                <li><i class="fas fa-chevron-right text-gray-400 text-[10px]"></i></li>
+                <li>{{ icon('chevron-right', 'text-gray-400 text-[10px]') }}</li>
                 <li class="text-gray-700 font-medium truncate max-w-[150px] md:max-w-none">{{ subscriber.display_name }}</li>
             </ol>
         </nav>
         <div class="flex gap-2">
             <a href="{{ url_for('subscriber_web.edit', org_id=organization.id, subscriber_id=subscriber.id) }}" 
                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm rounded-lg transition-all duration-150">
-                <i class="fas fa-edit text-xs"></i> Edit
+                {{ icon('edit', 'text-xs') }} Edit
             </a>
             <button onclick="openDeleteModal()" 
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-sm rounded-lg transition-all duration-150">
-                <i class="fas fa-trash text-xs"></i> Delete
+                {{ icon('trash', 'text-xs') }} Delete
             </button>
         </div>
     </div>
@@ -36,7 +38,7 @@
                 <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">{{ subscriber.get_full_name() or subscriber.display_name }}</h2>
                 <div class="flex flex-wrap gap-2">
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700">
-                        <i class="fas {% if subscriber.subscriber_type == 'hotspot' %}fa-wifi{% else %}fa-network-wired{% endif %} text-[10px]"></i>
+                        {{ icon('wifi' if subscriber.subscriber_type == 'hotspot' else 'network-wired', 'text-[10px]') }}
                         {{ subscriber.subscriber_type|upper }}
                     </span>
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium
@@ -84,7 +86,7 @@
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
                     <h5 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <i class="fas fa-user-circle text-blue-500"></i> Basic Information
+                        {{ icon('user-circle', 'text-blue-500') }} Basic Information
                     </h5>
                 </div>
                 <div class="p-4 space-y-3">
@@ -121,7 +123,7 @@
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                     <h5 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <i class="fas fa-tag text-blue-500"></i> Active Subscription
+                        {{ icon('tag', 'text-blue-500') }} Active Subscription
                     </h5>
                     <a href="{{ url_for('subscriber_web.create_subscription', org_id=organization.id, subscriber_id=subscriber.id) }}" 
                        class="text-xs text-blue-600 hover:text-blue-700 font-medium">Assign Plan</a>
@@ -136,20 +138,20 @@
                             </div>
                             {% if active_subscription.expiry_time < now %}
                             <div class="mt-2 p-2 bg-red-50 border-l-4 border-red-500 text-xs text-red-700 rounded">
-                                <i class="fas fa-exclamation-triangle mr-1"></i> Subscription has expired!
+                                {{ icon('exclamation-triangle', 'mr-1') }} Subscription has expired!
                             </div>
                             {% elif (active_subscription.expiry_time - now).days <= 3 %}
                             <div class="mt-2 p-2 bg-amber-50 border-l-4 border-amber-500 text-xs text-amber-700 rounded">
-                                <i class="fas fa-clock mr-1"></i> Expires in {{ (active_subscription.expiry_time - now).days }} days!
+                                {{ icon('clock', 'mr-1') }} Expires in {{ (active_subscription.expiry_time - now).days }} days!
                             </div>
                             {% endif %}
                             <div class="flex flex-wrap gap-2 mt-2">
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
-                                    <i class="fas fa-check-circle text-[8px]"></i> Active
+                                    {{ icon('check-circle', 'text-[8px]') }} Active
                                 </span>
                                 {% if active_subscription.auto_renew %}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700">
-                                    <i class="fas fa-sync-alt text-[8px]"></i> Auto-renew
+                                    {{ icon('sync-alt', 'text-[8px]') }} Auto-renew
                                 </span>
                                 {% endif %}
                             </div>
@@ -161,11 +163,11 @@
                         <div class="flex gap-2">
                             <button onclick="openRenewModal()" 
                                     class="flex-1 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors duration-150">
-                                <i class="fas fa-sync-alt mr-1"></i> Renew
+                                {{ icon('sync-alt', 'mr-1') }} Renew
                             </button>
                             <button onclick="openCancelSubModal()" 
                                     class="flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors duration-150">
-                                <i class="fas fa-ban mr-1"></i> Cancel
+                                {{ icon('ban', 'mr-1') }} Cancel
                             </button>
                         </div>
                     {% else %}
@@ -182,7 +184,7 @@
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                     <h5 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <i class="fas fa-microchip text-blue-500"></i> Devices
+                        {{ icon('microchip', 'text-blue-500') }} Devices
                     </h5>
                     <a href="{{ url_for('subscriber_web.add_device', org_id=organization.id, subscriber_id=subscriber.id) }}" 
                        class="text-xs text-blue-600 hover:text-blue-700 font-medium">Add Device</a>
@@ -209,7 +211,7 @@
                                     <form method="POST" action="{{ url_for('subscriber_web.remove_device', org_id=organization.id, device_id=device.id) }}" class="inline">
                                         <button type="submit" onclick="return confirm('Remove this device?')" 
                                                 class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors duration-150">
-                                            <i class="fas fa-trash"></i> Remove
+                                            {{ icon('trash') }} Remove
                                         </button>
                                     </form>
                                 </div>
@@ -218,7 +220,7 @@
                         {% endfor %}
                     {% else %}
                         <div class="text-center py-8 text-gray-400">
-                            <i class="fas fa-microchip text-3xl mb-2 block opacity-50"></i>
+                            {{ icon('microchip', 'text-3xl mb-2 block opacity-50') }}
                             <p class="text-sm">No registered devices</p>
                         </div>
                     {% endif %}
@@ -229,7 +231,7 @@
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
                     <h5 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <i class="fas fa-history text-blue-500"></i> Subscription History
+                        {{ icon('history', 'text-blue-500') }} Subscription History
                     </h5>
                 </div>
                 <div class="overflow-x-auto">
@@ -263,7 +265,7 @@
                         </table>
                     {% else %}
                         <div class="text-center py-8 text-gray-400">
-                            <i class="fas fa-history text-3xl mb-2 block opacity-50"></i>
+                            {{ icon('history', 'text-3xl mb-2 block opacity-50') }}
                             <p class="text-sm">No subscription history</p>
                         </div>
                     {% endif %}
@@ -279,17 +281,17 @@
     <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
         <div class="flex justify-between items-center p-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <i class="fas fa-sync-alt text-amber-500"></i> Renew Subscription
+                {{ icon('sync-alt', 'text-amber-500') }} Renew Subscription
             </h3>
             <button onclick="closeRenewModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
+                {{ icon('times') }}
             </button>
         </div>
         <form method="GET" action="{{ url_for('subscriber_web.renew_subscription_form', org_id=organization.id, subscriber_id=subscriber.id) }}">
             <div class="p-4">
                 <p class="text-gray-700">Renew subscription for <strong>{{ subscriber.display_name }}</strong>?</p>
                 <div class="mt-3 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
-                    <i class="fas fa-info-circle mr-1"></i>
+                    {{ icon('info-circle', 'mr-1') }}
                     Current plan: <strong>{{ active_subscription.plan.name }}</strong><br>
                     Expires: <strong>{{ active_subscription.expiry_time.strftime('%Y-%m-%d') }}</strong>
                 </div>
@@ -299,7 +301,7 @@
                     Cancel
                 </button>
                 <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors duration-150">
-                    <i class="fas fa-sync-alt mr-1"></i> Proceed to Renew
+                    {{ icon('sync-alt', 'mr-1') }} Proceed to Renew
                 </button>
             </div>
         </form>
@@ -312,10 +314,10 @@
     <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
         <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-red-50">
             <h3 class="text-lg font-semibold text-red-700 flex items-center gap-2">
-                <i class="fas fa-ban"></i> Cancel Subscription
+                {{ icon('ban') }} Cancel Subscription
             </h3>
             <button onclick="closeCancelSubModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
+                {{ icon('times') }}
             </button>
         </div>
         <form method="POST" action="{{ url_for('subscriber_web.cancel_subscription', org_id=organization.id, subscription_id=active_subscription.id) }}">
@@ -333,7 +335,7 @@
                     </select>
                 </div>
                 <div class="mt-3 p-3 bg-red-50 rounded-lg text-xs text-red-700">
-                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    {{ icon('exclamation-triangle', 'mr-1') }}
                     <strong>Warning:</strong> This action cannot be undone. The subscriber will lose all active sessions.
                 </div>
             </div>
@@ -342,7 +344,7 @@
                     Keep Subscription
                 </button>
                 <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-150">
-                    <i class="fas fa-ban mr-1"></i> Cancel Subscription
+                    {{ icon('ban', 'mr-1') }} Cancel Subscription
                 </button>
             </div>
         </form>
@@ -355,16 +357,16 @@
     <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
         <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-red-50">
             <h3 class="text-lg font-semibold text-red-700 flex items-center gap-2">
-                <i class="fas fa-trash"></i> Confirm Delete
+                {{ icon('trash') }} Confirm Delete
             </h3>
             <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
+                {{ icon('times') }}
             </button>
         </div>
         <div class="p-4">
             <p class="text-gray-700">Delete subscriber <strong>{{ subscriber.display_name }}</strong>?</p>
             <div class="mt-3 p-3 bg-red-50 rounded-lg text-xs text-red-700">
-                <i class="fas fa-exclamation-triangle mr-1"></i>
+                {{ icon('exclamation-triangle', 'mr-1') }}
                 <strong>Warning:</strong> This will:
                 <ul class="list-disc list-inside mt-2 space-y-0.5">
                     <li>Deactivate the subscriber account</li>
@@ -385,7 +387,7 @@
             <form method="POST" action="{{ url_for('subscriber_web.delete', org_id=organization.id, subscriber_id=subscriber.id) }}">
                 <input type="hidden" name="soft" id="softInput" value="true">
                 <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-150">
-                    <i class="fas fa-trash mr-1"></i> Delete Subscriber
+                    {{ icon('trash', 'mr-1') }} Delete Subscriber
                 </button>
             </form>
         </div>
