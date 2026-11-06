@@ -36,16 +36,21 @@ implementations, no external CDN dependencies, consistent structure, fast reques
 - Hotspot render paths corrected (`web/hotspot/*`).
 - Result: 219 files, 157 Python files, 0 syntax errors, 254 routes intact, missing templates 10 → 6.
 
-### Phase 2 — structure and boot (next)
-- Create the 6 remaining templates: `web/404.html`, `web/500.html`, `web/error.html`,
-  `web/register_success.html`, `web/network/stats.html`, `web/subscriber/hotspot.html`.
-- Fill the 3 referenced-but-empty templates (`billing/invoices/show`, `billing/subscriptions/show`, `network/edit`)
-  or point their routes at existing pages.
-- Consolidate duplicate implementations: email (×2), admin bootstrap (×3), RADIUS reply builder (×2),
-  Redis client probe (×2), the dead `register_middlewares`.
-- Populate the empty `__init__.py` re-exports (`app.core.*`, `app.modules.*`) or delete the packages.
-- Split `app/__init__.py` (381 lines) into `app/factory.py` + `app/celery.py` + `app/error_pages.py`.
-- Replace `datetime.utcnow()` with timezone-aware UTC throughout; declare one timezone source.
+### Phase 2 — structure and boot ✅ mostly done
+- Blueprint registration, template filters and the middleware pipeline moved out of the factory:
+  `app/core/blueprints.py`, `app/core/template_filters.py`, `app/core/middleware/__init__.py`.
+  `app/__init__.py` is 177 lines (was 381).
+- Dead, broken `register_middlewares()` (wrapped the app object, recursed) replaced by
+  `install_middleware_stack()`.
+- Still to do: consolidate the duplicate implementations — two email transports
+  (`integrations/email_service.py` vs `integrations/email/{service,brevo_service}.py`, the former is
+  Celery-safe, the latter needs an app context) and three super-admin bootstrap paths
+  (`tm.py`, `manage.py create_admin`, `AuthService.create_super_admin`).
+
+### Phase 2b — responsive
+- 20 of 23 tables already sit in `overflow-x-auto`; 27 fixed widths remain.
+- Deliberately **not** attempted blind: tap targets, mobile nav and table behaviour need a browser to
+  verify. Deferred to the verification pass rather than guessed at.
 
 ### Phase 3 — templates, de-CDN, responsiveness ✅ done except responsive polish
 - Local SVG sprite (49 symbols) + `icon()` Jinja macro replaced 635 Font Awesome tags across 43 templates.
