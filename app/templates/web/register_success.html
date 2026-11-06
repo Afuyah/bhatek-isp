@@ -1,0 +1,26 @@
+{% extends "web/base.html" %}
+
+{% block title %}Organization created | Bhatek ISP{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="bg-white rounded-lg shadow p-6 text-center">
+    <p class="text-2xl font-semibold text-gray-900">You are all set</p>
+    {% if org_name %}
+    <p class="text-sm text-gray-600"><strong>{{ org_name }}</strong> has been created.</p>
+    {% else %}
+    <p class="text-sm text-gray-600">Your organization has been created.</p>
+    {% endif %}
+
+    {% if org_slug %}
+    <div class="bg-gray-50 p-6 rounded-lg">
+      <p class="text-sm text-gray-600">Your portal address</p>
+      <p class="text-sm font-semibold text-gray-900">/hotspot/{{ org_slug }}</p>
+    </div>
+    {% endif %}
+
+    <p class="text-sm text-gray-600">Sign in with the administrator account you just registered to finish setup.</p>
+    <a href="{{ url_for('web.login') }}" class="text-green-600 font-semibold">Sign in</a>
+  </div>
+</div>
+{% endblock %}

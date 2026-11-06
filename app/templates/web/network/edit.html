@@ -1,0 +1,37 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}Edit network | {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Edit network</h1>
+    <p class="text-sm text-gray-600">{{ network.name }}</p>
+  </div>
+  <a href="{{ url_for('network_web.show', org_id=organization.id, network_id=network.id) }}" class="text-sm font-semibold text-green-600">&larr; Back</a>
+</div>
+
+<form method="post" action="{{ url_for('network_web.edit', org_id=organization.id, network_id=network.id) }}">
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="grid gap-4">
+      <div>
+        <label for="name" class="text-sm font-semibold text-gray-900">Name</label>
+        <input id="name" name="name" type="text" required value="{{ network.name or '' }}" class="w-full border-b text-sm p-6">
+      </div>
+      <div>
+        <label for="description" class="text-sm font-semibold text-gray-900">Description</label>
+        <textarea id="description" name="description" rows="3" class="w-full border-b text-sm p-6">{{ network.description or '' }}</textarea>
+      </div>
+      <div class="flex items-center gap-4">
+        <input id="is_active" name="is_active" type="checkbox" value="1" {% if network.is_active %}checked{% endif %}>
+        <label for="is_active" class="text-sm text-gray-600">Network is active</label>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between mt-8">
+      <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="text-sm text-gray-600">Cancel</a>
+      <button type="submit" class="text-sm font-semibold text-green-600">Save changes</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

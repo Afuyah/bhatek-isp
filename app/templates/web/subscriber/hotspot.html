@@ -1,0 +1,72 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}Hotspot subscribers | {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Hotspot subscribers</h1>
+    <p class="text-sm text-gray-600">{{ pagination.total }} subscriber(s) &middot; {{ organization.name }}</p>
+  </div>
+  <div class="flex gap-4">
+    <a href="{{ url_for('subscriber_web.index', org_id=organization.id) }}" class="text-sm font-semibold text-gray-600">All subscribers</a>
+    <a href="{{ url_for('subscriber_web.create_hotspot', org_id=organization.id) }}" class="text-sm font-semibold text-green-600">Add hotspot user</a>
+  </div>
+</div>
+
+<div class="bg-white rounded-lg shadow overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50">
+      <tr class="text-left text-gray-600">
+        <th class="p-6">Phone</th>
+        <th class="p-6">Name</th>
+        <th class="p-6">Status</th>
+        <th class="p-6">Created</th>
+        <th class="p-6">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for subscriber in subscribers %}
+      <tr class="border-b">
+        <td class="p-6 font-semibold text-gray-900">{{ subscriber.phone }}</td>
+        <td class="p-6 text-gray-600">{{ subscriber.name or '&mdash;' }}</td>
+        <td class="p-6">
+          {% if subscriber.is_active %}
+          <span class="text-green-600">Active</span>
+          {% else %}
+          <span class="text-red-600">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="p-6 text-gray-600">{{ subscriber.created_at | datetimeformat }}</td>
+        <td class="p-6">
+          <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscriber.id) }}" class="text-green-600 font-semibold">View</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" class="p-6 text-center text-gray-600">
+          No hotspot subscribers yet.
+          <a href="{{ url_for('subscriber_web.create_hotspot', org_id=organization.id) }}" class="text-green-600 font-semibold">Add the first one</a>.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if pagination.pages and pagination.pages > 1 %}
+<div class="flex items-center justify-between mt-8">
+  <div>
+    {% if pagination.page > 1 %}
+    <a href="{{ url_for('subscriber_web.hotspot_users', org_id=organization.id, page=pagination.page - 1) }}" class="text-sm font-semibold text-green-600">&larr; Previous</a>
+    {% endif %}
+  </div>
+  <p class="text-sm text-gray-600">Page {{ pagination.page }} of {{ pagination.pages }}</p>
+  <div>
+    {% if pagination.page < pagination.pages %}
+    <a href="{{ url_for('subscriber_web.hotspot_users', org_id=organization.id, page=pagination.page + 1) }}" class="text-sm font-semibold text-green-600">Next &rarr;</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

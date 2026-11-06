@@ -1,0 +1,13 @@
+{% extends "web/base.html" %}
+
+{% block title %}Not available | Bhatek ISP{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="bg-white rounded-lg shadow p-6 text-center">
+    <p class="text-2xl font-semibold text-gray-900">Not available</p>
+    <p class="text-sm text-gray-600">{{ message or 'This hotspot is not available right now.' }}</p>
+    <a href="{{ url_for('web.index') }}" class="text-green-600 font-semibold">Back to home</a>
+  </div>
+</div>
+{% endblock %}

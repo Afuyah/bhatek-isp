@@ -423,7 +423,7 @@ def hotspot_portal(org_slug):
     organization = Organization.query.filter_by(slug=org_slug).first()
     
     if not organization:
-        return render_template('error.html', message="Organization not found"), 404
+        return render_template('web/error.html', message="Organization not found"), 404
     
     # Get available plans
     billing_service = BillingService()

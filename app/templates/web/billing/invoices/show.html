@@ -1,0 +1,41 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}Invoice | {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Invoice</h1>
+    <p class="text-sm text-gray-600">{{ organization.name }}</p>
+  </div>
+  <a href="{{ url_for('billing_web.invoices', org_id=organization.id) }}" class="text-sm font-semibold text-green-600">&larr; Back to invoices</a>
+</div>
+
+{% if invoice %}
+<div class="bg-white rounded-lg shadow p-6">
+  <div class="flex items-center justify-between border-b mb-6">
+    <p class="text-sm font-semibold text-gray-900">{{ invoice.invoice_number }}</p>
+    <span class="text-sm text-gray-600">{{ invoice.status | title }}</span>
+  </div>
+  <div class="grid gap-4">
+    <div>
+      <p class="text-sm text-gray-600">Issued</p>
+      <p class="text-sm font-semibold text-gray-900">{{ invoice.issue_date | datetimeformat }}</p>
+    </div>
+    <div>
+      <p class="text-sm text-gray-600">Due</p>
+      <p class="text-sm font-semibold text-gray-900">{{ invoice.due_date | datetimeformat }}</p>
+    </div>
+    <div>
+      <p class="text-sm text-gray-600">Total</p>
+      <p class="text-2xl font-semibold text-gray-900">{{ invoice.total }}</p>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="bg-white rounded-lg shadow p-6 text-center">
+  <p class="text-sm text-gray-600">This invoice could not be loaded.</p>
+  <p class="text-sm text-gray-600">Reference: {{ invoice_id }}</p>
+</div>
+{% endif %}
+{% endblock %}

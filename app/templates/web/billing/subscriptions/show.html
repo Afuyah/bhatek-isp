@@ -1,0 +1,42 @@
+{% extends "web/organization/base.html" %}
+
+{% block title %}Subscription | {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Subscription</h1>
+    <p class="text-sm text-gray-600">{{ organization.name }}</p>
+  </div>
+  <a href="{{ url_for('billing_web.subscriptions', org_id=organization.id) }}" class="text-sm font-semibold text-green-600">&larr; Back to subscriptions</a>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6">
+  <div class="flex items-center justify-between border-b mb-6">
+    <p class="text-sm font-semibold text-gray-900">{{ subscription.plan.name if subscription.plan else subscription.subscriber.phone if subscription.subscriber else 'Subscription' }}</p>
+    <span class="text-sm {% if subscription.status == 'active' %}text-green-600{% else %}text-red-600{% endif %}">{{ subscription.status | title }}</span>
+  </div>
+
+  <div class="grid gap-4">
+    <div>
+      <p class="text-sm text-gray-600">Started</p>
+      <p class="text-sm font-semibold text-gray-900">{{ subscription.start_date | datetimeformat }}</p>
+    </div>
+    <div>
+      <p class="text-sm text-gray-600">Expires</p>
+      <p class="text-sm font-semibold text-gray-900">{{ subscription.end_date | datetimeformat }}</p>
+    </div>
+    <div>
+      <p class="text-sm text-gray-600">Data used</p>
+      <p class="text-sm font-semibold text-gray-900">{{ subscription.total_data_used_mb or 0 }} MB</p>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between mt-8">
+    <a href="{{ url_for('billing_web.subscriptions', org_id=organization.id) }}" class="text-sm text-gray-600">Back</a>
+    {% if subscription.subscriber %}
+    <a href="{{ url_for('subscriber_web.show', org_id=organization.id, subscriber_id=subscription.subscriber.id) }}" class="text-sm font-semibold text-green-600">View subscriber</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
