@@ -655,6 +655,7 @@
         let activeTab = 'plans';
         let selectedPlanId = null;
         let pollingTimer = null;
+        let paymentStream = null;
 
         // ── TAB SWITCHING ──
         function switchTab(tab) {
@@ -705,7 +706,7 @@
 
         function closePaymentModal() {
             document.getElementById('paymentModal').classList.remove('active');
-            if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
+            stopPaymentStream();
         }
 
         function resetPaymentModal() {
@@ -765,8 +766,58 @@
             }
         }
 
-        // ── POLL PAYMENT STATUS ──
+        function stopPaymentStream() {
+            if (paymentStream) {
+                paymentStream.close();
+                paymentStream = null;
+            }
+            if (pollingTimer) {
+                clearInterval(pollingTimer);
+                pollingTimer = null;
+            }
+        }
+
+        // ── LIVE PAYMENT STATUS (SSE, polling fallback) ──
         function startPolling(transactionId) {
+            stopPaymentStream();
+
+            if (!window.EventSource) {
+                startPollingFallback(transactionId);
+                return;
+            }
+
+            let settled = false;
+            const stream = new EventSource(`/hotspot/${ORG_SLUG}/status/${transactionId}/stream`);
+            paymentStream = stream;
+
+            const finish = (callback) => {
+                if (settled) return;
+                settled = true;
+                stopPaymentStream();
+                callback();
+            };
+
+            stream.addEventListener('update', (event) => {
+                let data = {};
+                try { data = JSON.parse(event.data); } catch (err) { return; }
+                if (data.status === 'success') {
+                    finish(showPaymentSuccess);
+                } else if (data.status === 'failed' || data.status === 'unknown') {
+                    finish(() => showPaymentError('Payment was not completed. Please try again.'));
+                }
+            });
+
+            stream.addEventListener('timeout', () => {
+                finish(() => showPaymentError('Payment timed out. Please try again.'));
+            });
+
+            stream.addEventListener('error', () => {
+                finish(() => showPaymentError('Connection lost. Please try again.'));
+            });
+        }
+
+        // Fallback for browsers without EventSource: the original 3s polling loop.
+        function startPollingFallback(transactionId) {
             let attempts = 0;
             pollingTimer = setInterval(async () => {
                 attempts++;
@@ -775,15 +826,15 @@
                     const data = await res.json();
 
                     if (data.status === 'success') {
-                        clearInterval(pollingTimer);
+                        stopPaymentStream();
                         showPaymentSuccess();
                     } else if (data.status === 'failed' || attempts >= 30) {
-                        clearInterval(pollingTimer);
+                        stopPaymentStream();
                         showPaymentError('Payment was not completed. Please try again.');
                     }
                 } catch (e) {
                     if (attempts >= 30) {
-                        clearInterval(pollingTimer);
+                        stopPaymentStream();
                         showPaymentError('Connection lost. Please try again.');
                     }
                 }

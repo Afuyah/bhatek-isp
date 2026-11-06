@@ -7,6 +7,7 @@ from app.models.router import Router
 from app.modules.billing.service import BillingService
 from app.modules.subscriber.service import SubscriberService
 from app.modules.payment.service import PaymentService
+from app.core.realtime import poll_stream, sse_response
 from app.core.logging.logger import logger
 
 hotspot_bp = Blueprint('hotspot', __name__, url_prefix='/hotspot')
@@ -307,6 +308,39 @@ def check_payment_status(org_slug, transaction_id):
         'status': transaction.status,
         'mpesa_receipt': transaction.mpesa_receipt,
     })
+
+
+# LIVE PAYMENT STREAM (SSE — replaces the 1s polling loop)
+@hotspot_bp.route('/<org_slug>/status/<transaction_id>/stream')
+def stream_payment_status(org_slug, transaction_id):
+    """Push payment status over server-sent events until the transaction settles."""
+    org = _get_org_by_slug(org_slug)
+    if not org:
+        return jsonify({'success': False, 'error': 'Organization not found'}), 404
+
+    try:
+        txn_uuid = UUID(transaction_id)
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Invalid transaction'}), 400
+
+    payment_service = PaymentService()
+
+    def fetch():
+        transaction = payment_service.get_transaction(txn_uuid)
+        # Never leak another tenant's transaction through the public portal.
+        if not transaction or str(transaction.organization_id) != str(org.id):
+            return {'status': 'unknown'}
+        return {
+            'status': transaction.status,
+            'mpesa_receipt': transaction.mpesa_receipt,
+        }
+
+    return sse_response(poll_stream(
+        fetch,
+        interval=2,
+        timeout=120,
+        done=lambda data: data.get('status') in ('success', 'completed', 'failed', 'unknown'),
+    ))
 
 # VOUCHER INFO (PRE-REDEMPTION CHECK)
 @hotspot_bp.route('/<org_slug>/voucher-info/<voucher_code>')

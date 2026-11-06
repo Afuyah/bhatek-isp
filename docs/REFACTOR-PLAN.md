@@ -61,21 +61,24 @@ implementations, no external CDN dependencies, consistent structure, fast reques
   shell duplication; responsive polish.
 
 
-### Phase 4 — performance
-- Add indexes for the 38 unindexed FK columns (schema + migration).
-- Pagination everywhere lists are unbounded (`.paginate`, max page size).
-- Kill N+1: `selectinload`/`joinedload` on every list endpoint; audit 281 query sites.
-- Response layer: Flask-Compress (gzip/brotli), `SEND_FILE_MAX_AGE_DEFAULT` + hashed static URLs,
-  `Cache-Control` for static, ETag for JSON GETs.
-- Cache the hot paths: public plans, router stats, dashboard KPIs (Redis with short TTL + invalidation).
-- Move 137 inline `db.session.commit()` calls behind a unit-of-work per request.
-- Gunicorn: workers/threads tuned, `--preload`, keep-alive; DB pool sized to worker count.
+### Phase 4 — performance ✅ started (commit 4242af0)
+- `app/core/performance.py`: WSGI gzip (unit-verified, 8/8 cases) + static `Cache-Control: immutable`,
+  `no-store` for API, `no-cache` for HTML, `X-Content-Type-Options`.
+- `index=True` on all 43 foreign-key columns (was 5).
+- Migration `a1f2c3d4e5f6`: 43 FK indexes + 8 composite indexes, inspector-guarded and re-runnable.
+- Still to do: eager loading (`lazy='dynamic'` blocks it — needs relationship changes), Redis caching
+  of hot reads, request-scoped unit of work instead of 137 inline commits, gunicorn tuning.
 
-### Phase 5 — real-time
-- SSE endpoint (`/api/v1/stream`) for router health, session counts, payment status — replaces the
-  1 s and 60 s polling loops; Redis pub/sub fan-out so multiple workers stay consistent.
-- Or Flask-SocketIO (already a dependency) if bidirectional is needed; decide per surface.
-- Client: one small `realtime.js` with auto-reconnect + backoff, shared by dashboards/portal.
+### Phase 5 — real-time ✅ started (SSE for payments)
+- `app/core/realtime.py`: `sse_response()` + `poll_stream()` (change-only frames, heartbeat, timeout,
+  error frames). Unit-verified.
+- `GET /hotspot/<slug>/status/<txn>/stream` pushes M-Pesa status; tenant-checked so one org can't
+  observe another's transaction.
+- Captive portal now uses `EventSource` with the original 3 s polling kept as a fallback for browsers
+  without it; one connection instead of a request every 3 s.
+- Still to do: dashboard/router-health streams (replace the 60 s poll), and document that SSE needs
+  an async worker (gevent) in production.
+
 
 ### Phase 6 — verification
 - Boot the app in a venv, run migrations on empty Postgres, exercise auth + RADIUS + billing happy paths.
