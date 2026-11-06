@@ -97,7 +97,26 @@ implementations, no external CDN dependencies, consistent structure, fast reques
   an async worker (gevent) in production.
 
 
-### Phase 6 — verification
+### Phase 6 — verification ◐ first real run done
+The app now actually boots. Dependencies were installed into a local rig (`deps/`, gitignored) by
+fetching wheels from PyPI with urllib — `pip` itself is blocked in this sandbox.
+
+Measured, not inferred:
+- `create_app()` succeeds; **257 routes** registered, **253 view functions**, **55 distinct endpoints**
+  referenced by templates — **0 unresolved**.
+- Public pages render: `/` 200, `/login` 200, `/register` 200, `/verify-email` 200,
+  `/register-success` 200, `/health` 200.
+- gzip confirmed end-to-end (`Content-Encoding: gzip` on HTML, CSS and JS).
+- Static assets serve (app.css, output.css, app.js, chart.js).
+- **Bug found and fixed:** browsers got raw JSON on 404/500 because the global JSON handler
+  shadowed the HTML error pages. Now content-negotiated: HTML pages get `web/404.html` /
+  `web/500.html`, API paths still get JSON. Verified: 404 → `text/html`, 20 KB, renders the shell.
+
+Blocked: any DB-backed page. Docker's daemon is not running, so there is no Postgres to create the
+schema against, and `db.create_all()` cannot run on SQLite (models use `INET`, `MACADDR`, pg `UUID`).
+A `docker compose up` on a machine with the daemon running is the next verification step.
+
+### Phase 6b — verification (original plan)
 - Boot the app in a venv, run migrations on empty Postgres, exercise auth + RADIUS + billing happy paths.
 - Test suite: auth, tenant isolation (cross-tenant test per module), RADIUS accept/reject, accounting
   idempotency, billing math.

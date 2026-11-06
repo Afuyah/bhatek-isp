@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, render_template, request
 from werkzeug.exceptions import HTTPException
 from app.core.logging.logger import logger
 
@@ -83,16 +83,39 @@ def register_error_handlers(app):
             'message': e.message
         }), e.status_code
     
+    def _wants_html() -> bool:
+        """True when a browser is asking for a page rather than an API response."""
+        if request.path.startswith('/api/'):
+            return False
+        accept = request.headers.get('Accept', '')
+        return 'text/html' in accept
+
+    def _html_error(status_code: int):
+        """Render the matching error page, falling back to JSON if that fails."""
+        template = 'web/500.html' if status_code >= 500 else 'web/404.html'
+        try:
+            return render_template(template), status_code
+        except Exception:  # a broken template must not mask the original error
+            return jsonify({
+                'error': 'ERROR',
+                'message': 'An error occurred',
+            }), status_code
+
     @app.errorhandler(HTTPException)
     def handle_http_exception(e):
+        code = e.code or 500
+        if _wants_html():
+            return _html_error(code)
         return jsonify({
             'error': e.name,
             'message': e.description
-        }), e.code
-    
+        }), code
+
     @app.errorhandler(Exception)
     def handle_generic_error(e):
         logger.error(f"Unhandled error: {str(e)}", exc_info=True)
+        if _wants_html():
+            return _html_error(500)
         return jsonify({
             'error': 'INTERNAL_ERROR',
             'message': 'An internal error occurred'

@@ -60,3 +60,11 @@ celerybeat.pid
 
 # Migration
 alembic/versions/*.pyc
+
+# Local verification rig (not part of the project)
+deps/
+wheels/
+.tmp/
+.venv/
+instance/
+smoke.db

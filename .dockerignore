@@ -23,3 +23,7 @@ Dockerfile
 docker-compose.yml
 fly.toml
 Makefile
+
+instance/
+smoke.db
+
