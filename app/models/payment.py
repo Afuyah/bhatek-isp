@@ -109,12 +109,19 @@ class Transaction(BaseModel, OrganizationMixin):
         """Check if transaction is pending"""
         return self.status == 'pending'
     
-    def mark_success(self, mpesa_receipt: str = None, completed_at: datetime = None):
-        """Mark transaction as successful"""
+    def mark_success(self, mpesa_receipt: str = None, completed_at: datetime = None) -> bool:
+        """Mark transaction as successful.
+
+        Idempotent: a repeated Safaricom callback must not re-stamp the row or
+        trigger a second activation. Returns True when state actually changed.
+        """
+        if self.status == 'success':
+            return False
         self.status = 'success'
         if mpesa_receipt:
             self.mpesa_receipt = mpesa_receipt
         self.completed_at = completed_at or utcnow()
+        return True
     
     def mark_failed(self, reason: str = None):
         """Mark transaction as failed"""

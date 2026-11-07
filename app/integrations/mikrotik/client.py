@@ -338,7 +338,12 @@ class MikroTikClient:
                         'cpu_load': r.get('cpu-load'), 'uptime': r.get('uptime'),
                         'free_memory': r.get('free-memory'), 'total_memory': r.get('total-memory')}
             return {'status': 'unhealthy', 'error': 'No response'}
-        except Exception as e: return {'status': 'unhealthy', 'error': str(e)}
+        except (ConnectionError, TimeoutError, OSError):
+            # Transport-level failure: the router is unreachable, which is
+            # 'offline', not 'error'. Let the caller classify it.
+            raise
+        except Exception as e:
+            return {'status': 'unhealthy', 'error': str(e)}
 
     def get_interface_stats(self, rd):
         try: return self.execute(rd, '/interface/print')

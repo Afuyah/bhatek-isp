@@ -41,6 +41,21 @@ def _drop(name, table):
         op.drop_index(name, table_name=table)
 
 
+def _unique_receipt_index():
+    """One transactions row per M-Pesa receipt.
+
+    The service also checks for duplicates, but that is a read-then-write race
+    two concurrent callbacks can both win. Postgres-only: partial indexes are
+    not portable, and migrations only run against Postgres.
+    """
+    if op.get_bind().dialect.name != "postgresql":
+        return
+    op.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS ux_transactions_mpesa_receipt "
+        "ON transactions (mpesa_receipt) WHERE mpesa_receipt IS NOT NULL"
+    )
+
+
 def upgrade():
     _create("ix_access_points_hotspot_server_id", 'access_points', ['hotspot_server_id'])
     _create("ix_access_points_router_id", 'access_points', ['router_id'])
@@ -93,9 +108,12 @@ def upgrade():
     _create("ix_invoices_organization_id_status", 'invoices', ['organization_id', 'status'])
     _create("ix_transactions_organization_id_status", 'transactions', ['organization_id', 'status'])
     _create("ix_routers_organization_id_status", 'routers', ['organization_id', 'status'])
+    _unique_receipt_index()
 
 
 def downgrade():
+    if op.get_bind().dialect.name == "postgresql":
+        op.execute("DROP INDEX IF EXISTS ux_transactions_mpesa_receipt")
     _drop("ix_access_points_hotspot_server_id", 'access_points')
     _drop("ix_access_points_router_id", 'access_points')
     _drop("ix_active_sessions_access_point_id", 'active_sessions')

@@ -11,11 +11,13 @@ class RateLimiter:
         self.default_limit = 100
         self.default_window = 3600  # 1 hour
         self.rate_limits = {
-            'POST:/api/auth/login': {'limit': 7, 'window': 300},  # 5 per 5 minutes
-            'POST:/api/auth/register': {'limit': 10, 'window': 3600},  # 10 per hour
-            'POST:/api/auth/forgot-password': {'limit': 5, 'window': 1800},  # 5 per 30 min
-            'GET:/api/search': {'limit': 50, 'window': 60},  # 50 per minute
-            'POST:/api/webhook': {'limit': 1000, 'window': 60},  # 1000 per minute
+            # Paths must match the registered routes (/api/v1/...). The original
+            # keys were /api/... and therefore never applied.
+            'POST:/api/v1/auth/login': {'limit': 7, 'window': 300},  # 7 per 5 min
+            'POST:/api/v1/auth/register': {'limit': 10, 'window': 3600},  # 10 per hour
+            'POST:/api/v1/auth/forgot-password': {'limit': 5, 'window': 1800},
+            'GET:/api/v1/subscribers': {'limit': 120, 'window': 60},  # list endpoint
+            'POST:/api/v1/payments/mpesa/callback': {'limit': 1000, 'window': 60},
         }
         
         if app:
