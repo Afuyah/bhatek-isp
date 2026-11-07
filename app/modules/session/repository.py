@@ -2,11 +2,12 @@ from typing import Optional, Dict, Any, List
 from uuid import UUID
 from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from app.models.session import ActiveSession, RadiusAccounting
 from app.core.database.session import db
 from app.core.logging.logger import logger
+from app.core.time import utcnow
 
 class SessionRepository:
     """Data access layer for Session operations"""
@@ -223,7 +224,7 @@ class SessionRepository:
             
             session.status = 'terminated'
             session.termination_cause = cause
-            session.session_end = datetime.utcnow()
+            session.session_end = utcnow()
             db.session.commit()
             logger.info(f"Terminated session: {session_id} due to {cause}")
             return True
@@ -241,7 +242,7 @@ class SessionRepository:
                 session.bytes_in = bytes_in
                 session.bytes_out = bytes_out
                 session.session_time = session_time
-                session.last_update = datetime.utcnow()
+                session.last_update = utcnow()
                 db.session.commit()
                 return True
             return False
@@ -257,12 +258,12 @@ class SessionRepository:
                 and_(
                     self.model.organization_id == organization_id,
                     self.model.status == 'active',
-                    self.model.expiry_time <= datetime.utcnow()
+                    self.model.expiry_time <= utcnow()
                 )
             ).update({
                 'status': 'expired', 
                 'termination_cause': 'session_expired',
-                'session_end': datetime.utcnow()
+                'session_end': utcnow()
             })
             db.session.commit()
             if expired:
@@ -378,7 +379,7 @@ class RadiusAccountingRepository:
     def cleanup_old_records(self, days_to_keep: int = 90) -> int:
         """Delete accounting records older than specified days"""
         try:
-            cutoff_date = datetime.utcnow() - timedelta(days=days_to_keep)
+            cutoff_date = utcnow() - timedelta(days=days_to_keep)
             deleted = self.model.query.filter(
                 self.model.acct_start_time < cutoff_date
             ).delete()

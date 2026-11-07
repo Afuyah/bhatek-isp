@@ -1,10 +1,14 @@
 import logging
 import json
 import sys
-from datetime import datetime
-from pythonjsonlogger import jsonlogger
+
+try:  # python-json-logger >= 3 moved the formatter module
+    from pythonjsonlogger import json as jsonlogger
+except ImportError:  # pragma: no cover - older releases
+    from pythonjsonlogger import jsonlogger
 from flask import has_request_context, request, g
 import traceback
+from app.core.time import utcnow
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
   
@@ -12,7 +16,7 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         super().add_fields(log_record, record, message_dict)
         
         # Add timestamp
-        log_record['timestamp'] = datetime.utcnow().isoformat()
+        log_record['timestamp'] = utcnow().isoformat()
         
         # Add request context if available
         if has_request_context():

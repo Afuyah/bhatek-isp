@@ -1,9 +1,9 @@
 from typing import Dict, Any
 import json
-from datetime import datetime
 
 from app.core.logging.logger import logger
 from app.core.database.redis_client import redis_client
+from app.core.time import utcnow
 
 
 class MpesaCallbackHandler:
@@ -316,7 +316,7 @@ class MpesaCallbackHandler:
             redis_client.setex(
                 redis_key,
                 self.callback_cache_ttl,
-                json.dumps({'processed_at': datetime.utcnow().isoformat()}),
+                json.dumps({'processed_at': utcnow().isoformat()}),
             )
         except Exception as e:
             logger.warning(f"Failed to store callback for idempotency: {e}")

@@ -17,7 +17,7 @@ Covers:
 from __future__ import annotations
 
 import calendar
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -26,6 +26,7 @@ from sqlalchemy.orm import joinedload
 
 from app.core.database.session import db
 from app.core.logging.logger import logger
+from app.core.time import utcnow
 
 
 class ReportingService:
@@ -44,7 +45,7 @@ class ReportingService:
                     month: int = None, year: int = None,
                     week: int = None) -> Tuple[datetime, datetime]:
         """Resolve (start, end) for a named period or explicit range."""
-        now = datetime.utcnow()
+        now = utcnow()
         if start_date and end_date:
             return start_date, end_date
         if period == 'daily':
@@ -82,7 +83,7 @@ class ReportingService:
             from app.models.session import ActiveSession
             from app.models.payment import Transaction
 
-            now = datetime.utcnow()
+            now = utcnow()
             month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
             # Active subscribers
@@ -273,7 +274,7 @@ class ReportingService:
             from app.models.billing import Subscription
 
             s, e = self._date_range(period, start_date, end_date)
-            now = datetime.utcnow()
+            now = utcnow()
 
             total = Subscriber.query.filter_by(organization_id=organization_id).count()
             active = Subscriber.query.filter_by(
@@ -405,7 +406,7 @@ class ReportingService:
                 'total_routers': len(routers),
                 'status_breakdown': status_counts,
                 'routers': router_data,
-                'generated_at': datetime.utcnow().isoformat(),
+                'generated_at': utcnow().isoformat(),
             }
         except Exception as e:
             logger.error(f"Router report error: {e}", exc_info=True)
@@ -420,7 +421,7 @@ class ReportingService:
         try:
             from app.models.billing import Subscription, Plan
 
-            now = datetime.utcnow()
+            now = utcnow()
             rows = db.session.query(
                 Subscription.plan_id,
                 func.count(Subscription.id).label('count'),
@@ -553,7 +554,7 @@ class ReportingService:
         try:
             from app.models.billing import Subscription
 
-            now = datetime.utcnow()
+            now = utcnow()
             result = []
 
             for i in range(months - 1, -1, -1):
@@ -610,7 +611,7 @@ class ReportingService:
             from app.models.payment import Transaction
             from app.models.session import ActiveSession
 
-            now = datetime.utcnow()
+            now = utcnow()
             month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
             total_orgs = Organization.query.filter_by(is_active=True).count()
@@ -683,7 +684,7 @@ class ReportingService:
             from app.models.payment import Transaction
             from app.models.billing import Subscription
 
-            now = datetime.utcnow()
+            now = utcnow()
 
             # Recent new subscribers
             new_subs = Subscriber.query.filter_by(
@@ -752,7 +753,7 @@ class ReportingService:
             from app.models.session import ActiveSession
             from sqlalchemy import cast, Date
 
-            start = datetime.utcnow() - timedelta(days=days)
+            start = utcnow() - timedelta(days=days)
 
             rows = db.session.query(
                 cast(ActiveSession.start_time, Date).label('day'),

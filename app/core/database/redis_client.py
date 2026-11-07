@@ -64,7 +64,7 @@ class RedisClient:
         """Set string value with optional expiration"""
         try:
             if ex:
-                return redis_client.setex(key, ex, value)
+                return redis_client.set(key, value, ex=ex)
             return redis_client.set(key, value)
         except Exception as e:
             print(f"Redis set error: {e}")
@@ -76,7 +76,7 @@ class RedisClient:
         try:
             json_str = json.dumps(value)
             if ex:
-                return redis_client.setex(key, ex, json_str)
+                return redis_client.set(key, json_str, ex=ex)
             return redis_client.set(key, json_str)
         except Exception as e:
             print(f"Redis set_json error: {e}")

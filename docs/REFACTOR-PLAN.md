@@ -42,6 +42,10 @@ implementations, no external CDN dependencies, consistent structure, fast reques
   `app/__init__.py` is 177 lines (was 381).
 - Dead, broken `register_middlewares()` (wrapped the app object, recursed) replaced by
   `install_middleware_stack()`.
+- Time: `app/core/time.py` is now the single source of truth. 169 deprecated `datetime.utcnow()`
+  calls across 32 files replaced with `utcnow()` (same naive-UTC semantics, no behaviour change),
+  plus `in_timezone()` for display conversion to `Africa/Nairobi`. Deprecation warnings in the
+  suite: 157 -> 0.
 - Still to do: consolidate the duplicate implementations — two email transports
   (`integrations/email_service.py` vs `integrations/email/{service,brevo_service}.py`, the former is
   Celery-safe, the latter needs an app context) and three super-admin bootstrap paths

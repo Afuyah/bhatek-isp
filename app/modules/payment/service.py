@@ -1,6 +1,6 @@
 from typing import Dict, Any, Optional
 from uuid import UUID
-from datetime import datetime
+
 import uuid
 
 from app.modules.payment.repository import TransactionRepository, PaymentAccountRepository
@@ -10,6 +10,7 @@ from app.integrations.mpesa.callbacks import MpesaCallbackHandler
 from app.core.logging.logger import logger
 from app.core.exceptions.handlers import BusinessError, NotFoundError, ValidationError
 from app.core.database.session import db
+from app.core.time import utcnow
 
 
 class PaymentService:
@@ -111,7 +112,7 @@ class PaymentService:
                 'plan_id': str(plan_id) if plan_id else None,
                 'device_mac': device_mac,
             },
-            'created_at': datetime.utcnow(),
+            'created_at': utcnow(),
         }
 
         transaction = self.transaction_repo.create(transaction_data)
@@ -292,7 +293,7 @@ class PaymentService:
         # Mark transaction as successful immediately
         self.transaction_repo.update(transaction.id, {
             'status': 'success',
-            'completed_at': datetime.utcnow(),
+            'completed_at': utcnow(),
             'payment_details': {
                 **transaction.payment_details,
                 'voucher_code': voucher_code,
@@ -388,7 +389,7 @@ class PaymentService:
         self.transaction_repo.update(transaction_id, {
             'status': 'success',
             'mpesa_receipt': mpesa_receipt,
-            'completed_at': datetime.utcnow(),
+            'completed_at': utcnow(),
             'callback_payload': callback_data,
             'payment_details': {
                 **(transaction.payment_details or {}),
@@ -637,7 +638,7 @@ class PaymentService:
                 payload=callback_data,
                 headers={},  # Would capture from request in production
                 processed=True,
-                processed_at=datetime.utcnow(),
+                processed_at=utcnow(),
             )
             db.session.add(webhook_log)
             db.session.commit()
@@ -697,7 +698,7 @@ class PaymentService:
             self.transaction_repo.update(transaction_id, {
                 'status': 'success',
                 'mpesa_receipt': result.get('mpesa_receipt'),
-                'completed_at': datetime.utcnow(),
+                'completed_at': utcnow(),
             })
             # Activate subscription
             self._activate_subscription(transaction)

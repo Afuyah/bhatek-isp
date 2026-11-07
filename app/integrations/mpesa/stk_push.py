@@ -1,11 +1,12 @@
 from typing import Dict, Any, Optional
-from datetime import datetime
+
 import json
 import uuid
 
 from app.core.logging.logger import logger
 from app.core.database.redis_client import redis_client
 from app.integrations.mpesa.client import MpesaClient
+from app.core.time import utcnow
 
 
 class STKPushService:
@@ -69,7 +70,7 @@ class STKPushService:
             'device_mac': device_mac,
             'subscriber_id': subscriber_id,
             'status': 'pending',
-            'created_at': datetime.utcnow().isoformat(),
+            'created_at': utcnow().isoformat(),
             'attempts': 0,
             'checkout_request_id': None,
             'mpesa_receipt': None,
@@ -248,7 +249,7 @@ class STKPushService:
 
         # Update state
         transaction_state['status'] = status
-        transaction_state['updated_at'] = datetime.utcnow().isoformat()
+        transaction_state['updated_at'] = utcnow().isoformat()
 
         if mpesa_receipt:
             transaction_state['mpesa_receipt'] = mpesa_receipt
@@ -258,7 +259,7 @@ class STKPushService:
             transaction_state['result_description'] = result_description
 
         if status == 'success':
-            transaction_state['completed_at'] = datetime.utcnow().isoformat()
+            transaction_state['completed_at'] = utcnow().isoformat()
 
         # Persist updated state
         redis_client.setex(

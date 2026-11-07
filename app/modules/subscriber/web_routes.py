@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request, abort
 from functools import wraps
 from uuid import UUID
-from datetime import datetime
 
 from app.core.logging.logger import logger
 from app.modules.subscriber.service import SubscriberService
@@ -10,6 +9,7 @@ from app.modules.organization.service import OrganizationService
 from app.modules.auth.repository import UserRepository
 from app.modules.network.service import NetworkService
 from app.core.exceptions.handlers import NotFoundError, BusinessError
+from app.core.time import utcnow
 
 # Create web blueprint with organization ID in URL pattern
 subscriber_web_bp = Blueprint('subscriber_web', __name__, url_prefix='/organization/<org_id>/subscribers')
@@ -309,7 +309,7 @@ def show(org_id, subscriber_id, current_user=None, current_organization=None, ho
         stats = subscriber_service.get_subscriber_stats(subscriber_uuid, current_organization.id)
         
         # Add current time for expiry comparison
-        now = datetime.utcnow()
+        now = utcnow()
         
         return render_template(
             'web/subscriber/show.html',
@@ -487,7 +487,7 @@ def renew_subscription_form(org_id, subscriber_id, current_user=None, current_or
         all_plans = billing_service.get_plans(current_organization.id, only_active=True)
         
         # Current time for expiry comparison
-        now = datetime.utcnow()
+        now = utcnow()
         
         return render_template(
             'web/subscriber/renew_subscription.html',

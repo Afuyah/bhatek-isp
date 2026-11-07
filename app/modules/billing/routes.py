@@ -58,6 +58,7 @@ from app.modules.billing.controller import BillingController
 from app.modules.billing.billing_service import BillingPeriodService
 from app.core.security.jwt import token_required, permission_required
 from app.core.logging.logger import logger
+from app.core.time import utcnow
 
 billing_bp = Blueprint('billing', __name__, url_prefix='/api/v1/billing')
 controller = BillingController()
@@ -312,7 +313,7 @@ def get_daily_invoices():
         return jsonify({
             'success': True,
             'period': 'daily',
-            'date': date_str or datetime.utcnow().strftime('%Y-%m-%d'),
+            'date': date_str or utcnow().strftime('%Y-%m-%d'),
             'invoices': [inv.to_dict() for inv in invoices],
             'count': len(invoices),
             'revenue': revenue,
@@ -444,7 +445,7 @@ def get_daily_stats():
         return jsonify({
             'success': True,
             'period': 'daily',
-            'date': date_str or datetime.utcnow().strftime('%Y-%m-%d'),
+            'date': date_str or utcnow().strftime('%Y-%m-%d'),
             'revenue': revenue,
             'subscriptions': subscriptions,
             'vouchers': vouchers,

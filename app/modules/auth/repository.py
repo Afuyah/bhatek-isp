@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any, List
 from uuid import UUID
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlalchemy import select, update, and_, or_, desc
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,6 +9,7 @@ from app.models.auth import User, RefreshToken, AuditLog
 from app.core.database.session import db
 from app.core.database.identifiers import as_uuid
 from app.core.logging.logger import logger
+from app.core.time import utcnow
 
 
 # USER REPOSITORY 
@@ -143,12 +144,12 @@ class UserRepository:
             if success:
                 user.login_attempts = 0
                 user.locked_until = None
-                user.last_login_at = datetime.utcnow()
+                user.last_login_at = utcnow()
             else:
                 user.login_attempts += 1
 
                 if user.login_attempts >= 5:
-                    user.locked_until = datetime.utcnow() + timedelta(minutes=30)
+                    user.locked_until = utcnow() + timedelta(minutes=30)
 
             db.session.commit()
 
@@ -190,7 +191,7 @@ class RefreshTokenRepository:
                 and_(
                     self.model.token == token,
                     self.model.revoked == False,
-                    self.model.expires_at > datetime.utcnow()
+                    self.model.expires_at > utcnow()
                 )
             )
             return db.session.execute(stmt).scalar_one_or_none()
@@ -209,7 +210,7 @@ class RefreshTokenRepository:
                     self.model.user_id == user_id,
                     self.model.session_id == session_id,
                     self.model.revoked == False,
-                    self.model.expires_at > datetime.utcnow()
+                    self.model.expires_at > utcnow()
                 )
             ).order_by(desc(self.model.created_at)).limit(1)
             
@@ -232,7 +233,7 @@ class RefreshTokenRepository:
                 )
                 .values(
                     revoked=True,
-                    revoked_at=datetime.utcnow()
+                    revoked_at=utcnow()
                 )
             )
 
@@ -259,7 +260,7 @@ class RefreshTokenRepository:
                 )
                 .values(
                     revoked=True,
-                    revoked_at=datetime.utcnow()
+                    revoked_at=utcnow()
                 )
             )
 
@@ -285,7 +286,7 @@ class RefreshTokenRepository:
                 )
                 .values(
                     revoked=True,
-                    revoked_at=datetime.utcnow()
+                    revoked_at=utcnow()
                 )
             )
             result = db.session.execute(stmt)
@@ -314,7 +315,7 @@ class RefreshTokenRepository:
                 )
                 .values(
                     revoked=True,
-                    revoked_at=datetime.utcnow()
+                    revoked_at=utcnow()
                 )
             )
             result = db.session.execute(stmt)
@@ -339,7 +340,7 @@ class RefreshTokenRepository:
                 and_(
                     self.model.user_id == user_id,
                     self.model.revoked == False,
-                    self.model.expires_at > datetime.utcnow()
+                    self.model.expires_at > utcnow()
                 )
             ).order_by(desc(self.model.created_at))
             
@@ -371,8 +372,8 @@ class RefreshTokenRepository:
         try:
             stmt = (
                 update(self.model)
-                .where(self.model.expires_at <= datetime.utcnow())
-                .values(revoked=True, revoked_at=datetime.utcnow())
+                .where(self.model.expires_at <= utcnow())
+                .values(revoked=True, revoked_at=utcnow())
             )
             result = db.session.execute(stmt)
             db.session.commit()

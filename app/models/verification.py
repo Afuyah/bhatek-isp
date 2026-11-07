@@ -1,9 +1,10 @@
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.dialects.postgresql import UUID
-from datetime import datetime, timedelta
+from datetime import timedelta
 import secrets
 
 from app.core.database.base import BaseModel
+from app.core.time import utcnow
 
 class EmailVerification(BaseModel):
     __tablename__ = 'email_verifications'
@@ -17,10 +18,10 @@ class EmailVerification(BaseModel):
         super().__init__(**kwargs)
         self.email = email
         self.token = secrets.token_urlsafe(32)
-        self.expires_at = datetime.utcnow() + timedelta(hours=24)
+        self.expires_at = utcnow() + timedelta(hours=24)
     
     def is_valid(self):
-        return not self.is_used and self.expires_at > datetime.utcnow()
+        return not self.is_used and self.expires_at > utcnow()
     
     def mark_used(self):
         self.is_used = True

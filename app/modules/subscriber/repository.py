@@ -7,14 +7,15 @@ All queries enforce organization_id for multi-tenant isolation.
 
 from typing import Optional, Dict, Any, List
 from uuid import UUID
-from sqlalchemy import and_, or_, desc, func, distinct
+from sqlalchemy import select, and_, or_, desc, func, distinct
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from app.models.subscriber import Subscriber, Device
 from app.models.billing import Subscription, Plan
 from app.core.database.session import db
 from app.core.logging.logger import logger
+from app.core.time import utcnow
 
 
 class SubscriberRepository:
@@ -149,7 +150,7 @@ class SubscriberRepository:
                             and_(
                                 Subscription.organization_id == organization_id,
                                 Subscription.status == 'active',
-                                Subscription.expiry_time > datetime.utcnow(),
+                                Subscription.expiry_time > utcnow(),
                             )
                         )
                         .subquery()
@@ -163,7 +164,7 @@ class SubscriberRepository:
                             and_(
                                 Subscription.organization_id == organization_id,
                                 Subscription.status == 'active',
-                                Subscription.expiry_time > datetime.utcnow(),
+                                Subscription.expiry_time > utcnow(),
                             )
                         )
                         .subquery()
@@ -364,7 +365,7 @@ class SubscriberRepository:
             if not subscriber:
                 return False
 
-            subscriber.last_active_at = datetime.utcnow()
+            subscriber.last_active_at = utcnow()
             db.session.commit()
             return True
         except SQLAlchemyError as e:
@@ -548,7 +549,7 @@ class SubscriberRepository:
                 # Reassign existing device
                 existing.subscriber_id = subscriber_id
                 existing.is_active = True
-                existing.last_seen_at = datetime.utcnow()
+                existing.last_seen_at = utcnow()
                 if data.get('device_name'):
                     existing.device_name = data['device_name']
                 if data.get('device_type'):
@@ -589,7 +590,7 @@ class SubscriberRepository:
             if not device:
                 return False
 
-            device.last_seen_at = datetime.utcnow()
+            device.last_seen_at = utcnow()
             db.session.commit()
             return True
         except SQLAlchemyError as e:
@@ -679,7 +680,7 @@ class SubscriberRepository:
                         self.subscription_model.subscriber_id == subscriber_id,
                         self.subscription_model.organization_id == organization_id,
                         self.subscription_model.status == 'active',
-                        self.subscription_model.expiry_time > datetime.utcnow(),
+                        self.subscription_model.expiry_time > utcnow(),
                     )
                 ).first()
             )
@@ -755,7 +756,7 @@ class SubscriberRepository:
                     and_(
                         self.subscription_model.organization_id == organization_id,
                         self.subscription_model.status == 'active',
-                        self.subscription_model.expiry_time > datetime.utcnow(),
+                        self.subscription_model.expiry_time > utcnow(),
                     )
                 )
                 .scalar()
@@ -816,19 +817,18 @@ class SubscriberRepository:
     ) -> List[Subscriber]:
         """Get subscribers whose subscriptions expire within N days."""
         try:
-            expiry_threshold = datetime.utcnow() + timedelta(days=days)
+            expiry_threshold = utcnow() + timedelta(days=days)
 
             sub_ids = (
-                db.session.query(self.subscription_model.subscriber_id)
-                .filter(
+                select(self.subscription_model.subscriber_id)
+                .where(
                     and_(
                         self.subscription_model.organization_id == organization_id,
                         self.subscription_model.status == 'active',
                         self.subscription_model.expiry_time <= expiry_threshold,
-                        self.subscription_model.expiry_time > datetime.utcnow(),
+                        self.subscription_model.expiry_time > utcnow(),
                     )
                 )
-                .subquery()
             )
 
             return (
@@ -972,7 +972,7 @@ class PlanRepository:
                         Subscription.plan_id == plan_id,
                         Subscription.organization_id == organization_id,
                         Subscription.status == 'active',
-                        Subscription.expiry_time > datetime.utcnow(),
+                        Subscription.expiry_time > utcnow(),
                     )
                 )
                 .first()

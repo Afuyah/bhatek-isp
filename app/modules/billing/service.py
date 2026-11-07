@@ -1,6 +1,6 @@
 from typing import Dict, Any, Optional, List, Tuple
 from uuid import UUID
-from datetime import datetime, timedelta
+from datetime import timedelta
 import random
 import string
 import hashlib
@@ -22,6 +22,7 @@ from app.core.exceptions.handlers import (
     NotFoundError, BusinessError, ValidationError,
 )
 from app.core.database.session import db
+from app.core.time import utcnow
 
 
 class BillingService:
@@ -222,7 +223,7 @@ class BillingService:
             )
             active_count = sum(
                 1 for s in active_subs
-                if s.status == 'active' and s.expiry_time > datetime.utcnow()
+                if s.status == 'active' and s.expiry_time > utcnow()
             )
             if active_count > 0:
                 raise BusinessError(
@@ -318,7 +319,7 @@ class BillingService:
             'subscriber_id': subscriber_id,
             'plan_id': plan_id,
             'status': 'active',
-            'start_time': datetime.utcnow(),
+            'start_time': utcnow(),
             'expiry_time': expiry_time,
             'auto_renew': auto_renew,
             'device_limit': device_limit or plan.device_limit,
@@ -441,7 +442,7 @@ class BillingService:
             )
 
         # Calculate new expiry
-        current_time = datetime.utcnow()
+        current_time = utcnow()
         base_time = max(subscription.expiry_time, current_time)
         new_expiry = base_time + plan.validity_timedelta
 
@@ -593,7 +594,7 @@ class BillingService:
         if custom_expires_at:
             return custom_expires_at
 
-        now = datetime.utcnow()
+        now = utcnow()
 
         if validity_value and validity_unit:
             unit = validity_unit.lower()
@@ -626,7 +627,7 @@ class BillingService:
         For 'first_use' activation, the clock starts at redemption time.
         """
         plan = voucher.plan
-        now = datetime.utcnow()
+        now = utcnow()
 
         # If voucher has custom validity, use it
         if voucher.validity_value and voucher.validity_unit:
@@ -760,7 +761,7 @@ class BillingService:
         else:
             expiry_delta = plan.validity_timedelta
 
-        voucher_expires_at = datetime.utcnow() + expiry_delta
+        voucher_expires_at = utcnow() + expiry_delta
 
         # Create batch record
         batch_data = {
@@ -775,7 +776,7 @@ class BillingService:
             'expires_in_days': expires_in_days or expiry_delta.days,
             'created_by': created_by,
             'status': 'generated',
-            'generated_at': datetime.utcnow(),
+            'generated_at': utcnow(),
         }
 
         batch = self.voucher_batch_repo.create(batch_data)
@@ -885,7 +886,7 @@ class BillingService:
                     raise BusinessError("This voucher has already been used")
                 elif existing.status == 'expired':
                     raise BusinessError("This voucher has expired")
-                elif existing.expires_at <= datetime.utcnow():
+                elif existing.expires_at <= utcnow():
                     raise BusinessError("This voucher code has expired")
                 elif existing.usage_count >= existing.max_uses:
                     raise BusinessError("This voucher has reached its usage limit")
@@ -900,7 +901,7 @@ class BillingService:
 
         # Handle first-use activation
         if voucher.activation_type == 'first_use' and not voucher.activated_at:
-            self.voucher_repo.activate_voucher(voucher.id, datetime.utcnow())
+            self.voucher_repo.activate_voucher(voucher.id, utcnow())
             # Reload voucher to get updated state
             voucher = self.voucher_repo.get_by_id(voucher.id, organization_id)
 
@@ -926,7 +927,7 @@ class BillingService:
             'subscriber_id': subscriber_id,
             'plan_id': plan.id,
             'status': 'active',
-            'start_time': datetime.utcnow(),
+            'start_time': utcnow(),
             'expiry_time': subscription_expiry,
             'auto_renew': False,
             'device_limit': plan.device_limit,
@@ -1163,7 +1164,7 @@ class BillingService:
             if existing:
                 if not existing.is_active:
                     raise BusinessError("This coupon is no longer active")
-                now = datetime.utcnow()
+                now = utcnow()
                 if existing.valid_from > now:
                     raise BusinessError("This coupon is not yet valid")
                 if existing.valid_to < now:
@@ -1326,7 +1327,7 @@ class BillingService:
     ) -> Invoice:
         """Generate an invoice for a subscription or purchase."""
         invoice_number = (
-            f"INV-{datetime.utcnow().strftime('%Y%m%d')}-"
+            f"INV-{utcnow().strftime('%Y%m%d')}-"
             f"{secrets.token_hex(4).upper()}"
         )
 
@@ -1357,8 +1358,8 @@ class BillingService:
             plan_id=plan_id,
             subtotal=amount,
             total=amount,
-            issue_date=datetime.utcnow(),
-            due_date=datetime.utcnow() + timedelta(days=7),
+            issue_date=utcnow(),
+            due_date=utcnow() + timedelta(days=7),
             status='draft',
             notes=notes,
             currency='KES',

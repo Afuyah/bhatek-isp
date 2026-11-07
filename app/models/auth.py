@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Boolean, DateTime, Integer, JSON, ForeignKey, Text, Index
 from sqlalchemy.dialects.postgresql import UUID, INET
 from sqlalchemy.orm import relationship
-from datetime import datetime
+
 import bcrypt
 
 from app.core.database.base import BaseModel
@@ -10,6 +10,7 @@ from app.core.database.mixins import TimestampMixin
 from uuid import uuid4
 
 from app.core.database.session import db
+from app.core.time import utcnow
 
 class User(BaseModel, TimestampMixin):
     __tablename__ = 'users'
@@ -146,7 +147,7 @@ class RefreshToken(BaseModel):
     def is_valid(self) -> bool:
         """Check if token is still valid"""
         from datetime import datetime
-        return not self.revoked and self.expires_at > datetime.utcnow()
+        return not self.revoked and self.expires_at > utcnow()
     
     def to_dict(self) -> dict:
         """Convert to dictionary for API responses"""

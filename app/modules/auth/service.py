@@ -1,6 +1,6 @@
 from typing import Dict, Any, Optional, Tuple, List
 from uuid import UUID, uuid4
-from datetime import datetime, timedelta
+from datetime import timedelta
 from flask import current_app, request
 import secrets
 import threading
@@ -12,6 +12,7 @@ from app.core.database.session import db
 from app.core.logging.logger import logger
 from app.core.exceptions.handlers import AuthenticationError, ValidationError, BusinessError, NotFoundError
 from flask import copy_current_request_context
+from app.core.time import utcnow
 
 
 class AuthService:
@@ -97,7 +98,7 @@ class AuthService:
             raise AuthenticationError('Invalid credentials')
         
         # Check lockout
-        if user.locked_until and user.locked_until > datetime.utcnow():
+        if user.locked_until and user.locked_until > utcnow():
             raise AuthenticationError(f'Account locked until {user.locked_until}')
         
         # Verify password
@@ -138,7 +139,7 @@ class AuthService:
             'user_id': user.id,
             'token': refresh_token,
             'session_id': session_id,  # ✅ ADD THIS to RefreshToken model
-            'expires_at': datetime.utcnow() + current_app.config['JWT_REFRESH_TOKEN_EXPIRES'],
+            'expires_at': utcnow() + current_app.config['JWT_REFRESH_TOKEN_EXPIRES'],
             'user_agent': user_agent,
             'ip_address': ip_address,
             'device_fingerprint': device_fingerprint
@@ -188,7 +189,7 @@ class AuthService:
         
         # Blacklist the old refresh token in database
         token_record.revoked = True
-        token_record.revoked_at = datetime.utcnow()
+        token_record.revoked_at = utcnow()
         db.session.commit()
         
         # Create new refresh token record
@@ -196,7 +197,7 @@ class AuthService:
             'user_id': user.id,
             'token': new_refresh_token,
             'session_id': session_id,
-            'expires_at': datetime.utcnow() + current_app.config['JWT_REFRESH_TOKEN_EXPIRES'],
+            'expires_at': utcnow() + current_app.config['JWT_REFRESH_TOKEN_EXPIRES'],
             'user_agent': token_record.user_agent,
             'ip_address': token_record.ip_address,
             'device_fingerprint': token_record.device_fingerprint
@@ -243,7 +244,7 @@ class AuthService:
                 target_session_id = token_record.session_id
                 # Revoke this specific refresh token
                 token_record.revoked = True
-                token_record.revoked_at = datetime.utcnow()
+                token_record.revoked_at = utcnow()
                 db.session.commit()
         elif session_id:
             target_session_id = session_id
@@ -349,7 +350,7 @@ class AuthService:
         ).first()
         
         # If token exists and is still valid, reuse it
-        if existing_token and existing_token.expires_at > datetime.utcnow():
+        if existing_token and existing_token.expires_at > utcnow():
             token = existing_token.token
             logger.info(f"Reusing existing verification token for {email}")
         else:
@@ -555,7 +556,7 @@ class AuthService:
             is_used=False
         ).first()
         
-        if verification and verification.expires_at > datetime.utcnow():
+        if verification and verification.expires_at > utcnow():
             token = verification.token
         else:
             # Create new verification token

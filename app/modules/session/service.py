@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Optional, Tuple
 from uuid import UUID
-from datetime import datetime, timedelta
+from datetime import timedelta
 from flask import current_app
 from sqlalchemy import func
 
@@ -11,6 +11,7 @@ from app.integrations.mikrotik.client import MikroTikClient
 from app.core.logging.logger import logger
 from app.core.exceptions.handlers import NotFoundError, BusinessError
 from app.core.security.encryption import EncryptionService
+from app.core.time import utcnow
 
 
 class SessionService:
@@ -29,7 +30,7 @@ class SessionService:
         """Create new session with RADIUS cache integration"""
         # Ensure required fields
         if 'last_update' not in data:
-            data['last_update'] = datetime.utcnow()
+            data['last_update'] = utcnow()
         if 'status' not in data:
             data['status'] = 'active'
         
@@ -46,7 +47,7 @@ class SessionService:
             'expiry_time': session.expiry_time.timestamp(),
         }
         
-        ttl = int((session.expiry_time - datetime.utcnow()).total_seconds())
+        ttl = int((session.expiry_time - utcnow()).total_seconds())
         if ttl > 0:
             self.radius_cache.cache_session(str(session.id), cache_data, ttl)
         
@@ -189,9 +190,9 @@ class SessionService:
                         'ip_address': rs.get('ip_address') or rs.get('address'),
                         'session_id': session_id,
                         'session_type': 'hotspot',
-                        'start_time': datetime.utcnow(),
-                        'last_update': datetime.utcnow(),
-                        'expiry_time': datetime.utcnow() + timedelta(hours=24),
+                        'start_time': utcnow(),
+                        'last_update': utcnow(),
+                        'expiry_time': utcnow() + timedelta(hours=24),
                         'status': 'active'
                     }
                     self.repository.create(session_data)
@@ -213,7 +214,7 @@ class SessionService:
             'created': created,
             'updated': updated,
             'terminated': terminated,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': utcnow().isoformat()
         }
         
         logger.info(f"Router sync completed for {router_id}: {result}")
@@ -237,7 +238,7 @@ class SessionService:
         active_count = self.repository.count_active(organization_id)
         
         # Get recent session stats (last 24 hours)
-        day_ago = datetime.utcnow() - timedelta(days=1)
+        day_ago = utcnow() - timedelta(days=1)
         
         from app.models.session import ActiveSession
         result = ActiveSession.query.filter(
@@ -260,7 +261,7 @@ class SessionService:
     def get_user_usage(self, username: str, organization_id: UUID, days: int = 30) -> Dict[str, Any]:
         """Get usage statistics for a user from RADIUS accounting"""
         try:
-            start_date = datetime.utcnow() - timedelta(days=days)
+            start_date = utcnow() - timedelta(days=days)
             
             records = self.radius_accounting_repo.get_user_accounting(
                 username, organization_id, start_date, None, 1000
@@ -292,8 +293,8 @@ class SessionService:
     def get_organization_usage(self, organization_id: UUID, days: int = 30) -> Dict[str, Any]:
         """Get usage statistics for organization from RADIUS accounting"""
         try:
-            start_date = datetime.utcnow() - timedelta(days=days)
-            end_date = datetime.utcnow()
+            start_date = utcnow() - timedelta(days=days)
+            end_date = utcnow()
             
             usage = self.radius_accounting_repo.get_organization_usage(
                 organization_id, start_date, end_date

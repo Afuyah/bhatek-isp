@@ -2,11 +2,11 @@ from typing import Optional, Dict, Any, List
 from uuid import UUID
 from sqlalchemy import and_, or_, desc
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
 
 from app.models.access_point import AccessPoint
 from app.core.database.session import db
 from app.core.logging.logger import logger
+from app.core.time import utcnow
 
 
 class AccessPointRepository:
@@ -178,7 +178,7 @@ class AccessPointRepository:
                 return False
             
             ap.status = status
-            ap.last_seen_at = datetime.utcnow()
+            ap.last_seen_at = utcnow()
             
             if error_message:
                 ap.description = error_message[:500] if error_message else None

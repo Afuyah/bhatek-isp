@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any, List
 from uuid import UUID
-from datetime import datetime
+
 from sqlalchemy import and_, or_, desc
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -8,6 +8,7 @@ from app.models.router import Router, HotspotServer, PPPoeServer
 from app.models.nas import NAS
 from app.core.database.session import db
 from app.core.logging.logger import logger
+from app.core.time import utcnow
 
 # ROUTER REPOSITORY
 class RouterRepository:
@@ -359,7 +360,7 @@ class RouterRepository:
             router.radius_config_status = status
 
             if status == 'configured':
-                router.radius_configured_at = datetime.utcnow()
+                router.radius_configured_at = utcnow()
                 router.auto_config_attempts = 0
                 router.last_config_error = None
                 logger.info(f"Router {router_id} RADIUS configured successfully")
@@ -428,7 +429,7 @@ class RouterRepository:
                 return False
 
             router.status = status
-            router.last_seen_at = datetime.utcnow()
+            router.last_seen_at = utcnow()
 
             if error_message:
                 router.last_config_error = error_message[:self.MAX_ERROR_LENGTH]
@@ -480,14 +481,14 @@ class RouterRepository:
             if uptime is not None:
                 health_data['uptime'] = uptime
 
-            health_data['last_checked_at'] = datetime.utcnow().isoformat()
+            health_data['last_checked_at'] = utcnow().isoformat()
             settings['health'] = health_data
             router.settings = settings
 
             # Update router status
             router.status = 'online'
-            router.last_seen_at = datetime.utcnow()
-            router.last_sync_at = datetime.utcnow()
+            router.last_seen_at = utcnow()
+            router.last_sync_at = utcnow()
 
             db.session.commit()
             logger.debug(
@@ -536,12 +537,12 @@ class RouterRepository:
                 discovery['capabilities'] = capabilities
 
             discovery['method'] = discovery_method
-            discovery['discovered_at'] = datetime.utcnow().isoformat()
+            discovery['discovered_at'] = utcnow().isoformat()
 
             settings['discovery'] = discovery
             router.settings = settings
 
-            router.last_sync_at = datetime.utcnow()
+            router.last_sync_at = utcnow()
 
             db.session.commit()
             logger.info(

@@ -38,7 +38,12 @@ class NAS(BaseModel, OrganizationMixin, TimestampMixin):
     description = Column(Text, nullable=True)
     
     # Foreign key to Router table - NO relationship back to Router
-    router_id = Column(UUID(as_uuid=True), ForeignKey('routers.id', ondelete='SET NULL'), nullable=True, index=True)
+    # use_alter breaks the routers<->nas foreign-key cycle so schema creation
+    # has a deterministic order (SQLite cannot ALTER, Postgres applies it after).
+    router_id = Column(UUID(as_uuid=True),
+                      ForeignKey('routers.id', ondelete='SET NULL', use_alter=True,
+                                 name='fk_nas_router_id'),
+                      nullable=True, index=True)
     
     # Active status
     is_active = Column(Boolean, default=True, index=True)

@@ -1,11 +1,12 @@
 from sqlalchemy import Column, String, Boolean, DateTime, JSON, Integer, ForeignKey, DECIMAL, Text, Index, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from datetime import datetime, timedelta
+from datetime import timedelta
 import enum
 
 from app.core.database.base import BaseModel
 from app.core.database.mixins import OrganizationMixin, TimestampMixin
+from app.core.time import utcnow
 
 
 class ValidityUnit(str, enum.Enum):
@@ -152,7 +153,7 @@ class Plan(BaseModel, OrganizationMixin, TimestampMixin):
     def calculate_expiry(self, start_time: datetime = None) -> datetime:
         """Calculate expiry time based on plan validity"""
         if start_time is None:
-            start_time = datetime.utcnow()
+            start_time = utcnow()
         
         if self.validity_type == 'unlimited':
             return start_time + timedelta(days=365 * 10)  # 10 years effectively unlimited
@@ -208,7 +209,7 @@ class Subscription(BaseModel, OrganizationMixin, TimestampMixin):
     # STATUS & TIME
     # ========================================================================
     status = Column(String(20), default='active', index=True)  # active, expired, cancelled, suspended, pending
-    start_time = Column(DateTime, nullable=False, default=datetime.utcnow)
+    start_time = Column(DateTime, nullable=False, default=utcnow)
     expiry_time = Column(DateTime, nullable=False, index=True)
     cancelled_at = Column(DateTime, nullable=True)
     cancellation_reason = Column(String(255), nullable=True)
@@ -257,12 +258,12 @@ class Subscription(BaseModel, OrganizationMixin, TimestampMixin):
     
     def is_active(self) -> bool:
         """Check if subscription is currently active"""
-        return self.status == 'active' and self.expiry_time > datetime.utcnow()
+        return self.status == 'active' and self.expiry_time > utcnow()
     
     def days_remaining(self) -> int:
         """Get days remaining until expiry"""
-        if self.expiry_time > datetime.utcnow():
-            return (self.expiry_time - datetime.utcnow()).days
+        if self.expiry_time > utcnow():
+            return (self.expiry_time - utcnow()).days
         return 0
     
     def get_bandwidth_up(self) -> int:
@@ -328,7 +329,7 @@ class Invoice(BaseModel, OrganizationMixin, TimestampMixin):
     # ========================================================================
     # DATES
     # ========================================================================
-    issue_date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    issue_date = Column(DateTime, nullable=False, default=utcnow)
     due_date = Column(DateTime, nullable=False)
     paid_at = Column(DateTime, nullable=True)
     
@@ -371,7 +372,7 @@ class Invoice(BaseModel, OrganizationMixin, TimestampMixin):
     
     def is_overdue(self) -> bool:
         """Check if invoice is overdue"""
-        return self.status == 'sent' and self.due_date < datetime.utcnow()
+        return self.status == 'sent' and self.due_date < utcnow()
     
     def to_dict(self, include_items=False):
         data = {
@@ -464,7 +465,7 @@ class Voucher(BaseModel, OrganizationMixin, TimestampMixin):
     # CREATION & EXPIRY
     # ========================================================================
     created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     expires_at = Column(DateTime, nullable=False, index=True)
     
     # ========================================================================
@@ -521,7 +522,7 @@ class Voucher(BaseModel, OrganizationMixin, TimestampMixin):
     def calculate_expiry_from_activation(self, activation_time: datetime = None) -> datetime:
         """Calculate expiry time based on activation"""
         if activation_time is None:
-            activation_time = datetime.utcnow()
+            activation_time = utcnow()
         
         if self.validity_value and self.validity_unit:
             unit = self.validity_unit
@@ -545,7 +546,7 @@ class Voucher(BaseModel, OrganizationMixin, TimestampMixin):
         """Check if voucher is valid for use"""
         if self.status != 'active':
             return False
-        if self.expires_at and self.expires_at <= datetime.utcnow():
+        if self.expires_at and self.expires_at <= utcnow():
             return False
         if self.usage_count >= self.max_uses:
             return False
@@ -592,7 +593,7 @@ class VoucherBatch(BaseModel, OrganizationMixin, TimestampMixin):
     status = Column(String(20), default='pending')  # pending, generated, partially_used, exhausted
     
     created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     generated_at = Column(DateTime, nullable=True)
     
     # Batch validity settings (applied to all vouchers in batch)
@@ -648,7 +649,7 @@ class DiscountCoupon(BaseModel, OrganizationMixin, TimestampMixin):
     
     def is_valid(self) -> bool:
         """Check if coupon is valid"""
-        now = datetime.utcnow()
+        now = utcnow()
         return (self.is_active and 
                 self.valid_from <= now <= self.valid_to and
                 (self.usage_limit is None or self.used_count < self.usage_limit))

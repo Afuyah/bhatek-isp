@@ -1,12 +1,12 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request, abort
 from functools import wraps
 from uuid import UUID
-from datetime import datetime
 
 from app.core.logging.logger import logger
 from app.modules.billing.service import BillingService
 from app.modules.organization.service import OrganizationService
 from app.modules.auth.repository import UserRepository
+from app.core.time import utcnow
 
 # Create web blueprint with organization ID in URL pattern
 billing_web_bp = Blueprint('billing_web', __name__, url_prefix='/organization/<org_id>/billing')
@@ -503,7 +503,7 @@ def dashboard(org_id, current_user=None, current_organization=None):
         )
         
         # Filter active subscriptions
-        now = datetime.utcnow()
+        now = utcnow()
         active_subs = [s for s in all_subscriptions if s.status == 'active' and s.expiry_time > now]
         
         # Calculate total revenue from all subscriptions (using plan prices)

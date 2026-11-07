@@ -11,7 +11,7 @@ RADIUS Sync: Automatically syncs subscribers, subscriptions,
 
 from typing import Dict, Any, Optional, List, Tuple
 from uuid import UUID
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 import re
 
@@ -26,6 +26,7 @@ from app.core.exceptions.handlers import (
     BusinessError, NotFoundError, ValidationError,
 )
 from app.core.database.session import db
+from app.core.time import utcnow
 
 
 class SubscriberService:
@@ -413,7 +414,7 @@ class SubscriberService:
                 'subscriber_id': subscriber_id,
                 'plan_id': plan_id,
                 'status': 'active',
-                'start_time': datetime.utcnow(),
+                'start_time': utcnow(),
                 'expiry_time': expiry_time,
                 'auto_renew': auto_renew,
                 'device_limit': plan.device_limit,
@@ -491,7 +492,7 @@ class SubscriberService:
                 subscription.subscriber_id, organization_id
             )
 
-            current_time = datetime.utcnow()
+            current_time = utcnow()
             base_time = max(subscription.expiry_time, current_time)
             new_expiry = base_time + plan.validity_timedelta
 
@@ -541,7 +542,7 @@ class SubscriberService:
                 raise NotFoundError('Subscription not found')
 
             subscription.status = 'cancelled'
-            subscription.cancelled_at = datetime.utcnow()
+            subscription.cancelled_at = utcnow()
             subscription.cancellation_reason = reason
             db.session.commit()
 
@@ -616,7 +617,7 @@ class SubscriberService:
                     )
                     return None
 
-                if active_sub.expiry_time <= datetime.utcnow():
+                if active_sub.expiry_time <= utcnow():
                     logger.debug(
                         f"Auth failed: subscription expired for {credential}"
                     )
@@ -642,7 +643,7 @@ class SubscriberService:
                 active_sub = self.repository.get_active_subscription(
                     subscriber.id, organization_id
                 )
-                if not active_sub or active_sub.expiry_time <= datetime.utcnow():
+                if not active_sub or active_sub.expiry_time <= utcnow():
                     logger.debug(
                         f"Auth failed: no active subscription for {credential}"
                     )
@@ -689,7 +690,7 @@ class SubscriberService:
                     'No active subscription. Please purchase a plan.',
                 )
 
-            if subscription.expiry_time < datetime.utcnow():
+            if subscription.expiry_time < utcnow():
                 return self._access_denied(
                     'subscription_expired',
                     'Your subscription has expired. Please renew.',
@@ -821,7 +822,7 @@ class SubscriberService:
                 'device_type': device_type,
                 'is_primary': len(devices) == 0,
                 'is_active': True,
-                'last_seen_at': datetime.utcnow(),
+                'last_seen_at': utcnow(),
             }
 
             device = self.repository.add_device(

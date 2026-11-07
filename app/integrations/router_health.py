@@ -9,10 +9,11 @@ but an application context must be active (pushed by the task).
 from __future__ import annotations
 
 import os
-from datetime import datetime
+
 from typing import Any, Dict, List, Optional
 
 from app.core.logging.logger import logger
+from app.core.time import utcnow
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +138,7 @@ def update_router_last_health_check(router: Any, status: str,
         from app.core.database.session import db
 
         router.status = status
-        router.last_seen_at = datetime.utcnow() if status == 'online' else router.last_seen_at
+        router.last_seen_at = utcnow() if status == 'online' else router.last_seen_at
 
         if error:
             router.last_config_error = error[:500]  # cap length

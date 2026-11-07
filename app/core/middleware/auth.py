@@ -1,8 +1,9 @@
 from flask import jsonify
 import jwt
-from datetime import datetime
+
 import logging
 from typing import Optional, List, Set
+from app.core.time import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -322,7 +323,7 @@ class AuthMiddleware:
 
             # Additional expiration check (defense in depth)
             exp = payload.get('exp')
-            if exp and datetime.utcnow().timestamp() > exp:
+            if exp and utcnow().timestamp() > exp:
                 logger.warning("Token expired (timestamp check)")
                 return None
 

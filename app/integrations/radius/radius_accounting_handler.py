@@ -20,7 +20,7 @@ Aggressive Session Tracking:
     - Duplicate detection prevents double-counting
 """
 
-from datetime import datetime
+
 from uuid import UUID
 from typing import Optional
 
@@ -31,6 +31,7 @@ from app.models.session import ActiveSession, RadiusAccounting
 from app.models.router import Router
 from app.models.subscriber import Subscriber
 from app.models.billing import Subscription
+from app.core.time import utcnow
 
 
 class RadiusAccountingHandler:
@@ -269,7 +270,7 @@ class RadiusAccountingHandler:
             ).first()
 
             if existing:
-                existing.last_update = datetime.utcnow()
+                existing.last_update = utcnow()
                 db.session.commit()
                 logger.debug(f"Accounting: session {session_id} already active, updated")
                 return {'result': 'ok', 'session_exists': True}
@@ -291,8 +292,8 @@ class RadiusAccountingHandler:
                 ip_address=framed_ip,
                 called_station_id=called_station_id,
                 calling_station_id=calling_station_id,
-                start_time=datetime.utcnow(),
-                last_update=datetime.utcnow(),
+                start_time=utcnow(),
+                last_update=utcnow(),
                 expiry_time=subscription.expiry_time if subscription else None,
                 status='active',
             )
@@ -308,13 +309,13 @@ class RadiusAccountingHandler:
                 called_station_id=called_station_id,
                 calling_station_id=calling_station_id,
                 acct_status_type='start',
-                acct_start_time=datetime.utcnow(),
+                acct_start_time=utcnow(),
                 acct_unique_id=acct_unique_id,
             )
             db.session.add(radius_acct)
 
             # Update subscriber last active timestamp
-            subscriber.last_active_at = datetime.utcnow()
+            subscriber.last_active_at = utcnow()
 
             db.session.commit()
 
@@ -329,7 +330,7 @@ class RadiusAccountingHandler:
                     'session_id': session_id,
                     'session_type': session_type,
                     'organization_id': str(organization_id),
-                    'start_time': datetime.utcnow().isoformat(),
+                    'start_time': utcnow().isoformat(),
                 },
                 ttl=self.SESSION_CACHE_TTL,
             )
@@ -390,7 +391,7 @@ class RadiusAccountingHandler:
 
             if active_session:
                 active_session.status = 'stopped'
-                active_session.last_update = datetime.utcnow()
+                active_session.last_update = utcnow()
                 active_session.bytes_in = input_octets
                 active_session.bytes_out = output_octets
                 active_session.session_time = session_time
@@ -423,7 +424,7 @@ class RadiusAccountingHandler:
 
             if radius_acct:
                 radius_acct.acct_status_type = 'stop'
-                radius_acct.acct_stop_time = datetime.utcnow()
+                radius_acct.acct_stop_time = utcnow()
                 radius_acct.acct_input_octets = input_octets
                 radius_acct.acct_output_octets = output_octets
                 radius_acct.acct_session_time = session_time
@@ -493,7 +494,7 @@ class RadiusAccountingHandler:
                 active_session.bytes_in = input_octets
                 active_session.bytes_out = output_octets
                 active_session.session_time = session_time
-                active_session.last_update = datetime.utcnow()
+                active_session.last_update = utcnow()
 
             # Update RadiusAccounting
             radius_acct = RadiusAccounting.query.filter_by(
@@ -515,7 +516,7 @@ class RadiusAccountingHandler:
                 cached['bytes_in'] = input_octets
                 cached['bytes_out'] = output_octets
                 cached['session_time'] = session_time
-                cached['last_update'] = datetime.utcnow().isoformat()
+                cached['last_update'] = utcnow().isoformat()
                 self.cache.cache_session(session_id, cached, ttl=self.SESSION_CACHE_TTL)
 
             logger.debug(
@@ -605,7 +606,7 @@ class RadiusAccountingHandler:
             organization_id=organization_id,
             status='active',
         ).filter(
-            Subscription.expiry_time > datetime.utcnow()
+            Subscription.expiry_time > utcnow()
         ).first()
 
     def _update_subscription_data_usage(
@@ -659,7 +660,7 @@ class RadiusAccountingHandler:
                 called_station_id=called_station_id,
                 calling_station_id=calling_station_id,
                 acct_status_type=status_type,
-                acct_start_time=datetime.utcnow(),
+                acct_start_time=utcnow(),
                 acct_unique_id=acct_unique_id,
             )
             db.session.add(record)

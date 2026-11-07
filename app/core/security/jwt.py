@@ -1,5 +1,5 @@
 import jwt
-from datetime import datetime, timedelta
+from datetime import timedelta
 from flask import current_app, g, request
 from functools import wraps
 from typing import Dict, Any, Optional, List
@@ -8,6 +8,7 @@ import hmac
 import secrets
 
 from app.core.exceptions.handlers import AuthenticationError, AuthorizationError
+from app.core.time import utcnow
 
 
 class JWTService:
@@ -56,7 +57,7 @@ class JWTService:
         # Get token version for user (for revocation)
         token_version = self._get_user_token_version(user_id)
         
-        now = datetime.utcnow()
+        now = utcnow()
         
         payload = {
             # Standard claims
@@ -88,7 +89,7 @@ class JWTService:
     def generate_refresh_token(self, user_id: str, session_id: str = None) -> str:
         """Generate refresh token with rotation support"""
         
-        now = datetime.utcnow()
+        now = utcnow()
         
         payload = {
             'iss': current_app.config.get('JWT_ISSUER', 'isp-saas'),
@@ -223,7 +224,7 @@ class JWTService:
             if jti:
                 # Get remaining TTL
                 exp = payload.get('exp', 0)
-                ttl = max(0, exp - datetime.utcnow().timestamp())
+                ttl = max(0, exp - utcnow().timestamp())
                 
                 self._blacklist_token(jti, timedelta(seconds=ttl))
                 print(f"[JWTService] Revoked single token: {jti}")

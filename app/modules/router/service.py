@@ -13,7 +13,7 @@ Flow:
 
 from typing import Dict, Any, List, Optional
 from uuid import UUID
-from datetime import datetime
+
 import json as _json
 import os as _os
 import tempfile as _tempfile
@@ -35,6 +35,7 @@ from app.core.exceptions.handlers import NotFoundError, BusinessError, Validatio
 from app.integrations.mikrotik.client import MikroTikClient
 from app.integrations.wireguard.manager import WireGuardManager
 from app.core.database.session import db
+from app.core.time import utcnow
 
 
 class RouterService:
@@ -698,7 +699,7 @@ class RouterService:
                 else: self.pppoe_repo.create(d)
                 results['pppoe_synced'] += 1
         except Exception as e: results['errors'].append(f"PPPoE: {e}")
-        self.repository.update(router_id, organization_id, {'last_sync_at': datetime.utcnow(), 'status': 'online'})
+        self.repository.update(router_id, organization_id, {'last_sync_at': utcnow(), 'status': 'online'})
         return results
 
     # =========================================================================

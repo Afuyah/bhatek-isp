@@ -2,11 +2,12 @@ from typing import Optional, Dict, Any, List
 from uuid import UUID
 from sqlalchemy import and_, or_, desc, func, between
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from app.models.billing import Plan, Subscription, Invoice, InvoiceItem, Voucher, VoucherBatch, DiscountCoupon
 from app.core.database.session import db
 from app.core.logging.logger import logger
+from app.core.time import utcnow
 
 
 class PlanRepository:
@@ -211,7 +212,7 @@ class SubscriptionRepository:
                     self.model.subscriber_id == subscriber_id,
                     self.model.organization_id == organization_id,
                     self.model.status == 'active',
-                    self.model.expiry_time > datetime.utcnow()
+                    self.model.expiry_time > utcnow()
                 )
             ).first()
         except SQLAlchemyError as e:
@@ -260,7 +261,7 @@ class SubscriptionRepository:
     def get_expiring_soon(self, organization_id: UUID, days: int = 3) -> List[Subscription]:
         """Get subscriptions expiring within specified days"""
         try:
-            now = datetime.utcnow()
+            now = utcnow()
             expiry_threshold = now + timedelta(days=days)
             
             return self.model.query.filter(
@@ -278,7 +279,7 @@ class SubscriptionRepository:
     def get_expiring_in_hours(self, organization_id: UUID, hours: int = 24) -> List[Subscription]:
         """Get subscriptions expiring within specified hours (for minute/hour plans)"""
         try:
-            now = datetime.utcnow()
+            now = utcnow()
             expiry_threshold = now + timedelta(hours=hours)
             
             return self.model.query.filter(
@@ -337,7 +338,7 @@ class SubscriptionRepository:
             if reason:
                 subscription.cancellation_reason = reason
             if status in ['cancelled', 'expired']:
-                subscription.cancelled_at = datetime.utcnow()
+                subscription.cancelled_at = utcnow()
             
             db.session.commit()
             logger.info(f"Subscription {subscription_id} status updated to {status}")
@@ -374,7 +375,7 @@ class SubscriptionRepository:
             query = self.model.query.filter(
                 and_(
                     self.model.status == 'active',
-                    self.model.expiry_time <= datetime.utcnow()
+                    self.model.expiry_time <= utcnow()
                 )
             )
             if organization_id:
@@ -446,7 +447,7 @@ class VoucherRepository:
                     self.model.code == code,
                     self.model.organization_id == organization_id,
                     self.model.status == 'active',
-                    self.model.expires_at > datetime.utcnow(),
+                    self.model.expires_at > utcnow(),
                     self.model.usage_count < self.model.max_uses
                 )
             ).first()
@@ -541,7 +542,7 @@ class VoucherRepository:
                 and_(
                     self.model.organization_id == organization_id,
                     self.model.status == 'active',
-                    self.model.expires_at < datetime.utcnow()
+                    self.model.expires_at < utcnow()
                 )
             ).all()
         except SQLAlchemyError as e:
@@ -555,7 +556,7 @@ class VoucherRepository:
                 and_(
                     self.model.organization_id == organization_id,
                     self.model.status == 'active',
-                    self.model.expires_at < datetime.utcnow()
+                    self.model.expires_at < utcnow()
                 )
             ).update({'status': 'expired'}, synchronize_session=False)
             db.session.commit()
@@ -604,7 +605,7 @@ class VoucherRepository:
             if voucher.usage_count >= voucher.max_uses:
                 voucher.status = 'used'
             voucher.used_by_subscriber_id = subscriber_id
-            voucher.used_at = datetime.utcnow()
+            voucher.used_at = utcnow()
             if router_id:
                 voucher.used_on_router_id = router_id
             
@@ -624,7 +625,7 @@ class VoucherRepository:
                 return False
             
             if voucher.activation_type == 'first_use' and not voucher.activated_at:
-                voucher.activated_at = activation_time or datetime.utcnow()
+                voucher.activated_at = activation_time or utcnow()
                 # Update expiry based on activation
                 voucher.expires_at = voucher.calculate_expiry_from_activation(voucher.activated_at)
                 db.session.commit()
@@ -758,7 +759,7 @@ class DiscountCouponRepository:
     def get_valid_by_code(self, code: str, organization_id: UUID, amount: float = 0) -> Optional[DiscountCoupon]:
         """Get valid coupon by code (checks dates and usage)"""
         try:
-            now = datetime.utcnow()
+            now = utcnow()
             coupon = self.model.query.filter(
                 and_(
                     self.model.code == code,
@@ -789,7 +790,7 @@ class DiscountCouponRepository:
     def get_active_coupons(self, organization_id: UUID) -> List[DiscountCoupon]:
         """Get all active coupons (valid now)"""
         try:
-            now = datetime.utcnow()
+            now = utcnow()
             return self.model.query.filter(
                 and_(
                     self.model.organization_id == organization_id,

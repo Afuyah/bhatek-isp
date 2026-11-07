@@ -32,7 +32,7 @@ FreeRADIUS rlm_rest Response Format (CORRECTED):
 """
 
 from flask import request, jsonify, Blueprint, current_app
-from datetime import datetime, timedelta
+from datetime import timedelta
 from uuid import UUID
 import hashlib
 import re
@@ -46,6 +46,7 @@ from app.integrations.radius.dictionary import MikroTikDictionary
 from app.models.subscriber import Device
 from app.models.router import Router
 from app.models.organization import Organization
+from app.core.time import utcnow
 
 # Create blueprint for RADIUS auth endpoints
 radius_auth_bp = Blueprint('radius_auth', __name__, url_prefix='/api/radius')
@@ -325,7 +326,7 @@ class RadiusAuthHandler:
                 )
 
             # Check if subscription has expired
-            if subscription.expiry_time <= datetime.utcnow():
+            if subscription.expiry_time <= utcnow():
                 logger.info(
                     f"MAC auth: subscription expired for {subscriber.display_name}"
                 )
@@ -581,7 +582,7 @@ class RadiusAuthHandler:
                     reason_code='no_subscription',
                 )
 
-            if subscription.expiry_time <= datetime.utcnow():
+            if subscription.expiry_time <= utcnow():
                 return self._reject(
                     "Subscription expired. Please renew.",
                     reason_code='subscription_expired',
@@ -696,7 +697,7 @@ class RadiusAuthHandler:
             )
             if existing:
                 # Just update last seen
-                existing.last_seen_at = datetime.utcnow()
+                existing.last_seen_at = utcnow()
                 db.session.commit()
                 logger.debug(f"Device {mac} already registered, updated last_seen")
                 return existing
@@ -723,7 +724,7 @@ class RadiusAuthHandler:
                 'device_type': 'unknown',
                 'is_primary': len(current_devices) == 0,
                 'is_active': True,
-                'last_seen_at': datetime.utcnow(),
+                'last_seen_at': utcnow(),
             }
             device = self.subscriber_repo.add_device(
                 subscriber_id=subscriber_id,
@@ -886,7 +887,7 @@ class RadiusAuthHandler:
                     'reason_code': 'no_subscription',
                 }
 
-            if subscription.expiry_time <= datetime.utcnow():
+            if subscription.expiry_time <= utcnow():
                 return {
                     'success': False,
                     'error': 'Subscription has expired. Please renew.',
@@ -973,7 +974,7 @@ class RadiusAuthHandler:
         try:
             from app.models.payment import Transaction
 
-            cutoff = datetime.utcnow() - timedelta(hours=24)
+            cutoff = utcnow() - timedelta(hours=24)
 
             return Transaction.query.filter(
                 Transaction.organization_id == organization_id,

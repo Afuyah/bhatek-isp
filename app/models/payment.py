@@ -1,10 +1,10 @@
 from sqlalchemy import Column, String, Boolean, DateTime, JSON, Integer, ForeignKey, DECIMAL, Index
 from sqlalchemy.dialects.postgresql import UUID, INET
 from sqlalchemy.orm import relationship
-from datetime import datetime
 
 from app.core.database.base import  BaseModel
 from app.core.database.mixins import OrganizationMixin, TimestampMixin
+from app.core.time import utcnow
 
 class PaymentAccount(BaseModel, OrganizationMixin, TimestampMixin):
     """Payment gateway configuration per organization"""
@@ -77,8 +77,8 @@ class Transaction(BaseModel, OrganizationMixin):
     callback_payload = Column(JSON)  # Raw webhook data
     
     # Timestamps
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow, index=True)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
     completed_at = Column(DateTime)
     
     # Custom data (renamed from 'metadata' to avoid SQLAlchemy conflict)
@@ -114,7 +114,7 @@ class Transaction(BaseModel, OrganizationMixin):
         self.status = 'success'
         if mpesa_receipt:
             self.mpesa_receipt = mpesa_receipt
-        self.completed_at = completed_at or datetime.utcnow()
+        self.completed_at = completed_at or utcnow()
     
     def mark_failed(self, reason: str = None):
         """Mark transaction as failed"""
@@ -191,7 +191,7 @@ class PaymentWebhookLog(BaseModel, OrganizationMixin):
     processed = Column(Boolean, default=False)
     processed_at = Column(DateTime)
     error_message = Column(String(500))
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=utcnow, index=True)
     
     __table_args__ = (
         Index('idx_webhook_request_id', 'request_id'),

@@ -8,6 +8,7 @@ from datetime import datetime
 from app.models.payment import Transaction, PaymentAccount, PaymentWebhookLog, Refund
 from app.core.database.session import db
 from app.core.logging.logger import logger
+from app.core.time import utcnow
 
 
 class TransactionRepository:
@@ -181,7 +182,7 @@ class TransactionRepository:
         Used by background tasks to query stuck payments.
         """
         try:
-            cutoff = datetime.utcnow() - datetime.timedelta(
+            cutoff = utcnow() - datetime.timedelta(
                 minutes=older_than_minutes
             )
             return (

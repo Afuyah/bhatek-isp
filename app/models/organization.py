@@ -1,10 +1,10 @@
 from sqlalchemy import Column, String, Boolean, DateTime, JSON, Integer, ForeignKey, DECIMAL, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from datetime import datetime
 
 from app.core.database.base import BaseModel
 from app.core.database.mixins import TimestampMixin
+from app.core.time import utcnow
 
 class Organization(BaseModel, TimestampMixin):
     __tablename__ = 'organizations'
@@ -64,7 +64,7 @@ class OrganizationUser(BaseModel):
     
     role = Column(String(50), nullable=False)
     is_primary = Column(Boolean, default=False)
-    joined_at = Column(DateTime, default=datetime.utcnow)
+    joined_at = Column(DateTime, default=utcnow)
     
     invited_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), index=True)
 

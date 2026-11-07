@@ -9,7 +9,7 @@ billing-report tasks.
 from __future__ import annotations
 
 import calendar
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, func
@@ -17,6 +17,7 @@ from sqlalchemy import and_, func
 from app.core.database.session import db
 from app.core.logging.logger import logger
 from app.models.billing import Invoice, Subscription, Voucher
+from app.core.time import utcnow
 
 
 class BillingPeriodService:
@@ -38,7 +39,7 @@ class BillingPeriodService:
     def _resolve_daily(date: Optional[datetime] = None) -> Tuple[datetime, datetime]:
         """Return (start, end) for a single day (UTC midnight boundaries)."""
         if date is None:
-            date = datetime.utcnow()
+            date = utcnow()
         start = date.replace(hour=0, minute=0, second=0, microsecond=0)
         end = start + timedelta(days=1)
         return start, end
@@ -53,7 +54,7 @@ class BillingPeriodService:
 
         If week/year are omitted the current week is used.
         """
-        now = datetime.utcnow()
+        now = utcnow()
         if week is None or year is None:
             # Monday of the current week
             start = (now - timedelta(days=now.weekday())).replace(
@@ -75,7 +76,7 @@ class BillingPeriodService:
         year: Optional[int] = None,
     ) -> Tuple[datetime, datetime]:
         """Return (start, end) for a calendar month."""
-        now = datetime.utcnow()
+        now = utcnow()
         if month is None:
             month = now.month
         if year is None:

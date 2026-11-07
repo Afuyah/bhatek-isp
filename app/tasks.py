@@ -36,11 +36,12 @@ Usage
 from __future__ import annotations
 
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any, Dict, List, Optional
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
+from app.core.time import utcnow
 
 logger = get_task_logger(__name__)
 
@@ -84,7 +85,7 @@ def check_plan_expiration(self) -> Dict[str, Any]:
             from app.models.subscriber import Subscriber
             from app.integrations.email_service import send_expiration_reminder_email
 
-            now = datetime.utcnow()
+            now = utcnow()
             window_start = now + timedelta(days=4, hours=23)   # ~5 days from now
             window_end = now + timedelta(days=5, hours=1)
 
@@ -193,7 +194,7 @@ def disconnect_expired_plans(self) -> Dict[str, Any]:
             from app.integrations.mikrotik.client import MikroTikClient
             from app.integrations.radius.radius_sync_service import RadiusSyncService
 
-            now = datetime.utcnow()
+            now = utcnow()
 
             expired_subs = Subscription.query.filter(
                 Subscription.status == 'active',
@@ -347,7 +348,7 @@ def auto_renew_plans(self) -> Dict[str, Any]:
             from app.models.billing import Subscription
             from app.models.subscriber import Subscriber
 
-            now = datetime.utcnow()
+            now = utcnow()
             renewal_window = now + timedelta(hours=24)
 
             # Find active subscriptions with auto_renew=True expiring within 24 h
@@ -499,7 +500,7 @@ def sync_router_health(self) -> Dict[str, Any]:
                 'online': online,
                 'offline': offline,
                 'errors': errors,
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': utcnow().isoformat(),
             }
             logger.info(f"sync_router_health completed: {result}")
             return result
@@ -541,7 +542,7 @@ def check_router_errors(self) -> Dict[str, Any]:
                 return {
                     'problematic': 0,
                     'email_sent': False,
-                    'timestamp': datetime.utcnow().isoformat(),
+                    'timestamp': utcnow().isoformat(),
                 }
 
             router_list = []
@@ -568,7 +569,7 @@ def check_router_errors(self) -> Dict[str, Any]:
                 'problematic': len(problem_routers),
                 'email_sent': email_sent,
                 'routers': [r['name'] for r in router_list],
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': utcnow().isoformat(),
             }
             logger.info(f"check_router_errors completed: {result}")
             return result
@@ -689,7 +690,7 @@ def generate_daily_billing_report(self) -> Dict[str, Any]:
         try:
             from app.integrations.email_service import send_billing_report_email
 
-            now = datetime.utcnow()
+            now = utcnow()
             start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             end = start + timedelta(days=1)
 
@@ -729,7 +730,7 @@ def generate_weekly_billing_report(self) -> Dict[str, Any]:
         try:
             from app.integrations.email_service import send_billing_report_email
 
-            now = datetime.utcnow()
+            now = utcnow()
             # Monday of the current week
             start = (now - timedelta(days=now.weekday())).replace(
                 hour=0, minute=0, second=0, microsecond=0
@@ -775,7 +776,7 @@ def cleanup_expired_sessions(self) -> Dict[str, Any]:
             from app.models.session import ActiveSession
             from datetime import datetime
 
-            now = datetime.utcnow()
+            now = utcnow()
 
             # Find expired-but-still-active sessions
             expired = ActiveSession.query.filter(
@@ -844,7 +845,7 @@ def cleanup_radius_cache(self) -> Dict[str, Any]:
             from app.integrations.radius.radius_cache import RadiusCache
             from datetime import datetime
 
-            now = datetime.utcnow()
+            now = utcnow()
 
             # Subscriptions that expired in the last 2 hours (cache may still be warm)
             recently_expired = Subscription.query.filter(
@@ -916,7 +917,7 @@ def expire_subscriptions_cascade(self) -> Dict[str, Any]:
             from app.integrations.radius.radius_cache import RadiusCache
             from app.integrations.mikrotik.client import MikroTikClient
 
-            now = datetime.utcnow()
+            now = utcnow()
 
             expired_subs = Subscription.query.filter(
                 Subscription.status == 'active',
@@ -1030,7 +1031,7 @@ def generate_monthly_billing_report(self) -> Dict[str, Any]:
         try:
             from app.integrations.email_service import send_billing_report_email
 
-            now = datetime.utcnow()
+            now = utcnow()
             start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             # First day of next month
             if start.month == 12:
