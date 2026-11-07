@@ -47,6 +47,7 @@ from app.models.subscriber import Device
 from app.models.router import Router
 from app.models.organization import Organization
 from app.core.time import utcnow
+from app.integrations.radius.security import radius_secret_required
 
 # Create blueprint for RADIUS auth endpoints
 radius_auth_bp = Blueprint('radius_auth', __name__, url_prefix='/api/radius')
@@ -864,6 +865,50 @@ class RadiusAuthHandler:
                         f"for M-Pesa code {code}"
                     )
 
+            # Step 3b: a receipt belongs to one payer and one subscriber.
+            # Previously any valid code in the tenant authenticated any phone,
+            # repeatedly, because the receipt was matched on organization only.
+            if transaction.subscriber_id and str(transaction.subscriber_id) != str(subscriber.id):
+                logger.warning(
+                    f"M-Pesa code {code} is already bound to subscriber "
+                    f"{transaction.subscriber_id}, not {subscriber.id}"
+                )
+                return {
+                    'success': False,
+                    'error': 'That M-Pesa code has already been used on another account.',
+                    'reason_code': 'code_already_used',
+                }
+
+            details = transaction.payment_details or transaction.custom_data or {}
+            receipt_phone = ''
+            if isinstance(details, dict):
+                receipt_phone = str(
+                    details.get('phone')
+                    or details.get('phone_number')
+                    or details.get('msisdn')
+                    or ''
+                )
+
+            def _last9(value):
+                digits = ''.join(ch for ch in str(value) if ch.isdigit())
+                return digits[-9:]
+
+            if receipt_phone and _last9(receipt_phone) != _last9(phone):
+                logger.warning(
+                    f"M-Pesa code {code} was paid from {receipt_phone[-4:]} but "
+                    f"presented by {_last9(phone)[-4:]}"
+                )
+                return {
+                    'success': False,
+                    'error': 'That M-Pesa code belongs to a different phone number.',
+                    'reason_code': 'code_phone_mismatch',
+                }
+
+            # Bind the receipt to this subscriber so it cannot be replayed.
+            if not transaction.subscriber_id:
+                transaction.subscriber_id = subscriber.id
+                db.session.commit()
+
             # Step 4: Check for active subscription
             subscription = self.subscriber_repo.get_active_subscription(
                 subscriber.id, org_uuid
@@ -1195,6 +1240,7 @@ class RadiusAuthHandler:
 # =============================================================================
 
 @radius_auth_bp.route('/authenticate', methods=['POST'])
+@radius_secret_required
 def radius_authenticate():
     """
     POST /api/radius/authenticate
@@ -1274,6 +1320,7 @@ def radius_authenticate():
 
 
 @radius_auth_bp.route('/disconnect', methods=['POST'])
+@radius_secret_required
 def radius_disconnect():
     """
     POST /api/radius/disconnect

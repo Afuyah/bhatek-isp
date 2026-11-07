@@ -72,7 +72,9 @@ EXEMPT_PATHS = [
     '/api/radius/accounting/interim',
 
     # Router RADIUS operations issued from the web UI (wildcards resolved
-    # inside AuthMiddleware's matcher)
+    # inside AuthMiddleware's matcher). NOTE: /api/v1/routers/test is
+    # deliberately absent — it accepts an arbitrary host/credentials and was an
+    # anonymous SSRF probe surface, so it now requires a token.
     '/api/v1/routers/*/radius/retry',
     '/api/v1/routers/*/radius/secret/generate',
     '/api/v1/routers/*/radius/regenerate',

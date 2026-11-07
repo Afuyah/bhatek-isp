@@ -20,6 +20,7 @@ from app.core.logging.logger import logger
 from app.integrations.radius.radius_accounting_handler import (
     RadiusAccountingHandler,
 )
+from app.integrations.radius.security import radius_secret_required
 
 # Create blueprint
 radius_accounting_bp = Blueprint(
@@ -33,6 +34,7 @@ radius_accounting_bp = Blueprint(
 @radius_accounting_bp.route('/accounting/start', methods=['POST'])
 @radius_accounting_bp.route('/accounting/stop', methods=['POST'])
 @radius_accounting_bp.route('/accounting/interim', methods=['POST'])
+@radius_secret_required
 def radius_accounting():
     """
     POST /api/radius/accounting

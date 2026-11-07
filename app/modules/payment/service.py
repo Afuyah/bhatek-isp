@@ -654,13 +654,14 @@ class PaymentService:
         self,
         transaction_id: UUID,
         checkout_request_id: str = None,
+        organization_id: UUID = None,
     ) -> Dict[str, Any]:
         """
         Verify payment status by querying M-Pesa directly.
 
         Used when callback is delayed or missed.
         """
-        transaction = self.transaction_repo.get_by_id(transaction_id)
+        transaction = self.get_transaction(transaction_id, organization_id)
         if not transaction:
             raise NotFoundError("Transaction not found")
 
@@ -733,9 +734,20 @@ class PaymentService:
     # READ OPERATIONS
     # =========================================================================
 
-    def get_transaction(self, transaction_id: UUID) -> Optional[Transaction]:
-        """Get transaction by ID."""
-        return self.transaction_repo.get_by_id(transaction_id)
+    def get_transaction(
+        self, transaction_id: UUID, organization_id: UUID = None
+    ) -> Optional[Transaction]:
+        """Get a transaction, optionally scoped to one organization.
+
+        Callers acting on behalf of a tenant must pass ``organization_id``;
+        a transaction belonging to another tenant is reported as not found
+        rather than forbidden, so ids cannot be probed.
+        """
+        transaction = self.transaction_repo.get_by_id(transaction_id)
+        if transaction and organization_id is not None:
+            if str(transaction.organization_id) != str(organization_id):
+                return None
+        return transaction
 
     def get_transaction_by_mpesa_receipt(
         self,
@@ -772,6 +784,7 @@ class PaymentService:
         transaction_id: UUID,
         reason: str,
         amount: float = None,
+        organization_id: UUID = None,
     ) -> Dict[str, Any]:
         """
         Refund a successful transaction.
@@ -779,7 +792,7 @@ class PaymentService:
         Creates a Refund record and marks the transaction as refunded.
         Also cancels the associated subscription.
         """
-        transaction = self.transaction_repo.get_by_id(transaction_id)
+        transaction = self.get_transaction(transaction_id, organization_id)
         if not transaction:
             raise NotFoundError("Transaction not found")
 

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, String, Boolean, DateTime, JSON, Integer, ForeignKey, DECIMAL, Text, Index, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+from decimal import Decimal
 from datetime import timedelta
 import enum
 
@@ -145,10 +146,17 @@ class Plan(BaseModel, OrganizationMixin, TimestampMixin):
         return f'<Plan {self.name} - {self.price}>'
     
     def get_discounted_price(self) -> float:
-        """Calculate discounted price"""
-        if self.discount_percentage > 0:
-            return float(self.price) * (1 - self.discount_percentage / 100)
-        return float(self.price)
+        """Price after ``discount_percentage``, as a float.
+
+        ``price`` and ``discount_percentage`` are ``Numeric`` columns, so they
+        arrive as ``Decimal``. Mixing those with a float multiplier raises
+        TypeError, which made every discounted plan blow up in ``to_dict``.
+        """
+        price = Decimal(str(self.price or 0))
+        discount = Decimal(str(self.discount_percentage or 0))
+        if discount <= 0:
+            return float(price)
+        return float(price * (Decimal(1) - discount / Decimal(100)))
     
     def calculate_expiry(self, start_time: datetime = None) -> datetime:
         """Calculate expiry time based on plan validity"""

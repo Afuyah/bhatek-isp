@@ -267,6 +267,7 @@ class RadiusAccountingHandler:
                 session_id=session_id,
                 username=username,
                 status='active',
+                organization_id=organization_id,
             ).first()
 
             if existing:
@@ -387,6 +388,7 @@ class RadiusAccountingHandler:
                 session_id=session_id,
                 username=username,
                 status='active',
+                organization_id=organization_id,
             ).first()
 
             if active_session:
@@ -420,6 +422,7 @@ class RadiusAccountingHandler:
                 session_id=session_id,
                 username=username,
                 acct_stop_time=None,
+                organization_id=organization_id,
             ).first()
 
             if radius_acct:
@@ -488,6 +491,7 @@ class RadiusAccountingHandler:
                 session_id=session_id,
                 username=username,
                 status='active',
+                organization_id=organization_id,
             ).first()
 
             if active_session:
@@ -501,6 +505,7 @@ class RadiusAccountingHandler:
                 session_id=session_id,
                 username=username,
                 acct_stop_time=None,
+                organization_id=organization_id,
             ).first()
 
             if radius_acct:

@@ -20,7 +20,7 @@ class AuthController:
             user = self.service.register(data)
             return jsonify({
                 'success': True,
-                'user': user.to_dict(),
+                'user': user.to_dict(exclude={'password_hash'}),
                 'message': 'Registration successful'
             }), 201
         except ValidationError as e:

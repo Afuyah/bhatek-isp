@@ -10,6 +10,7 @@ from app.models.auth import User
 from app.core.security.jwt import JWTService
 from app.core.database.session import db
 from app.core.logging.logger import logger
+from app.modules.auth.permissions import ROLE_PERMISSIONS
 from app.core.exceptions.handlers import AuthenticationError, ValidationError, BusinessError, NotFoundError
 from flask import copy_current_request_context
 from app.core.time import utcnow
@@ -467,7 +468,7 @@ class AuthService:
                 role='org_admin',
                 is_active=True,
                 is_super_admin=False,
-                permissions=['*']
+                permissions=list(ROLE_PERMISSIONS['org_admin'])
             )
             
             # Set password

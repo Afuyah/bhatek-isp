@@ -46,6 +46,9 @@ class Config:
     JWT_ENFORCE_DEVICE_FINGERPRINT = os.environ.get('JWT_ENFORCE_DEVICE_FINGERPRINT', 'False').lower() == 'true'
     
     # Database Configuration
+    # Shared secret FreeRADIUS presents on /api/radius/* (see integrations/radius/security.py)
+    RADIUS_REST_SECRET = os.environ.get('RADIUS_REST_SECRET')
+
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {

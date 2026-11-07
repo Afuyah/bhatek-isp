@@ -42,7 +42,7 @@ def get_me():
     user = user_repo.get_by_id(g.get('user_id'))
     if not user:
         return jsonify({'error': 'User not found'}), 404
-    return jsonify(user.to_dict()), 200
+    return jsonify(user.to_dict(exclude={'password_hash'})), 200
 
 
 @auth_bp.route('/send-verification', methods=['POST'])

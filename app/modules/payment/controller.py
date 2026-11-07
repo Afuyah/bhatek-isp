@@ -175,7 +175,7 @@ class PaymentController:
         """
         try:
             transaction_uuid = UUID(transaction_id)
-            result = self.service.verify_payment_status(transaction_uuid)
+            result = self.service.verify_payment_status(transaction_uuid, organization_id=g.organization_id)
             return jsonify(result), 200
 
         except ValueError:
@@ -217,7 +217,7 @@ class PaymentController:
         """
         try:
             transaction_uuid = UUID(transaction_id)
-            transaction = self.service.get_transaction(transaction_uuid)
+            transaction = self.service.get_transaction(transaction_uuid, organization_id=g.organization_id)
 
             if not transaction:
                 return jsonify({
@@ -356,6 +356,7 @@ class PaymentController:
                 transaction_id=transaction_uuid,
                 reason=reason,
                 amount=amount,
+                organization_id=g.organization_id,
             )
 
             return jsonify(result), 200
