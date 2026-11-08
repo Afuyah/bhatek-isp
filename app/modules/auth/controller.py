@@ -64,9 +64,11 @@ class AuthController:
             auth_header = request.headers.get('Authorization', '')
             refresh_token = request.json.get('refresh_token') if request.json else None
             
+            payload = g.get('token_payload') or {}
             self.service.logout(
                 user_id=g.get('user_id'),
-                refresh_token=refresh_token
+                refresh_token=refresh_token,
+                session_id=payload.get('session_id'),
             )
             return jsonify({'success': True, 'message': 'Logged out successfully'}), 200
         except Exception as e:

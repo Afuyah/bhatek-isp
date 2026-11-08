@@ -171,6 +171,21 @@ class AuthService:
         
         # Extract session_id from the refresh token record
         session_id = token_record.session_id
+
+        # Claim the token atomically. A read-then-write revoke let two concurrent
+        # refreshes both succeed, minting two valid token pairs from one token.
+        from app.models.auth import RefreshToken
+
+        claimed = (
+            db.session.query(RefreshToken)
+            .filter(RefreshToken.id == token_record.id, RefreshToken.revoked.is_(False))
+            .update({'revoked': True, 'revoked_at': utcnow()}, synchronize_session=False)
+        )
+        if not claimed:
+            db.session.rollback()
+            raise AuthenticationError('Refresh token has already been used')
+
+        db.session.commit()
         
         # Generate NEW refresh token (rotation) - blacklist old one happens in JWTService
         new_refresh_token = self.jwt_service.generate_refresh_token(
@@ -187,11 +202,6 @@ class AuthService:
             permissions=user.permissions,
             session_id=session_id
         )
-        
-        # Blacklist the old refresh token in database
-        token_record.revoked = True
-        token_record.revoked_at = utcnow()
-        db.session.commit()
         
         # Create new refresh token record
         self.token_repo.create({

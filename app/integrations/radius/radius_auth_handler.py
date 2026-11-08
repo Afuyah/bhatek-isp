@@ -1021,12 +1021,24 @@ class RadiusAuthHandler:
 
             cutoff = utcnow() - timedelta(hours=24)
 
+            # payment_details/custom_data are JSON columns. Calling LIKE on JSON
+            # does not compile on PostgreSQL (json ~~ unknown), so the original
+            # query raised and this whole self-remediation path always returned
+            # None. Cast to text and search both columns, because writers are
+            # inconsistent about which one carries the phone number.
+            from sqlalchemy import String, cast, or_
+
+            digits = ''.join(ch for ch in str(phone) if ch.isdigit())[-9:]
+            pattern = f'%{digits}%'
+
             return Transaction.query.filter(
                 Transaction.organization_id == organization_id,
                 Transaction.status == 'success',
                 Transaction.created_at >= cutoff,
-            ).filter(
-                Transaction.payment_details.contains(phone)
+                or_(
+                    cast(Transaction.payment_details, String).ilike(pattern),
+                    cast(Transaction.custom_data, String).ilike(pattern),
+                ),
             ).order_by(Transaction.created_at.desc()).first()
         except Exception as e:
             logger.error(f"Error finding recent payment for {phone}: {e}")
