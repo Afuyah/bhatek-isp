@@ -88,6 +88,14 @@ def _init_extensions(app: Flask) -> None:
     Migrate(app, db)
     redis_client.init_app(app)
 
+    # Services that other modules look up through app.extensions.
+    # Nothing registered these before, so token_required() raised
+    # "JWT service not initialized" on every authenticated API request.
+    from app.core.security.jwt import JWTService
+
+    app.extensions.setdefault('redis', redis_client)
+    app.extensions['jwt_service'] = JWTService(app)
+
 
 def _init_celery(app: Flask) -> None:
     celery = _make_celery(app)
@@ -171,7 +179,13 @@ def create_app(config_name=None):
     _register_health_check(app)
     register_performance(app)
 
-    if not app.config.get('JWT_SECRET_KEY'):
+    jwt_secret = app.config.get('JWT_SECRET_KEY')
+    if not jwt_secret:
         logger.warning("JWT_SECRET_KEY not set. Authentication will fail!")
+    elif len(jwt_secret) < 32:
+        # HS256 keys shorter than the hash output are below RFC 7518 guidance.
+        logger.warning(
+            "JWT_SECRET_KEY is only %d bytes; use at least 32 for HS256.", len(jwt_secret)
+        )
 
     return app

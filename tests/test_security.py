@@ -68,3 +68,25 @@ def test_unauthenticated_router_test_endpoint_is_not_public(app):
     from app.core.middleware import EXEMPT_PATHS
 
     assert '/api/v1/routers/test' not in EXEMPT_PATHS
+
+
+def test_jwt_service_is_registered(app):
+    """Nothing used to register it, so every token_required route raised."""
+    with app.app_context():
+        assert app.extensions.get('jwt_service') is not None
+
+
+def test_authenticated_api_call_succeeds(client):
+    login = client.post('/api/v1/auth/login',
+                        json={'email': 'admin@acme.test', 'password': 'Passw0rd!x'})
+    assert login.status_code == 200, login.get_data(as_text=True)[:300]
+    token = login.get_json()['access_token']
+
+    response = client.get('/api/v1/subscribers',
+                          headers={'Authorization': f'Bearer {token}'})
+    assert response.status_code == 200, response.get_data(as_text=True)[:300]
+
+
+def test_api_rejects_missing_token(client):
+    response = client.get('/api/v1/subscribers')
+    assert response.status_code in (401, 302)

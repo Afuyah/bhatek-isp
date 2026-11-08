@@ -9,6 +9,7 @@ import secrets
 
 from app.core.exceptions.handlers import AuthenticationError, AuthorizationError
 from app.core.time import utcnow
+from app.core.database.identifiers import as_uuid
 
 
 class JWTService:
@@ -347,9 +348,10 @@ def token_required(f):
         payload = jwt_service.decode_token(token, 'access')
         
         # Set user context in Flask g object
-        g.user_id = payload.get('user_id')
+        # Token claims are JSON strings; the UUID columns expect UUID objects.
+        g.user_id = as_uuid(payload.get('user_id')) or payload.get('user_id')
         g.user_email = payload.get('email')
-        g.organization_id = payload.get('organization_id')
+        g.organization_id = as_uuid(payload.get('organization_id'))
         g.user_role = payload.get('role')
         g.user_permissions = payload.get('permissions', [])
         g.token_payload = payload

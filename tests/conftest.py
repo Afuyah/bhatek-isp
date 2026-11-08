@@ -17,8 +17,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 os.environ.setdefault('FLASK_ENV', 'testing')
-os.environ.setdefault('SECRET_KEY', 'test-secret')
-os.environ.setdefault('JWT_SECRET_KEY', 'test-jwt-secret')
+os.environ.setdefault('SECRET_KEY', 'test-secret-key-0123456789abcdef')
+os.environ.setdefault('JWT_SECRET_KEY', 'test-jwt-secret-key-0123456789abcdef')
 os.environ.setdefault(
     'TEST_DATABASE_URL',
     'sqlite:///' + (ROOT / 'instance' / 'test.db').as_posix(),
