@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import click
 from flask.cli import FlaskGroup
 from app import create_app
 from app.core.database.session import db
@@ -28,6 +29,26 @@ def seed_data():
     from scripts.seed_data import seed_all
     seed_all()
     print("Data seeded successfully")
+
+@cli.command("send-test-sms")
+@click.argument("phone")
+@click.option("--message", default="Bhatek ISP test message.", help="Body to send.")
+def send_test_sms(phone, message):
+    """Send one SMS through the configured provider, for verification."""
+    from app.integrations.sms import send_sms
+    from app.integrations.sms.provider import SMSService
+    from flask import current_app
+
+    with app.app_context():
+        provider_name = (current_app.config.get("SMS_PROVIDER") or "brevo").lower()
+        result = send_sms("cli-test", phone, message)
+        if result.get("success"):
+            print(f"OK  provider={result.get('provider', provider_name)} "
+                  f"to={result.get('phone')} message_id={result.get('message_id')}")
+        else:
+            print(f"FAILED provider={provider_name}: {result.get('error')}")
+            raise SystemExit(1)
+
 
 if __name__ == '__main__':
     cli()
