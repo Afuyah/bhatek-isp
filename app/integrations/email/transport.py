@@ -74,7 +74,14 @@ def _send_via_brevo_api(cfg: Dict, to_email: str, subject: str,
         if resp.status_code == 201:
             logger.info(f"Email sent via Brevo API to {to_email}")
             return True
-        logger.error(f"Brevo API error {resp.status_code}: {resp.text}")
+        if resp.status_code in (401, 403):
+            logger.error(
+                "Brevo rejected the API key (%s): %s. Check BREVO_API_KEY - the key "
+                "may be revoked or not enabled for transactional email.",
+                resp.status_code, (resp.text or "")[:200],
+            )
+        else:
+            logger.error("Brevo API error %s: %s", resp.status_code, (resp.text or "")[:200])
         return False
     except Exception as exc:
         logger.error(f"Brevo API exception: {exc}", exc_info=True)
@@ -106,10 +113,17 @@ def _send_via_smtp(cfg: Dict, to_email: str, subject: str,
 
 def send(to_email: str, subject: str, html_content: str,
          text_content: Optional[str] = None) -> bool:
-    """Send one email: Brevo API, then SMTP, then mock (returns True)."""
+    """Send one email: Brevo API, falling back to SMTP, then mock (returns True)."""
     cfg = read_config()
     if cfg['use_api'] and cfg['api_key']:
-        return _send_via_brevo_api(cfg, to_email, subject, html_content, text_content)
+        if _send_via_brevo_api(cfg, to_email, subject, html_content, text_content):
+            return True
+        # A rejected or disabled API key must not silently drop the message when
+        # SMTP credentials are available.
+        if cfg['smtp_user'] and cfg['smtp_password']:
+            logger.warning("Brevo API failed; retrying over SMTP")
+            return _send_via_smtp(cfg, to_email, subject, html_content, text_content)
+        return False
     if cfg['smtp_user'] and cfg['smtp_password']:
         return _send_via_smtp(cfg, to_email, subject, html_content, text_content)
     logger.info("[EMAIL_MOCK] To=%s | Subject=%s", to_email, subject)

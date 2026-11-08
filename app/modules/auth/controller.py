@@ -101,7 +101,8 @@ class AuthController:
         except ValidationError as e:
             return jsonify({'error': 'Validation error', 'details': e.messages}), 400
         except BusinessError as e:
-            return jsonify({'error': e.message}), 400
+            # Honour the status the domain error carries (e.g. 503 for a mail outage).
+            return jsonify({'error': e.code, 'message': e.message}), e.status_code
         except Exception as e:
             logger.error(f"Send verification error: {e}", exc_info=True)
             return jsonify({'error': str(e)}), 500
@@ -115,7 +116,8 @@ class AuthController:
         except ValidationError as e:
             return jsonify({'error': 'Validation error', 'details': e.messages}), 400
         except BusinessError as e:
-            return jsonify({'error': e.message}), 400
+            # Honour the status the domain error carries (e.g. 503 for a mail outage).
+            return jsonify({'error': e.code, 'message': e.message}), e.status_code
         except Exception as e:
             logger.error(f"Verify email error: {e}", exc_info=True)
             return jsonify({'error': str(e)}), 500
@@ -129,7 +131,8 @@ class AuthController:
         except ValidationError as e:
             return jsonify({'error': 'Validation error', 'details': e.messages}), 400
         except BusinessError as e:
-            return jsonify({'error': e.message}), 400
+            # Honour the status the domain error carries (e.g. 503 for a mail outage).
+            return jsonify({'error': e.code, 'message': e.message}), e.status_code
         except Exception as e:
             logger.error(f"Register organization error: {e}", exc_info=True)
             return jsonify({'error': str(e)}), 500

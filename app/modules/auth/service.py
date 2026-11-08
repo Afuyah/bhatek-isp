@@ -382,7 +382,11 @@ class AuthService:
         )
         
         if not success:
-            raise BusinessError('Failed to send verification email. Please try again.')
+            raise BusinessError(
+                'Email delivery is temporarily unavailable. Please try again shortly.',
+                code='EMAIL_UNAVAILABLE',
+                status_code=503,
+            )
         
         logger.info(f"Verification email sent to {email}")
         
@@ -588,7 +592,11 @@ class AuthService:
         )
         
         if not success:
-            raise BusinessError('Failed to send verification email. Please try again.')
+            raise BusinessError(
+                'Email delivery is temporarily unavailable. Please try again shortly.',
+                code='EMAIL_UNAVAILABLE',
+                status_code=503,
+            )
         
         logger.info(f"Resent verification email to {email}")
         
