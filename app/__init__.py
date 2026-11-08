@@ -15,6 +15,12 @@ Everything with real behaviour now lives in a focused module:
 import os
 import time
 
+from dotenv import load_dotenv
+
+# Must run before app.core.config.settings is imported: that module reads
+# os.environ at class-definition time. Existing environment variables win.
+load_dotenv(override=False)
+
 from celery import Celery
 from celery.schedules import crontab
 from flask import Flask

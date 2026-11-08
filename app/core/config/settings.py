@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import timedelta
 from typing import Dict, Any, List, Optional
 from pathlib import Path
@@ -82,12 +83,16 @@ class Config:
     
     @classmethod
     def get_redis_url_for_db(cls, db_name: str) -> str:
-        """Get Redis URL for specific database"""
+        """Redis URL pointing at the database configured for ``db_name``.
+
+        The previous implementation looked for the literal '/db' and otherwise
+        appended, producing 'redis://host:6379/0/3' for any real URL.
+        """
         db_num = cls.REDIS_DBS.get(db_name, 0)
-        # Parse base URL and replace database number
         base_url = cls.REDIS_URL
-        if '/db' in base_url:
-            return base_url.rsplit('/', 1)[0] + f'/{db_num}'
+
+        if re.search(r'/\d+$', base_url):
+            return re.sub(r'/\d+$', f'/{db_num}', base_url)
         return f"{base_url.rstrip('/')}/{db_num}"
     
     # Rate Limiting Configuration
@@ -399,20 +404,20 @@ class ProductionConfig(Config):
     @classmethod
     def validate(cls):
         """Validate required production configuration"""
-        required_settings = [
-            ('SECRET_KEY', 'must be set and not default'),
-            ('JWT_SECRET_KEY', 'must be set'),
-            ('ENCRYPTION_KEY', 'must be set'),
-            ('DATABASE_URL', 'must be set'),
-            ('REDIS_URL', 'must be set'),
-        ]
-        
-        for setting, message in required_settings:
-            value = getattr(cls, setting, None)
+        # The database URL lives on SQLALCHEMY_DATABASE_URI, not DATABASE_URL;
+        # the old getattr() therefore always failed and production could never boot.
+        required_settings = {
+            'SECRET_KEY': cls.SECRET_KEY,
+            'JWT_SECRET_KEY': cls.JWT_SECRET_KEY,
+            'ENCRYPTION_KEY': cls.ENCRYPTION_KEY,
+            'DATABASE_URL': cls.SQLALCHEMY_DATABASE_URI,
+            'REDIS_URL': cls.REDIS_URL,
+        }
+
+        for setting, value in required_settings.items():
             if not value:
-                raise ValueError(f"{setting} {message}")
-            
-            # Check for default development values
+                raise ValueError(f"{setting} must be set")
+
             if setting == 'SECRET_KEY' and value == 'dev-secret-key-change-in-production':
                 raise ValueError(f"{setting} must be changed from default")
         
