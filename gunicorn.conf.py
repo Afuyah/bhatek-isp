@@ -21,7 +21,13 @@ keepalive = int(os.environ.get("GUNICORN_KEEPALIVE", "5"))
 
 # ---------------------------------------------------------------- workers
 # Threads rather than processes: cheaper, and required for concurrent SSE.
-workers = int(os.environ.get("WEB_CONCURRENCY", min(4, multiprocessing.cpu_count() * 2 + 1)))
+#
+# Memory matters more than CPU here. Each worker carries a full copy of the app
+# (measured ~92-101 MB RSS with this dependency set). Fly's shared-cpu-1x
+# machines are 256 MB, so the old "cpu*2+1" default started three workers,
+# exceeded the limit and the kernel OOM-killed them in a loop.
+# Default to a single worker and raise WEB_CONCURRENCY only on bigger machines.
+workers = int(os.environ.get("WEB_CONCURRENCY", "1"))
 worker_class = os.environ.get("GUNICORN_WORKER_CLASS", "gthread")
 threads = int(os.environ.get("GUNICORN_THREADS", "8"))
 worker_connections = 1000
