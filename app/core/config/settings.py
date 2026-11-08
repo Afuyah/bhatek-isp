@@ -4,6 +4,25 @@ from datetime import timedelta
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 
+def _normalize_database_url(url):
+    """Force the psycopg2 driver onto a bare PostgreSQL URL.
+
+    SQLAlchemy 2.1 resolves ``postgresql://`` to the psycopg (v3) driver, but
+    this project installs ``psycopg2-binary``. Platforms (Railway, Heroku) hand
+    out bare URLs, so the driver is made explicit here instead of relying on
+    whatever happens to be importable.
+    """
+    if not url:
+        return url
+    if '+psycopg' in url:
+        return url
+    if url.startswith('postgres://'):
+        return 'postgresql+psycopg2://' + url[len('postgres://'):]
+    if url.startswith('postgresql://'):
+        return 'postgresql+psycopg2://' + url[len('postgresql://'):]
+    return url
+
+
 class Config:
     """Base configuration with security-focused defaults"""
     # Flask Core
@@ -50,7 +69,7 @@ class Config:
     # Shared secret FreeRADIUS presents on /api/radius/* (see integrations/radius/security.py)
     RADIUS_REST_SECRET = os.environ.get('RADIUS_REST_SECRET')
 
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = _normalize_database_url(os.environ.get('DATABASE_URL'))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_size': int(os.environ.get('DATABASE_POOL_SIZE', 20)),
@@ -462,10 +481,10 @@ class TestingConfig(Config):
     SESSION_COOKIE_DOMAIN = None
     
     # Test database
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
+    SQLALCHEMY_DATABASE_URI = _normalize_database_url(os.environ.get(
         'TEST_DATABASE_URL',
         'postgresql://postgres:postgres@localhost:5432/isp_test'
-    )
+    ))
     
     # Test Redis
     REDIS_URL = os.environ.get('TEST_REDIS_URL', 'redis://localhost:6379/15')
