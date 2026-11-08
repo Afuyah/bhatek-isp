@@ -27,3 +27,11 @@ Makefile
 instance/
 smoke.db
 
+
+# local tooling and dependency rigs (never part of the image)
+.tools/
+.flycfg/
+deps/
+wheels/
+.tmp/
+

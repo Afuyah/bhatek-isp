@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any, List
 from uuid import UUID
 from sqlalchemy import and_, or_, desc, func, between
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from app.models.billing import Plan, Subscription, Invoice, InvoiceItem, Voucher, VoucherBatch, DiscountCoupon
 from app.core.database.session import db

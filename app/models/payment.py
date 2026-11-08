@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 from app.core.database.base import  BaseModel
 from app.core.database.mixins import OrganizationMixin, TimestampMixin
 from app.core.time import utcnow
+from datetime import datetime
 
 class PaymentAccount(BaseModel, OrganizationMixin, TimestampMixin):
     """Payment gateway configuration per organization"""

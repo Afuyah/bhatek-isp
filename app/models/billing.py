@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Boolean, DateTime, JSON, Integer, Foreign
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from decimal import Decimal
-from datetime import timedelta
+from datetime import datetime, timedelta
 import enum
 
 from app.core.database.base import BaseModel

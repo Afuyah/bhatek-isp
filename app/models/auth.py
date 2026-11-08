@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from app.core.database.session import db
 from app.core.time import utcnow
+from datetime import datetime
 
 class User(BaseModel, TimestampMixin):
     __tablename__ = 'users'

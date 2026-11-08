@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any, List
 from uuid import UUID
 from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from app.models.session import ActiveSession, RadiusAccounting
 from app.core.database.session import db

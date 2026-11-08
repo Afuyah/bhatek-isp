@@ -68,3 +68,8 @@ wheels/
 .venv/
 instance/
 smoke.db
+
+# local fly tooling
+.flycfg/
+.tools/
+
