@@ -354,6 +354,9 @@ class Config:
     SMS_PROVIDER = os.environ.get('SMS_PROVIDER', 'africa_talking')  # 'africa_talking', 'twilio', 'messagebird'
     SMS_API_KEY = os.environ.get('SMS_API_KEY', '')
     SMS_API_SECRET = os.environ.get('SMS_API_SECRET', '')
+    SMS_DEFAULT_COUNTRY_CODE = os.environ.get('SMS_DEFAULT_COUNTRY_CODE', '254')
+    # Brevo SMS uses the same BREVO_API_KEY; only the sender name differs.
+    BREVO_SMS_SENDER = os.environ.get('BREVO_SMS_SENDER') or os.environ.get('FROM_NAME', 'Bhatek')
     SMS_SENDER_ID = os.environ.get('SMS_SENDER_ID', 'Bhatek Solution')
     
     # MikroTik Configuration

@@ -573,6 +573,21 @@ class PaymentService:
                     f"Device registration failed for {device_mac}: {e}"
                 )
 
+        # Step 7: Notify the customer. Best effort: an SMS outage must never
+        # fail a payment that has already been taken.
+        try:
+            from app.integrations.sms import send_sms
+
+            plan_name = subscription.plan.name if subscription.plan else 'your plan'
+            expiry = subscription.expiry_time.strftime('%d %b %Y %H:%M')
+            send_sms(
+                org_id,
+                subscriber.phone,
+                f"Payment received. {plan_name} is active until {expiry}. Thank you.",
+            )
+        except Exception as exc:
+            logger.warning("Post-payment SMS skipped: %s", exc)
+
         return {
             'success': True,
             'subscriber_id': str(subscriber.id),
