@@ -287,6 +287,13 @@ def delete_pppoe_server(router_id, pppoe_id):
 
 # FULL SYNC & RADIUS TEST
 
+@router_bp.route('/<router_id>/onboarding-link', methods=['POST'])
+@token_required
+def regenerate_onboarding_link(router_id):
+    """POST /api/v1/routers/<router_id>/onboarding-link — issue a new setup link."""
+    return controller.regenerate_onboarding_link(router_id)
+
+
 @router_bp.route('/<router_id>/full-sync', methods=['POST'])
 @token_required
 def full_sync(router_id):

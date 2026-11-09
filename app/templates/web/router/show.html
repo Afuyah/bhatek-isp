@@ -60,18 +60,22 @@
         </div>
     </div>
 
-    {# Setup Terminal #}
-    {% if setup_script %}
+    {# Onboarding command — the script itself is never displayed #}
+    {% if onboarding_command %}
     <div class="terminal-shell" style="margin-bottom:16px;">
         <div class="ts-header">
             <span class="ts-dot" style="background:#ff5f57;"></span><span class="ts-dot" style="background:#febc2e;"></span><span class="ts-dot" style="background:#28c840;"></span>
-            <span style="font-size:10px;color:#64748b;margin-left:6px;font-weight:600;">setup.sh</span>
+            <span style="font-size:10px;color:#64748b;margin-left:6px;font-weight:600;">onboard.rsc</span>
         </div>
-        <div class="ts-body" id="setupScript">{{ setup_script }}</div>
+        <div class="ts-body" id="setupScript">{{ onboarding_command }}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#0c1422;flex-wrap:wrap;gap:8px;">
-            <span style="font-size:10px;color:#64748b;">Paste into MikroTik terminal</span>
+            <span style="font-size:10px;color:#64748b;">
+                Run once in the MikroTik terminal — it downloads and imports the configuration.
+                {% if onboarding_expires %}Link valid until {{ onboarding_expires }}.{% endif %}
+            </span>
             <div style="display:flex;gap:6px;">
-                <button onclick="copyTerminal()" class="btn btn-xs" style="background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.08);">Copy</button>
+                <button onclick="copyTerminal()" class="btn btn-xs" style="background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.08);">Copy command</button>
+                <form method="POST" action="{{ url_for('router_web.regenerate_onboarding', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-xs" style="background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.08);">New link</button></form>
                 <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-accent btn-xs">Test Connection</button></form>
             </div>
         </div>

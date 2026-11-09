@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 """
 Router Service Module
@@ -521,6 +522,98 @@ class RouterService:
     # CREATE ROUTER
     # =========================================================================
 
+    #: How long an onboarding link stays valid.
+    ONBOARDING_TTL_HOURS = 24
+    #: Re-fetch window, so a failed import can be retried.
+    ONBOARDING_GRACE_MINUTES = 15
+
+    def _onboarding_base_url(self) -> str:
+        base = (current_app.config.get('BASE_URL')
+                or current_app.config.get('BASE_DOMAIN')
+                or 'bhatek-isp.fly.dev')
+        base = str(base).rstrip('/')
+        return base if base.startswith('http') else f'https://{base}'
+
+    def _issue_onboarding_token(self, router) -> Dict[str, Any]:
+        """Create a fresh single-use token for this router."""
+        token = secrets.token_urlsafe(32)
+        expires = utcnow() + timedelta(hours=self.ONBOARDING_TTL_HOURS)
+        router.onboarding_token = token
+        router.onboarding_token_expires_at = expires
+        router.onboarding_used_at = None
+        db.session.commit()
+        return {'token': token, 'expires_at': expires}
+
+    def onboarding_link(self, router) -> Dict[str, Any]:
+        """Return the one-line command that installs this router."""
+        if not router.onboarding_token:
+            self._issue_onboarding_token(router)
+        url = f"{self._onboarding_base_url()}/onboard/{router.onboarding_token}.rsc"
+        command = (
+            f'/tool fetch url="{url}" dst-path=bhatek-onboard.rsc check-certificate=no; '
+            f'/import file-name=bhatek-onboard.rsc'
+        )
+        return {
+            'url': url,
+            'command': command,
+            'expires_at': (router.onboarding_token_expires_at.isoformat()
+                           if router.onboarding_token_expires_at else None),
+            'note': 'Single-use. Fetch it once in the MikroTik terminal; '
+                    'regenerate if it expires or the import fails.',
+        }
+
+    def redeem_onboarding_token(self, token: str):
+        """Validate a token and return (router, error_reason)."""
+        if not token or len(token) < 20:
+            return None, 'not_found'
+        router = Router.query.filter_by(onboarding_token=token).first()
+        if router is None:
+            return None, 'not_found'
+        now = utcnow()
+        if router.onboarding_token_expires_at and router.onboarding_token_expires_at < now:
+            return None, 'expired'
+        if (router.onboarding_used_at
+                and now - router.onboarding_used_at > timedelta(minutes=self.ONBOARDING_GRACE_MINUTES)):
+            return None, 'used'
+        if router.onboarding_used_at is None:
+            router.onboarding_used_at = now
+            db.session.commit()
+        return router, None
+
+    def regenerate_onboarding_link(self, router_id, organization_id) -> Dict[str, Any]:
+        from app.core.database.identifiers import as_uuid
+
+        router = self.repository.get_by_id(as_uuid(router_id), as_uuid(organization_id))
+        if not router:
+            raise ValidationError('Router not found')
+        self._issue_onboarding_token(router)
+        return self.onboarding_link(router)
+
+    def render_onboarding_script(self, router) -> str:
+        """Rebuild the script for a router, decrypting its stored credentials."""
+        wg_private_key = ''
+        if router.wireguard_private_key_encrypted:
+            try:
+                wg_private_key = self.encryption.decrypt(router.wireguard_private_key_encrypted)
+            except Exception as exc:
+                logger.error("Cannot decrypt WireGuard key for %s: %s", router.id, exc)
+        api_password = ''
+        if router.password_encrypted:
+            try:
+                api_password = self.encryption.decrypt(router.password_encrypted)
+            except Exception as exc:
+                logger.error("Cannot decrypt API password for %s: %s", router.id, exc)
+        org = Organization.query.get(router.organization_id)
+        return self._generate_mikrotik_setup_script(
+            wireguard_ip=router.wireguard_ip or '10.0.0.0',
+            mikrotik_private_key=wg_private_key or 'KEY_NOT_AVAILABLE',
+            radius_secret=router.radius_secret or 'SECRET_NOT_AVAILABLE',
+            router_name=router.name,
+            organization_name=org.name if org else 'ISP',
+            api_username=router.username,
+            api_password=api_password or None,
+        )
+
     def _router_name_from(self, description: str) -> str:
         """Derive a stable, readable name from the description."""
         base = re.sub(r'[^A-Za-z0-9]+', '-', description).strip('-').lower()[:40]
@@ -594,10 +687,8 @@ class RouterService:
         db.session.commit()
 
         wg_ok = self.wireguard.add_peer(wg_pub, f"{wg_ip}/32")
-        script = self._generate_mikrotik_setup_script(
-            wg_ip, wg_priv, radius_secret, router.name, org.name,
-            api_username=api_username, api_password=api_password,
-        )
+        self._issue_onboarding_token(router)
+        onboarding = self.onboarding_link(router)
         logger.info(
             "Router provisioned: %s (WG %s, api user %s, peer %s)",
             router.name, wg_ip, api_username, 'OK' if wg_ok else 'FAILED',
@@ -610,8 +701,8 @@ class RouterService:
             'api_access': {'username': api_username, 'password': api_password},
             'radius': {'secret': radius_secret, 'server': self._get_radius_server(),
                        'auth_port': 1812, 'acct_port': 1813},
-            'setup_script': script,
-            'next_step': 'Run the script in the MikroTik terminal, then Test Connection.',
+            'onboarding': onboarding,
+            'next_step': 'Run the onboarding command in the MikroTik terminal.',
         }
 
     # =========================================================================

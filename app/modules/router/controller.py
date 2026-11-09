@@ -95,7 +95,7 @@ class RouterController:
             router = result.get('router')
             wireguard_info = result.get('wireguard', {})
             radius_info = result.get('radius', {})
-            setup_script = result.get('setup_script', '')
+            onboarding = result.get('onboarding', {})
 
             api_access = result.get('api_access', {})
 
@@ -107,10 +107,15 @@ class RouterController:
                     '_warning': 'Stored encrypted; shown once for support purposes.',
                 },
                 'message': (
-                    'Router created successfully. '
-                    'Paste the setup script into your MikroTik terminal, '
-                    'then click Test Connection.'
+                    'Router created. Run the onboarding command in the MikroTik '
+                    'terminal: it downloads and installs the configuration.'
                 ),
+                'onboarding': {
+                    'url': onboarding.get('url'),
+                    'command': onboarding.get('command'),
+                    'expires_at': onboarding.get('expires_at'),
+                    'note': onboarding.get('note'),
+                },
                 'router': self._serialize_router_full(router),
                 'wireguard': {
                     'ip': wireguard_info.get('ip'),
@@ -130,7 +135,6 @@ class RouterController:
                         'Save the RADIUS secret now. It will not be shown again.'
                     ),
                 },
-                'setup_script': setup_script,
                 'next_step': result.get('next_step'),
             }
 
@@ -179,6 +183,18 @@ class RouterController:
     # =========================================================================
 
     @token_required
+    def regenerate_onboarding_link(self, router_id):
+        """POST /api/v1/routers/<router_id>/onboarding-link
+
+        Issue a fresh single-use onboarding link, invalidating the previous one.
+        """
+        try:
+            link = self.service.regenerate_onboarding_link(router_id, g.organization_id)
+            return jsonify({'success': True, 'onboarding': link}), 200
+        except Exception as e:
+            logger.error(f"Regenerate onboarding link failed: {e}", exc_info=True)
+            return jsonify({'success': False, 'error': str(e)}), 500
+
     def auto_configure_after_wireguard(self, router_id):
         """
         POST /api/v1/routers/<router_id>/auto-configure

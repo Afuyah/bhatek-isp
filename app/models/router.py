@@ -46,6 +46,11 @@ class Router(BaseModel, OrganizationMixin, TimestampMixin):
     wireguard_public_key = Column(String(255), nullable=True)
     wireguard_private_key_encrypted = Column(String(500), nullable=True)
     
+    # Onboarding link (single-use capability URL fetched by the router)
+    onboarding_token = Column(String(64), nullable=True, unique=True, index=True)
+    onboarding_token_expires_at = Column(DateTime, nullable=True)
+    onboarding_used_at = Column(DateTime, nullable=True)
+
     # RADIUS Integration Fields
     radius_secret = Column(String(255), nullable=True, unique=True, index=True)
     radius_configured_at = Column(DateTime, nullable=True)

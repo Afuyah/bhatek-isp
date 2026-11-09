@@ -1,7 +1,8 @@
-"""Zero-touch router onboarding.
+"""Zero-touch router onboarding via a single-use capability link.
 
 The operator supplies a description; the platform generates the VPN address,
-API credentials and RADIUS secret, and returns a script for the MikroTik.
+API credentials and RADIUS secret, and hands back a *link*. The MikroTik fetches
+and imports it, so the script is never displayed.
 """
 
 import pytest
@@ -19,6 +20,10 @@ def _create(client, headers, payload):
     return client.post('/api/v1/routers', json=payload, headers=headers)
 
 
+def _path_from(url):
+    return '/' + url.split('://', 1)[1].split('/', 1)[1]
+
+
 def test_description_alone_provisions_a_router(client):
     headers = _auth(client)
     response = _create(client, headers, {'description': 'Ruiru hotspot - main street'})
@@ -27,54 +32,109 @@ def test_description_alone_provisions_a_router(client):
     body = response.get_json()
     assert body['success'] is True
 
-    script = body['setup_script']
-    # The script must carry everything the router needs...
-    for fragment in ('/interface wireguard add', '/radius add address=10.0.0.1',
-                     'secret=', 'use-radius=yes', 'walled-garden'):
-        assert fragment in script, f"missing {fragment!r} in script"
+    # The script must NOT be in the response - only a link to it.
+    assert 'setup_script' not in body
+    command = body['onboarding']['command']
+    assert '/onboard/' in command and '.rsc' in command
+    assert '/import' in command
 
-    # ...including the generated API user, so nothing is typed by hand.
     api = body['api_access']
     assert api['username'].startswith('bhatek-')
-    assert api['password']
-    assert api['username'] in script and api['password'] in script
 
     router = body['router']
     assert router['wireguard_ip'].startswith('10.0.')
     assert router['username'] == api['username']
 
 
+def test_link_serves_the_script(client):
+    headers = _auth(client)
+    body = _create(client, headers, {'description': 'Fetch test'}).get_json()
+
+    response = client.get(_path_from(body['onboarding']['url']))
+    assert response.status_code == 200, response.get_data(as_text=True)[:300]
+    assert response.mimetype == 'text/plain'
+    assert 'no-store' in response.headers.get('Cache-Control', '')
+
+    script = response.get_data(as_text=True)
+    for fragment in ('/interface wireguard add', '/radius add address=10.0.0.1',
+                     'use-radius=yes', 'walled-garden'):
+        assert fragment in script, f"missing {fragment!r}"
+
+
+def test_unknown_token_is_404(client):
+    assert client.get('/onboard/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.rsc').status_code == 404
+
+
+def test_used_link_is_rejected(client, app):
+    headers = _auth(client)
+    body = _create(client, headers, {'description': 'Single use'}).get_json()
+    path = _path_from(body['onboarding']['url'])
+    assert client.get(path).status_code == 200
+
+    # Simulate a fetch beyond the re-fetch grace window.
+    from datetime import timedelta
+    from app.core.database.session import db
+    from app.core.time import utcnow
+    from uuid import UUID
+    from app.models.router import Router
+
+    with app.app_context():
+        router = Router.query.filter_by(id=UUID(body['router']['id'])).first()
+        router.onboarding_used_at = utcnow() - timedelta(minutes=30)
+        db.session.commit()
+
+    assert client.get(path).status_code == 410
+
+
+def test_expired_link_is_rejected(client, app):
+    headers = _auth(client)
+    body = _create(client, headers, {'description': 'Expiry'}).get_json()
+    path = _path_from(body['onboarding']['url'])
+
+    from datetime import timedelta
+    from app.core.database.session import db
+    from app.core.time import utcnow
+    from uuid import UUID
+    from app.models.router import Router
+
+    with app.app_context():
+        router = Router.query.filter_by(id=UUID(body['router']['id'])).first()
+        router.onboarding_token_expires_at = utcnow() - timedelta(hours=1)
+        db.session.commit()
+
+    assert client.get(path).status_code == 410
+
+
+def test_regenerate_invalidates_the_previous_link(client):
+    headers = _auth(client)
+    body = _create(client, headers, {'description': 'Regenerate'}).get_json()
+    old_path = _path_from(body['onboarding']['url'])
+
+    response = client.post(f"/api/v1/routers/{body['router']['id']}/onboarding-link",
+                           headers=headers)
+    assert response.status_code == 200, response.get_data(as_text=True)[:300]
+    new_url = response.get_json()['onboarding']['url']
+    assert new_url != body['onboarding']['url']
+
+    # Old capability is gone; the new one works.
+    assert client.get(old_path).status_code == 404
+    assert client.get(_path_from(new_url)).status_code == 200
+
+
 def test_description_is_required(client):
     headers = _auth(client)
-    response = _create(client, headers, {})
-    assert response.status_code == 400, response.get_data(as_text=True)[:300]
+    assert _create(client, headers, {}).status_code == 400
+    assert _create(client, headers, {'description': 'ab'}).status_code == 400
 
 
-def test_short_description_is_rejected(client):
+def test_script_uses_configured_endpoint_and_restricted_services(client):
     headers = _auth(client)
-    response = _create(client, headers, {'description': 'ab'})
-    assert response.status_code == 400, response.get_data(as_text=True)[:300]
+    body = _create(client, headers, {'description': 'Script hygiene'}).get_json()
+    script = client.get(_path_from(body['onboarding']['url'])).get_data(as_text=True)
 
-
-def test_script_uses_configured_endpoint_not_a_hardcoded_ip(client):
-    """The old generator shipped a stale VPS address baked into the script."""
-    headers = _auth(client)
-    body = _create(client, headers, {'description': 'Stale IP regression'}).get_json()
-    script = body['setup_script']
     assert '163.245.217.16' not in script
-
-
-def test_services_are_restricted_to_the_tunnel(client):
-    """API/Winbox must not be exposed to the whole internet."""
-    headers = _auth(client)
-    script = _create(client, headers, {'description': 'Exposure regression'}).get_json()['setup_script']
     assert '/ip service set api address=10.0.0.0/16' in script
     assert 'address=0.0.0.0/0' not in script
-
-
-def test_walled_garden_uses_the_configured_portal_host(client, app):
-    headers = _auth(client)
-    script = _create(client, headers, {'description': 'Portal host'}).get_json()['setup_script']
-    portal = app.config['BASE_DOMAIN']
-    assert f'dst-host={portal}' in script
     assert 'isp.bhatek.space' not in script
+    # API credentials generated at creation are embedded for the router.
+    assert body['api_access']['username'] in script

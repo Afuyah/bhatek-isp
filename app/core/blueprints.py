@@ -1,3 +1,4 @@
+from app.modules.router.onboarding_routes import onboarding_bp
 """Blueprint registration.
 
 Three groups, deliberately separated:
@@ -28,6 +29,8 @@ def register_api_blueprints(app):
     app.register_blueprint(org_bp, url_prefix='/api/v1/organizations')
     app.register_blueprint(network_bp, url_prefix='/api/v1/networks')
     app.register_blueprint(router_bp, url_prefix='/api/v1/routers')
+    # Public capability URL: /onboard/<token>.rsc (no auth, no prefix)
+    app.register_blueprint(onboarding_bp)
     app.register_blueprint(ap_bp, url_prefix='/api/v1/access-points')
     app.register_blueprint(subscriber_bp, url_prefix='/api/v1/subscribers')
     app.register_blueprint(billing_bp, url_prefix='/api/v1/billing')

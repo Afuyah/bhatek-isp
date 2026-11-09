@@ -195,31 +195,18 @@ def show(org_id, router_id, current_user=None, current_organization=None):
         pppoe_servers = pppoe_repo.get_by_router(router_uuid, current_organization.id)
         connection_status = router_service.get_connection_status(router_uuid, current_organization.id)
 
-        setup_script = None
-        if router.status in ['pending_wireguard', 'unknown', 'offline', 'error'] or not router.wireguard_ip:
-            from app.core.security.encryption import EncryptionService
-            encryption = EncryptionService()
-            wg_private_key = ''
-            if router.wireguard_private_key_encrypted:
-                try:
-                    wg_private_key = encryption.decrypt(router.wireguard_private_key_encrypted)
-                except Exception as e:
-                    logger.error(f"Failed to decrypt WireGuard private key: {e}")
-            api_password = ''
-            if router.password_encrypted:
-                try:
-                    api_password = encryption.decrypt(router.password_encrypted)
-                except Exception as e:
-                    logger.error(f"Failed to decrypt router API password: {e}")
-            setup_script = router_service._generate_mikrotik_setup_script(
-                wireguard_ip=router.wireguard_ip or '10.0.0.0',
-                mikrotik_private_key=wg_private_key or 'KEY_NOT_AVAILABLE',
-                radius_secret=router.radius_secret or 'SECRET_NOT_AVAILABLE',
-                router_name=router.name,
-                organization_name=current_organization.name,
-                api_username=router.username,
-                api_password=api_password or None,
-            )
+        # Onboarding is delivered as a single-use link the router fetches and
+        # imports; the script itself is never rendered in the UI.
+        onboarding_command = None
+        onboarding_expires = None
+        if not router.wireguard_ip or router.status in ['pending_onboarding', 'pending_wireguard',
+                                                        'unknown', 'offline', 'error']:
+            try:
+                link = router_service.onboarding_link(router)
+                onboarding_command = link.get('command')
+                onboarding_expires = link.get('expires_at')
+            except Exception as e:
+                logger.error(f"Could not build onboarding link for {router.id}: {e}")
 
         return render_template(
             'web/router/show.html',
@@ -228,7 +215,8 @@ def show(org_id, router_id, current_user=None, current_organization=None):
             hotspot_servers=hotspot_servers, pppoe_servers=pppoe_servers,
             connection_status=connection_status,
             context=_get_router_context(current_organization.id),
-            setup_script=setup_script,
+            onboarding_command=onboarding_command,
+            onboarding_expires=onboarding_expires,
             new_secret=session.pop('new_radius_secret', None),
             radius_instructions=session.pop('radius_instructions', None),
         )
@@ -306,6 +294,19 @@ def delete(org_id, router_id, current_user=None, current_organization=None):
 # =============================================================================
 # CONNECTION TEST
 # =============================================================================
+
+@router_web_bp.route('/<router_id>/onboarding-link', methods=['POST'])
+@web_router_access_required
+def regenerate_onboarding(org_id, router_id, current_user=None, current_organization=None):
+    """Issue a fresh onboarding link, invalidating the previous one."""
+    try:
+        router_service.regenerate_onboarding_link(router_id, current_organization.id)
+        flash('New onboarding link generated. The previous link no longer works.', 'success')
+    except Exception as e:
+        logger.error(f"Regenerate onboarding link failed: {e}", exc_info=True)
+        flash(f'Could not generate a new link: {e}', 'danger')
+    return redirect(url_for('router_web.show', org_id=org_id, router_id=router_id))
+
 
 @router_web_bp.route('/<router_id>/test', methods=['POST'])
 @web_router_access_required
