@@ -6,9 +6,7 @@ from app.core.database.mixins import OrganizationMixin, TimestampMixin, SoftDele
 from app.models.auth import User, RefreshToken, AuditLog
 from app.models.verification import EmailVerification
 from app.models.organization import Organization, OrganizationUser
-from app.models.network import Network
 from app.models.router import Router, HotspotServer, PPPoeServer
-from app.models.access_point import AccessPoint
 from app.models.subscriber import Subscriber, Device
 from app.models.billing import Plan, Subscription, Invoice, InvoiceItem, Voucher, VoucherBatch, DiscountCoupon
 from app.models.payment import PaymentAccount, Transaction, Refund, PaymentWebhookLog
@@ -32,14 +30,11 @@ __all__ = [
     # Organization models
     'Organization', 'OrganizationUser',
     
-    # Network models
-    'Network',
     
     # Router models
     'Router', 'HotspotServer', 'PPPoeServer',
     
     # Access Point models
-    'AccessPoint',
     
     # Subscriber models
     'Subscriber', 'Device',

@@ -305,10 +305,6 @@ def organization_dashboard(org_id):
     router_service = RouterService()
     recent_routers = router_service.get_routers_by_organization(organization.id, 0, 5)
 
-    # Recent access points
-    from app.modules.access_point.service import AccessPointService
-    ap_service = AccessPointService()
-    recent_aps = ap_service.get_access_points_by_organization(organization.id, 0, 5)
 
     # Recent activity
     try:
@@ -331,7 +327,6 @@ def organization_dashboard(org_id):
         expiring_subscriptions=expiring_subscriptions,
         voucher_batches=voucher_batches,
         recent_routers=recent_routers,
-        recent_aps=recent_aps,
         recent_activity=recent_activity,
         plan_distribution=plan_distribution,
     )

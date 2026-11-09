@@ -33,7 +33,7 @@ import pytest  # noqa: E402
 from app import create_app  # noqa: E402
 from app.core.database.session import db  # noqa: E402
 from app.models import (  # noqa: E402
-    Network, Organization, OrganizationUser, Plan, User,
+    Organization, OrganizationUser, Plan, User,
 )
 
 #: radacct declares an Integer autoincrement column inside a composite primary
@@ -79,9 +79,6 @@ def _seed():
     # user's organization_id column.
     db.session.add(OrganizationUser(
         organization_id=org.id, user_id=user.id, role='org_admin', is_primary=True,
-    ))
-    db.session.add(Network(
-        organization_id=org.id, name='Main', slug='main', type='hotspot', is_active=True,
     ))
     db.session.add(Plan(
         organization_id=org.id, name='Daily 1GB', plan_type='hotspot', price=50,

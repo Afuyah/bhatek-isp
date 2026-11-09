@@ -1,0 +1,120 @@
+{% extends "web/organization/base.html" %}
+{% from '_icons.html' import icon %}
+
+{% block title %}{{ organization.name }} - Configure {{ router.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width:900px;margin:0 auto;padding:0 4px;">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap;">
+        <div>
+            <h4 style="margin:0;font-size:17px;font-weight:800;color:var(--text);">Configure router</h4>
+            <p style="margin:4px 0 0;font-size:12px;color:var(--text-muted);">
+                {{ router.name }} · {{ router.wireguard_ip or 'no tunnel address' }}
+            </p>
+        </div>
+        <a href="{{ url_for('router_web.show', org_id=organization.id, router_id=router.id) }}"
+           style="font-size:12px;font-weight:700;color:var(--text-muted);text-decoration:none;">← Back to router</a>
+    </div>
+
+    {% if not router.wireguard_ip %}
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#92400e;">
+        This router has no tunnel address yet. Run the onboarding command first — the platform can only
+        configure a router it can reach over the tunnel.
+    </div>
+    {% elif router.status != 'online' %}
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#92400e;">
+        Last known state: <strong>{{ router.status or 'unknown' }}</strong>. You can still apply the
+        configuration, but it will only succeed once the router answers on its tunnel address.
+    </div>
+    {% endif %}
+
+    {% if result %}
+    <div style="border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px;background:#fff;">
+        <div style="font-size:12px;font-weight:800;color:var(--text);margin-bottom:10px;">
+            {{ 'Plan preview' if result.dry_run else 'Last apply' }}
+            {% if result.success %}<span style="color:#15803d;">· ready</span>
+            {% else %}<span style="color:#b91c1c;">· failed: {{ result.failed|join(', ') }}</span>{% endif %}
+        </div>
+        {% for step in result.steps %}
+        <div style="display:flex;gap:8px;align-items:baseline;padding:5px 0;border-top:1px solid var(--border);font-size:11.5px;">
+            <span style="color:{{ '#15803d' if step.ok else '#b91c1c' }};font-weight:800;">{{ '✓' if step.ok else '✕' }}</span>
+            <span style="color:var(--text);font-weight:600;">{{ step.title }}</span>
+            {% if step.planned %}<span style="color:var(--text-muted);">· {{ step.planned|length }} command(s)</span>{% endif %}
+            {% if step.errors %}<span style="color:#b91c1c;">· {{ step.errors|join('; ')|truncate(120) }}</span>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if form.provisioned_at %}
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#1e40af;">
+        This router was configured on {{ form.provisioned_at }}.
+        Applying again <strong>replaces</strong> that configuration — use it when reprovisioning.
+    </div>
+    {% endif %}
+
+    <form method="POST" style="border:1px solid var(--border);border-radius:14px;background:#fff;padding:18px;">
+        <div style="margin-bottom:18px;">
+            <label style="display:block;font-size:12px;font-weight:800;color:var(--text);margin-bottom:6px;">Uplink port</label>
+            <select name="uplink" style="width:260px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;font-size:12px;">
+                {% for p in ['ether1','ether2','ether3','ether4','ether5','ether6','ether7','ether8','sfp1','sfp2'] %}
+                <option value="{{ p }}" {% if form.uplink == p %}selected{% endif %}>{{ p }}</option>
+                {% endfor %}
+            </select>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">The port connected to your internet provider.</div>
+        </div>
+
+        <div style="margin-bottom:18px;">
+            <label style="display:block;font-size:12px;font-weight:800;color:var(--text);margin-bottom:8px;">Customer ports</label>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">
+                {% for p in ['ether2','ether3','ether4','ether5','ether6','ether7','ether8','ether9','ether10'] %}
+                <label style="display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;cursor:pointer;">
+                    <input type="checkbox" name="lan_ports" value="{{ p }}"
+                           {% if p in (form.lan_ports or ['ether2','ether3','ether4','ether5']) %}checked{% endif %}>
+                    <span>{{ p }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Ports that serve customers. Unchecked ports stay unused.</div>
+        </div>
+
+        <div style="margin-bottom:18px;">
+            <label style="display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800;color:var(--text);cursor:pointer;">
+                <input type="checkbox" name="use_wlan" id="useWlan" {% if form.use_wlan or not form %}checked{% endif %}>
+                Use the wireless radio as a hotspot AP
+            </label>
+            <div style="font-size:11px;color:var(--text-muted);margin:4px 0 10px 26px;">
+                Phones that join the WiFi are redirected to the payment portal, pay, then browse.
+            </div>
+            <div style="margin-left:26px;">
+                <label style="font-size:11px;font-weight:700;color:var(--text-muted);">WiFi name (SSID)</label>
+                <input type="text" name="ssid" maxlength="32" value="{{ form.ssid or '' }}"
+                       placeholder="e.g. Ruiru WiFi"
+                       style="display:block;width:280px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;font-size:12px;margin-top:4px;">
+            </div>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:16px;">
+            <button type="submit" name="action" value="preview"
+                    style="padding:9px 16px;border-radius:10px;border:1px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer;">
+                Preview plan
+            </button>
+            <button type="submit" name="action" value="apply"
+                    style="padding:9px 16px;border-radius:10px;border:none;background:#2d6a4f;color:#fff;font-size:12px;font-weight:800;cursor:pointer;">
+                Apply configuration
+            </button>
+            <span style="font-size:11px;color:var(--text-muted);align-self:center;">
+                Preview sends no commands to the router.
+            </span>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('useWlan')?.addEventListener('change', function () {
+    const ssid = document.querySelector('input[name="ssid"]');
+    if (ssid) { ssid.disabled = !this.checked; ssid.style.opacity = this.checked ? 1 : .5; }
+});
+</script>
+{% endblock %}

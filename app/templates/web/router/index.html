@@ -17,7 +17,7 @@
             <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0;letter-spacing:-.02em;">Routers</h1>
             <p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;">
                 {% set total = context.get('total', routers|length) if context else routers|length %}
-                {{ total }} router{{ 's' if total != 1 else '' }} · {{ networks|length }} network{{ 's' if networks|length != 1 else '' }}
+                {{ total }} router{{ 's' if total != 1 else '' }}
             </p>
         </div>
         <a href="{{ url_for('router_web.create', org_id=organization.id) }}" class="btn btn-primary">
@@ -36,7 +36,7 @@
         {% for label, value, stat_icon, bg, color in [
             ('Total',total,'fa-server','#eff6ff','#2563eb'),('Online',online,'fa-check-circle','#ecfdf5','#10b981'),
             ('Offline',offline,'fa-exclamation-triangle','#fef2f2','#ef4444'),('RADIUS Ready',radius_ok,'fa-shield-halved','#eef2ff','#6366f1'),
-            ('Pending',radius_pend,'fa-clock','#fffbeb','#f59e0b'),('Networks',networks|length,'fa-globe','#f5f3ff','#8b5cf6')
+            ('Pending',radius_pend,'fa-clock','#fffbeb','#f59e0b'),
         ] %}
         <div class="stat-card" style="display:flex;align-items:center;gap:12px;">
             <div style="width:38px;height:38px;border-radius:12px;background:{{ bg }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -59,9 +59,6 @@
             <select id="radiusFilter" style="padding:7px 12px;border:1px solid var(--border);border-radius:10px;font-size:11px;font-weight:600;color:var(--text);background:#fff;">
                 <option value="">All RADIUS</option><option value="configured">Configured</option><option value="pending">Pending</option><option value="failed">Failed</option>
             </select>
-            <select id="networkFilter" style="padding:7px 12px;border:1px solid var(--border);border-radius:10px;font-size:11px;font-weight:600;color:var(--text);background:#fff;">
-                <option value="">All Networks</option>{% for net in networks %}<option value="{{ net.id }}">{{ net.name }}</option>{% endfor %}
-            </select>
             <div style="position:relative;flex:1;min-width:180px;">
                 {{ icon('search', '', 'position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:11px;') }}
                 <input id="searchInput" placeholder="Search..." style="width:100%;padding:7px 12px 7px 30px;border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--text);outline:none;">
@@ -78,7 +75,7 @@
                 <thead><tr><th>Router</th><th>IP Address</th><th>Status</th><th>RADIUS</th><th>Last Seen</th><th></th></tr></thead>
                 <tbody id="routerTable">
                     {% for r in routers %}
-                    <tr data-status="{{ r.status or 'unknown' }}" data-radius="{{ r.radius_config_status or 'unknown' }}" data-network="{{ r.network_id or '' }}" data-name="{{ r.name|lower }}" data-ip="{{ r.ip_address }}">
+                    <tr data-status="{{ r.status or 'unknown' }}" data-radius="{{ r.radius_config_status or 'unknown' }}" data-name="{{ r.name|lower }}" data-ip="{{ r.ip_address }}">
                         <td>
                             <div style="display:flex;align-items:center;gap:10px;">
                                 <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -151,12 +148,12 @@
 const orgId='{{ organization.id }}';
 function filterRouters(){
     const s=document.getElementById('statusFilter')?.value||'',r=document.getElementById('radiusFilter')?.value||'',
-          n=document.getElementById('networkFilter')?.value||'',q=(document.getElementById('searchInput')?.value||'').toLowerCase();
+          q=(document.getElementById('searchInput')?.value||'').toLowerCase();
     let c=0;
     document.querySelectorAll('#routerTable tr').forEach(row=>{
-        const v=row.dataset.status===s||!s,rad=row.dataset.radius===r||!r,net=row.dataset.network===n||!n,
+        const v=row.dataset.status===s||!s,rad=row.dataset.radius===r||!r,
               sr=!q||row.dataset.name.includes(q)||row.dataset.ip.includes(q);
-        const show=v&&rad&&net&&sr;row.style.display=show?'':'none';if(show)c++;
+        const show=v&&rad&&sr;row.style.display=show?'':'none';if(show)c++;
     });
     document.getElementById('visibleCount').textContent=c;
     document.getElementById('noResults').style.display=c===0?'block':'none';
@@ -164,6 +161,6 @@ function filterRouters(){
 function openModal(id,name){document.getElementById('deleteName').textContent=name;document.getElementById('deleteForm').action='/organization/'+orgId+'/routers/'+id+'/delete';document.getElementById('deleteModal').classList.add('active');}
 function closeModal(e){if(!e||e.target===document.getElementById('deleteModal'))document.getElementById('deleteModal').classList.remove('active');}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('deleteModal').classList.remove('active');});
-['statusFilter','radiusFilter','networkFilter','searchInput'].forEach(id=>document.getElementById(id)?.addEventListener(id==='searchInput'?'input':'change',filterRouters));
+['statusFilter','radiusFilter','searchInput'].forEach(id=>document.getElementById(id)?.addEventListener(id==='searchInput'?'input':'change',filterRouters));
 </script>
 {% endblock %}

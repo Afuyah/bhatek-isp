@@ -10,7 +10,6 @@ class Router(BaseModel, OrganizationMixin, TimestampMixin):
     __tablename__ = 'routers'
     
     # Basic Information
-    network_id = Column(UUID(as_uuid=True), ForeignKey('networks.id'), index=True)
     name = Column(String(255), nullable=False)
     model = Column(String(100))
     firmware_version = Column(String(50))
@@ -63,10 +62,8 @@ class Router(BaseModel, OrganizationMixin, TimestampMixin):
     
     # Relationships
     organization = relationship('Organization', back_populates='routers')
-    network = relationship('Network', back_populates='routers')
     hotspot_servers = relationship('HotspotServer', back_populates='router')
     pppoe_servers = relationship('PPPoeServer', back_populates='router')
-    access_points = relationship('AccessPoint', back_populates='router')
     nas_entry = relationship('NAS', foreign_keys=[nas_entry_id], uselist=False)
     
     def __repr__(self):
@@ -77,7 +74,6 @@ class Router(BaseModel, OrganizationMixin, TimestampMixin):
         data = {
             'id': str(self.id),
             'organization_id': str(self.organization_id),
-            'network_id': str(self.network_id) if self.network_id else None,
             'name': self.name,
             'model': self.model,
             'firmware_version': self.firmware_version,
@@ -131,7 +127,6 @@ class HotspotServer(BaseModel, OrganizationMixin, TimestampMixin):
     is_active = Column(Boolean, default=True, index=True)
     
     router = relationship('Router', back_populates='hotspot_servers')
-    access_points = relationship('AccessPoint', back_populates='hotspot_server')
 
 
 class PPPoeServer(BaseModel, OrganizationMixin, TimestampMixin):

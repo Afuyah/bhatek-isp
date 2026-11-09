@@ -14,9 +14,7 @@ Three groups, deliberately separated:
 def register_api_blueprints(app):
     from app.modules.auth.routes import auth_bp
     from app.modules.organization.routes import org_bp
-    from app.modules.network.routes import network_bp
     from app.modules.router.routes import router_bp
-    from app.modules.access_point.routes import ap_bp
     from app.modules.subscriber.routes import subscriber_bp
     from app.modules.billing.routes import billing_bp
     from app.modules.payment.routes import payment_bp
@@ -27,11 +25,9 @@ def register_api_blueprints(app):
     app.register_blueprint(hotspot_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     app.register_blueprint(org_bp, url_prefix='/api/v1/organizations')
-    app.register_blueprint(network_bp, url_prefix='/api/v1/networks')
     app.register_blueprint(router_bp, url_prefix='/api/v1/routers')
     # Public capability URL: /onboard/<token>.rsc (no auth, no prefix)
     app.register_blueprint(onboarding_bp)
-    app.register_blueprint(ap_bp, url_prefix='/api/v1/access-points')
     app.register_blueprint(subscriber_bp, url_prefix='/api/v1/subscribers')
     app.register_blueprint(billing_bp, url_prefix='/api/v1/billing')
     app.register_blueprint(payment_bp, url_prefix='/api/v1/payments')
@@ -41,16 +37,12 @@ def register_api_blueprints(app):
 
 def register_web_blueprints(app):
     from app.modules.web import web_bp
-    from app.modules.network.web_routes import network_web_bp
     from app.modules.router.web_routes import router_web_bp
-    from app.modules.access_point.web_routes import ap_web_bp
     from app.modules.billing.web_routes import billing_web_bp
     from app.modules.subscriber.web_routes import subscriber_web_bp
 
     app.register_blueprint(web_bp)
-    app.register_blueprint(network_web_bp)
     app.register_blueprint(router_web_bp)
-    app.register_blueprint(ap_web_bp)
     app.register_blueprint(billing_web_bp)
     app.register_blueprint(subscriber_web_bp)
 

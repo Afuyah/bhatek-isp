@@ -73,22 +73,9 @@ class RouterController:
         try:
             data = RouterCreateSchema().load(request.json)
 
-            # network_id is optional: onboarding only needs a description.
-            network_id = data.get('network_id') or (request.json or {}).get('network_id')
-            network_uuid = None
-            if network_id:
-                try:
-                    network_uuid = UUID(str(network_id))
-                except (ValueError, AttributeError):
-                    return jsonify({
-                        'success': False,
-                        'error': 'Invalid network_id format',
-                        'error_code': 'INVALID_NETWORK_ID',
-                    }), 400
 
             result = self.service.create_router(
                 organization_id=g.organization_id,
-                network_id=network_uuid,
                 data=data,
             )
 
@@ -600,7 +587,6 @@ class RouterController:
     # FILTERED VIEWS
     # =========================================================================
 
-    @token_required
     def get_by_network(self, network_id):
         """GET /api/v1/routers/by-network/<network_id>"""
         try:
@@ -635,7 +621,6 @@ class RouterController:
                     'ip_address': str(r.ip_address), 'wireguard_ip': r.wireguard_ip,
                     'status': r.status, 'radius_config_status': r.radius_config_status,
                     'model': r.model,
-                    'network_id': str(r.network_id) if r.network_id else None,
                 } for r in routers],
                 'count': len(routers),
             }), 200
@@ -1149,7 +1134,6 @@ class RouterController:
         return {
             'id': str(router.id),
             'organization_id': str(router.organization_id),
-            'network_id': str(router.network_id) if router.network_id else None,
             'name': router.name, 'model': router.model,
             'firmware_version': router.firmware_version,
             'description': router.description, 'location': router.location,
@@ -1185,7 +1169,6 @@ class RouterController:
             'radius_config_status': router.radius_config_status,
             'auto_config_attempts': router.auto_config_attempts or 0,
             'last_seen_at': router.last_seen_at.isoformat() if router.last_seen_at else None,
-            'network_id': str(router.network_id) if router.network_id else None,
             'location': router.location,
             'created_at': router.created_at.isoformat() if router.created_at else None,
         }

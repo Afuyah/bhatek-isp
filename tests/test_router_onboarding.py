@@ -57,8 +57,10 @@ def test_link_serves_the_script(client):
     assert 'no-store' in response.headers.get('Cache-Control', '')
 
     script = response.get_data(as_text=True)
+    # The onboarding script joins the platform; hotspot/walled garden are applied
+    # later from the Configure page (they need the router to be online first).
     for fragment in ('/interface wireguard add', '/radius add address=10.0.0.1',
-                     'use-radius=yes', 'walled-garden'):
+                     'use-radius=yes'):
         assert fragment in script, f"missing {fragment!r}"
 
 

@@ -7,7 +7,6 @@ from app.modules.subscriber.service import SubscriberService
 from app.modules.billing.service import BillingService
 from app.modules.organization.service import OrganizationService
 from app.modules.auth.repository import UserRepository
-from app.modules.network.service import NetworkService
 from app.core.exceptions.handlers import NotFoundError, BusinessError
 from app.core.time import utcnow
 
@@ -18,7 +17,6 @@ subscriber_web_bp = Blueprint('subscriber_web', __name__, url_prefix='/organizat
 subscriber_service = SubscriberService()
 billing_service = BillingService()
 organization_service = OrganizationService()
-network_service = NetworkService()
 user_repo = UserRepository()
 
 # DECORATORS

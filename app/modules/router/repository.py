@@ -105,45 +105,12 @@ class RouterRepository:
             )
             raise
 
-    def get_by_network(
-        self,
-        network_id: UUID,
-        organization_id: UUID,
-        skip: int = 0,
-        limit: int = 100
-    ) -> List[Router]:
-        
-        try:
-            return (
-                self.model.query
-                .filter(
-                    and_(
-                        self.model.network_id == network_id,
-                        self.model.organization_id == organization_id,
-                        self.model.is_active == True,
-                    )
-                )
-                .order_by(self.model.name)
-                .offset(skip)
-                .limit(limit)
-                .all()
-            )
-
-        except SQLAlchemyError as e:
-            logger.error(
-                f"Database error in get_by_network: network={network_id} "
-                f"org={organization_id} | {e}",
-                exc_info=True
-            )
-            raise
-
     def get_by_organization(
         self,
         organization_id: UUID,
         skip: int = 0,
         limit: int = 100,
         status: str = None,
-        network_id: UUID = None,
         radius_config_status: str = None,
     ) -> List[Router]:
         
@@ -155,9 +122,6 @@ class RouterRepository:
 
             if status:
                 filters.append(self.model.status == status)
-
-            if network_id:
-                filters.append(self.model.network_id == network_id)
 
             if radius_config_status:
                 filters.append(

@@ -74,17 +74,7 @@
                         {{ icon('heartbeat', 'w-4 text-sm') }}
                         <span>Router Health</span>
                     </a>
-                    <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'access-points' in request.path %}active{% endif %}" 
-                       href="{{ url_for('ap_web.index', org_id=organization.id) }}">
-                        {{ icon('wifi', 'w-4 text-sm') }}
-                        <span>Access Points</span>
-                    </a>
-                    <a class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 text-sm font-medium transition-colors duration-150 {% if 'networks' in request.path %}active{% endif %}" 
-                       href="{{ url_for('network_web.index', org_id=organization.id) }}">
-                        {{ icon('network-wired', 'w-4 text-sm') }}
-                        <span>Networks</span>
-                    </a>
-                </div>
+</div>
             </div>
             
             <div class="mb-5">

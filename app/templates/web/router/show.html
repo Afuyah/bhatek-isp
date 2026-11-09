@@ -90,15 +90,16 @@
                 <div style="width:36px;height:36px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;">{{ icon('check', '', 'color:#fff;') }}</div>
                 <div><strong style="font-size:13px;">Router Online</strong><p style="font-size:11px;color:var(--text-alt);margin:1px 0 0;">Verify RADIUS</p></div>
             </div>
-            <form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-accent btn-xs">Check RADIUS</button></form>
+            <form method="POST" action="{{ url_for('router_web.check_connection', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-outline btn-sm">Check online</button></form>
         </div>
     </div>
     {% endif %}
 
     {# Quick Actions #}
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+        <a href="{{ url_for('router_web.configure', org_id=organization.id, router_id=router.id) }}" class="btn btn-accent btn-sm">Configure</a>
         <form method="POST" action="{{ url_for('router_web.test_connection', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-dark btn-xs">Test</button></form>
-        <form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-outline btn-xs">Check RADIUS</button></form>
+        <form method="POST" action="{{ url_for('router_web.check_connection', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-outline btn-sm">Check online</button></form>
         {% if radius_failed %}<form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-xs" style="background:var(--amber);color:#fff;">Retry RADIUS</button></form>{% endif %}
         <form method="POST" action="{{ url_for('router_web.sync', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-outline btn-xs">Sync</button></form>
         <form method="POST" action="{{ url_for('router_web.discover', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-outline btn-xs">Discover</button></form>
@@ -182,7 +183,7 @@
         <div class="card" style="overflow:hidden;">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;">
                 <h3 style="font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0;">RADIUS</h3>
-                <div style="display:flex;gap:6px;"><form method="POST" action="{{ url_for('router_web.check_radius', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-dark btn-xs">Check</button></form>{% if radius_failed %}<form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-xs" style="background:var(--amber);color:#fff;">Retry</button></form>{% endif %}</div>
+                <div style="display:flex;gap:6px;"><form method="POST" action="{{ url_for('router_web.check_connection', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-outline btn-sm">Check online</button></form>{% if radius_failed %}<form method="POST" action="{{ url_for('router_web.retry_radius_config', org_id=organization.id, router_id=router.id) }}"><button class="btn btn-xs" style="background:var(--amber);color:#fff;">Retry</button></form>{% endif %}</div>
             </div>
             <div style="padding:18px 20px;">
                 {% if router.radius_secret %}

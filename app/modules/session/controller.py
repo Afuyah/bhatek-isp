@@ -62,7 +62,6 @@ class SessionController:
             
             subscriber_id = request.args.get('subscriber_id')
             router_id = request.args.get('router_id')
-            ap_id = request.args.get('access_point_id')
             username = request.args.get('username')
             device_mac = request.args.get('device_mac')
             
@@ -99,7 +98,6 @@ class SessionController:
                 'filters': {
                     'subscriber_id': subscriber_id,
                     'router_id': router_id,
-                    'access_point_id': ap_id,
                     'username': username,
                     'device_mac': device_mac
                 }

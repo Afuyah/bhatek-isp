@@ -27,7 +27,6 @@ class RouterUpdateSchema(Schema):
     
     # Optional fields (all can be updated)
     name = fields.String(required=False, validate=validate.Length(min=2, max=255))
-    network_id = fields.UUID(required=False)
     model = fields.String(required=False, validate=validate.Length(max=100))
     ip_address = fields.String(required=False)
     api_port = fields.Integer(required=False, validate=validate.Range(min=1, max=65535))
@@ -128,7 +127,6 @@ class RouterFilterSchema(Schema):
     page = fields.Integer(load_default=1, validate=validate.Range(min=1))
     per_page = fields.Integer(load_default=20, validate=validate.Range(min=1, max=100))
     status = fields.String(validate=validate.OneOf(['online', 'offline', 'error', 'unknown']))
-    network_id = fields.UUID(required=False)
     search = fields.String(validate=validate.Length(max=100))
     is_active = fields.Boolean(required=False)
     radius_config_status = fields.String(validate=validate.OneOf(['pending', 'configured', 'failed', 'manual']))
@@ -162,7 +160,6 @@ class RouterResponseSchema(Schema):
     
     id = fields.UUID()
     organization_id = fields.UUID()
-    network_id = fields.UUID()
     name = fields.String()
     model = fields.String(allow_none=True)
     ip_address = fields.String()

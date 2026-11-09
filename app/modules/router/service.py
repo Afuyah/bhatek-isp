@@ -509,14 +509,7 @@ class RouterService:
             "/ip hotspot profile set [find] use-radius=yes",
             "/ip hotspot profile set [find] radius-accounting=yes",
             "",
-            "# 6. Walled garden - reachable before login",
-            '/ip hotspot walled-garden ip add dst-port=53 protocol=udp action=accept comment="DNS"',
-            f'/ip hotspot walled-garden ip add dst-host={portal} action=accept comment="Payment portal"',
-            '/ip hotspot walled-garden ip add dst-host=*.safaricom.co.ke action=accept comment="M-Pesa API"',
-            '/ip hotspot walled-garden ip add dst-host=*.googleapis.com action=accept comment="Fonts"',
-            '/ip hotspot walled-garden ip add dst-host=*.gstatic.com action=accept comment="CDN"',
-            "",
-            "# 7. Verify the tunnel",
+            "# 6. Verify the tunnel",
             "/ping 10.0.0.1 count=3",
         ]
         return "\n".join(lines)
@@ -667,24 +660,7 @@ class RouterService:
         base = re.sub(r'[^A-Za-z0-9]+', '-', description).strip('-').lower()[:40]
         return f"{base or 'router'}-{secrets.token_hex(2)}"
 
-    def _default_network_id(self, organization_id):
-        """Return the organization's first network, creating one if needed."""
-        from app.models.network import Network
-
-        network = Network.query.filter_by(organization_id=organization_id).first()
-        if network is None:
-            network = Network(
-                organization_id=organization_id,
-                name='Default',
-                description='Created automatically for router onboarding',
-                is_active=True,
-            )
-            db.session.add(network)
-            db.session.flush()
-        return network.id
-
-    def create_router(self, organization_id: UUID, network_id: UUID = None,
-                      data: Dict[str, Any] = None) -> Dict[str, Any]:
+    def create_router(self, organization_id: UUID, data: Dict[str, Any] = None) -> Dict[str, Any]:
         """Provision a router from a description alone.
 
         Generates the VPN address, API credentials and RADIUS secret, creates the
@@ -701,8 +677,6 @@ class RouterService:
             raise ValidationError("Organization not found")
 
         name = (data.get('name') or '').strip() or self._router_name_from(description)
-        if not network_id:
-            network_id = self._default_network_id(organization_id)
 
         api_username = f"bhatek-{secrets.token_hex(3)}"
         api_password = secrets.token_urlsafe(18)
@@ -712,7 +686,6 @@ class RouterService:
 
         router = self.repository.create({
             'organization_id': organization_id,
-            'network_id': network_id,
             'name': name,
             'model': data.get('model'),
             'ip_address': wg_ip,
@@ -768,6 +741,39 @@ class RouterService:
         }
         merged = {**defaults, **saved, **(overrides or {})}
         return Topology.from_config(merged)
+
+    def check_connection(self, router_id, organization_id) -> Dict[str, Any]:
+        """Ask the router who it is. Replaces the old RADIUS check: one call,
+        one answer, and the status/last_seen fields are updated from it."""
+        router = self.repository.get_by_id(as_uuid(router_id), as_uuid(organization_id))
+        if not router:
+            raise ValidationError('Router not found')
+        if not router.wireguard_ip:
+            return {'online': False, 'status': router.status,
+                    'error': 'Router has no tunnel address yet'}
+
+        try:
+            reply = self._execute_via_vps(router, '/system/resource/print') or []
+        except Exception as exc:
+            logger.warning("Router check failed for %s: %s", router.id, exc)
+            reply = [{'error': str(exc)}]
+
+        problem = next((r for r in reply if r.get('_trap') or r.get('error')), None)
+        online = problem is None and bool(reply)
+        router.status = 'online' if online else 'offline'
+        if online:
+            router.last_seen_at = utcnow()
+        db.session.commit()
+
+        first = reply[0] if online and reply else {}
+        return {
+            'online': online,
+            'status': router.status,
+            'identity': first.get('board-name') or first.get('architecture-name'),
+            'version': first.get('version'),
+            'uptime': first.get('uptime'),
+            'error': (problem.get('message') or problem.get('error')) if problem else None,
+        }
 
     def provision_config(self, router_id, organization_id, config=None,
                          roles=None, dry_run=False) -> Dict[str, Any]:
@@ -1003,11 +1009,8 @@ class RouterService:
         if not r: raise NotFoundError("Router not found")
         return r
 
-    def get_routers_by_organization(self, organization_id: UUID, skip=0, limit=100, status=None, network_id=None, radius_config_status=None) -> List[Router]:
-        return self.repository.get_by_organization(organization_id, skip, limit, status, network_id, radius_config_status)
-
-    def get_routers_by_network(self, network_id: UUID, organization_id: UUID) -> List[Router]:
-        return self.repository.get_by_network(network_id, organization_id)
+    def get_routers_by_organization(self, organization_id: UUID, skip=0, limit=100, status=None, radius_config_status=None) -> List[Router]:
+        return self.repository.get_by_organization(organization_id, skip, limit, status, radius_config_status)
 
     def get_routers_pending_radius_config(self, organization_id: UUID) -> List[Router]:
         return self.repository.get_routers_pending_radius_config(organization_id)

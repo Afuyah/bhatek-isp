@@ -22,15 +22,6 @@
 
     <div class="form-container">
         <form method="POST" id="editRouterForm">
-            <div class="form-group">
-                <label class="form-label">Network</label>
-                <select name="network_id" class="form-select">
-                    <option value="">Select Network...</option>
-                    {% for net in networks %}
-                    <option value="{{ net.id }}" {% if router.network_id == net.id %}selected{% endif %}>{{ net.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
 
             <div class="form-group">
                 <label class="form-label">Router Name <span class="required">*</span></label>

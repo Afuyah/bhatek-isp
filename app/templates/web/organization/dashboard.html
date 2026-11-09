@@ -102,15 +102,7 @@
                 {{ icon('tag', 'text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block') }}
                 <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Plans</span>
             </a>
-            <a href="{{ url_for('network_web.index', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
-                {{ icon('network-wired', 'text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block') }}
-                <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">Network</span>
-            </a>
-            <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="text-center p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-[#2d6a4f] transition-colors duration-150 group">
-                {{ icon('wifi', 'text-[#2d6a4f] group-hover:text-white text-sm md:text-base mb-1 block') }}
-                <span class="text-[10px] md:text-xs text-gray-600 group-hover:text-white">AP</span>
-            </a>
-        </div>
+</div>
     </div>
 
     <!-- Two Column Grid for Data Cards -->
@@ -245,10 +237,7 @@
                 <h5 class="text-sm md:text-base font-semibold text-gray-700">
                     {{ icon('wifi', 'mr-1.5 text-blue-500') }} Access Points
                 </h5>
-                <a href="{{ url_for('ap_web.index', org_id=organization.id) }}" class="text-[10px] md:text-xs text-[#2d6a4f] hover:underline">
-                    View All →
-                </a>
-            </div>
+</div>
             <div class="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
                 {% if recent_aps %}
                     {% for ap in recent_aps %}

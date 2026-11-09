@@ -15,7 +15,6 @@ class ActiveSession(BaseModel, OrganizationMixin):
     router_id = Column(UUID(as_uuid=True), ForeignKey('routers.id'), nullable=True, index=True)
     hotspot_server_id = Column(UUID(as_uuid=True), ForeignKey('hotspot_servers.id'), nullable=True, index=True)
     pppoe_server_id = Column(UUID(as_uuid=True), ForeignKey('pppoe_servers.id'), nullable=True, index=True)
-    access_point_id = Column(UUID(as_uuid=True), ForeignKey('access_points.id'), nullable=True, index=True)
     
     session_type = Column(String(20), nullable=False)  # hotspot, pppoe
     session_id = Column(String(255), nullable=False, index=True)
@@ -45,12 +44,10 @@ class ActiveSession(BaseModel, OrganizationMixin):
     router = relationship('Router', foreign_keys=[router_id])
     hotspot_server = relationship('HotspotServer', foreign_keys=[hotspot_server_id])
     pppoe_server = relationship('PPPoeServer', foreign_keys=[pppoe_server_id])
-    access_point = relationship('AccessPoint', foreign_keys=[access_point_id])  # No back_populates
     
     __table_args__ = (
         Index('idx_session_subscriber', 'subscriber_id', 'status'),
         Index('idx_session_router', 'router_id', 'status'),
-        Index('idx_session_ap', 'access_point_id', 'status'),
         Index('idx_session_device', 'device_mac', 'status'),
         Index('idx_session_expiry', 'expiry_time'),
         Index('idx_session_org', 'organization_id'),
@@ -70,7 +67,6 @@ class ActiveSession(BaseModel, OrganizationMixin):
             'bytes_out': self.bytes_out,
             'session_time': self.session_time,
             'status': self.status,
-            'access_point_id': str(self.access_point_id) if self.access_point_id else None,
             'router_id': str(self.router_id) if self.router_id else None,
         }
 

@@ -84,20 +84,6 @@ class SessionRepository:
             logger.error(f"Database error in get_active_by_router: {e}", exc_info=True)
             raise
     
-    def get_active_by_access_point(self, ap_id: UUID, organization_id: UUID) -> List[ActiveSession]:
-        """Get active sessions for an access point"""
-        try:
-            return self.model.query.filter(
-                and_(
-                    self.model.access_point_id == ap_id,
-                    self.model.organization_id == organization_id,
-                    self.model.status == 'active'
-                )
-            ).all()
-        except SQLAlchemyError as e:
-            logger.error(f"Database error in get_active_by_access_point: {e}", exc_info=True)
-            raise
-    
     def get_active_by_username(self, username: str, organization_id: UUID) -> List[ActiveSession]:
         """Get active sessions by username"""
         try:

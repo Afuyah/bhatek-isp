@@ -55,10 +55,7 @@ def test_static_assets_are_cacheable(client):
 OPERATOR_PAGES = [
     '/dashboard',
     '/organization/{org_id}/dashboard',
-    '/organization/{org_id}/networks/',
-    '/organization/{org_id}/networks/create',
-    '/organization/{org_id}/networks/stats',
-    '/organization/{org_id}/subscribers/',
+                '/organization/{org_id}/subscribers/',
     '/organization/{org_id}/subscribers/hotspot',
     '/organization/{org_id}/subscribers/pppoe',
     '/organization/{org_id}/subscribers/create/hotspot',

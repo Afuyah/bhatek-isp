@@ -21,7 +21,6 @@ class MikroTikRouter:
     
     # Additional fields for compatibility with your Router model
     organization_id: Optional[str] = None
-    network_id: Optional[str] = None
     model: Optional[str] = None
     routeros_version: Optional[str] = None
     serial_number: Optional[str] = None
@@ -46,7 +45,6 @@ class MikroTikRouter:
             'last_seen_at': self.last_seen_at.isoformat() if self.last_seen_at else None,
             'settings': self.settings,
             'organization_id': self.organization_id,
-            'network_id': self.network_id,
             'model': self.model,
             'routeros_version': self.routeros_version,
             'serial_number': self.serial_number,

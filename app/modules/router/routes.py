@@ -10,7 +10,6 @@ Route Structure:
         ├── GET    /issues                        (auth)   Routers needing attention
         ├── GET    /active                        (auth)   Active routers for dropdowns
         ├── GET    /pending-radius                (auth)   Routers needing RADIUS config
-        ├── GET    /by-network/<network_id>       (auth)   Routers in a network
         │
         ├── POST   /                              (auth)   Create router
         ├── GET    /                              (auth)   List routers (paginated)
@@ -161,131 +160,8 @@ def get_pending_radius():
     return controller.get_pending_radius()
 
 
-@router_bp.route('/by-network/<network_id>', methods=['GET'])
-@token_required
-def get_by_network(network_id):
-    """GET /api/v1/routers/by-network/<network_id> — Routers in a network."""
-    return controller.get_by_network(network_id)
+# POST-ONBOARDING PROVISIONING
 
-
-# SINGLE RESOURCE ROUTES
-
-@router_bp.route('/<router_id>', methods=['GET'])
-@token_required
-def get(router_id):
-    """GET /api/v1/routers/<router_id> — Router detail."""
-    return controller.get(router_id)
-
-
-@router_bp.route('/<router_id>', methods=['PUT'])
-@token_required
-def update(router_id):
-    """PUT /api/v1/routers/<router_id> — Update router."""
-    return controller.update(router_id)
-
-
-@router_bp.route('/<router_id>', methods=['DELETE'])
-@token_required
-def delete(router_id):
-    """DELETE /api/v1/routers/<router_id> — Delete/deactivate router."""
-    return controller.delete(router_id)
-
-
-# CONNECTION & DISCOVERY
-
-@router_bp.route('/<router_id>/test', methods=['POST'])
-@token_required
-def test(router_id):
-    """POST /api/v1/routers/<router_id>/test — Test connection."""
-    return controller.test_connection(router_id)
-
-
-@router_bp.route('/<router_id>/auto-configure', methods=['POST'])
-@token_required
-def auto_configure_after_wireguard(router_id):
-    """POST /api/v1/routers/<router_id>/auto-configure — Auto-configure after WireGuard."""
-    return controller.auto_configure_after_wireguard(router_id)
-
-
-@router_bp.route('/<router_id>/walled-garden', methods=['POST'])
-@token_required
-def configure_walled_garden(router_id):
-    """POST /api/v1/routers/<router_id>/walled-garden — Configure captive portal access."""
-    return controller.configure_walled_garden(router_id)
-
-
-@router_bp.route('/<router_id>/discover', methods=['POST'])
-@token_required
-def discover(router_id):
-    """POST /api/v1/routers/<router_id>/discover — Auto-discover capabilities."""
-    return controller.discover(router_id)
-
-
-@router_bp.route('/<router_id>/sync', methods=['POST'])
-@token_required
-def sync(router_id):
-    """POST /api/v1/routers/<router_id>/sync — Sync hotspot/PPPoE servers."""
-    return controller.sync(router_id)
-
-
-@router_bp.route('/<router_id>/health', methods=['GET'])
-@token_required
-def health(router_id):
-    """GET /api/v1/routers/<router_id>/health — Live health metrics."""
-    return controller.health(router_id)
-
-
-@router_bp.route('/<router_id>/status', methods=['GET'])
-@token_required
-def status(router_id):
-    """GET /api/v1/routers/<router_id>/status — Connection status summary."""
-    return controller.status(router_id)
-
-
-# RADIUS CONFIGURATION
-
-@router_bp.route('/<router_id>/radius', methods=['POST'])
-@token_required
-def configure_radius(router_id):
-    """POST /api/v1/routers/<router_id>/radius — Manual RADIUS config."""
-    return controller.configure_radius(router_id)
-
-
-@router_bp.route('/<router_id>/radius/retry', methods=['POST'])
-@token_required
-def retry_radius_config(router_id):
-    """POST /api/v1/routers/<router_id>/radius/retry — Retry RADIUS auto-config."""
-    return controller.retry_radius_config(router_id)
-
-
-# HOTSPOT & PPPoE SERVER CREATION
-
-@router_bp.route('/<router_id>/hotspot-servers', methods=['POST'])
-@token_required
-def create_hotspot_server(router_id):
-    """POST /api/v1/routers/<router_id>/hotspot-servers — Create hotspot server on router."""
-    return controller.create_hotspot_server(router_id)
-
-
-@router_bp.route('/<router_id>/pppoe-servers', methods=['POST'])
-@token_required
-def create_pppoe_server(router_id):
-    """POST /api/v1/routers/<router_id>/pppoe-servers — Create PPPoE server on router."""
-    return controller.create_pppoe_server(router_id)
-
-
-@router_bp.route('/<router_id>/radius/secret', methods=['GET'])
-@token_required
-def get_radius_secret(router_id):
-    """GET /api/v1/routers/<router_id>/radius/secret — Get RADIUS secret (audited)."""
-    return controller.get_radius_secret(router_id)
-@router_bp.route('/<router_id>/pppoe-servers/<pppoe_id>', methods=['DELETE'])
-@token_required
-def delete_pppoe_server(router_id, pppoe_id):
-    return controller.delete_pppoe_server(router_id, pppoe_id)
-
-
-# FULL SYNC & RADIUS TEST
 
 @router_bp.route('/<router_id>/provision-plan', methods=['GET', 'POST'])
 @token_required
@@ -304,19 +180,5 @@ def provision(router_id):
 @router_bp.route('/<router_id>/onboarding-link', methods=['POST'])
 @token_required
 def regenerate_onboarding_link(router_id):
-    """POST /api/v1/routers/<router_id>/onboarding-link — issue a new setup link."""
+    """Issue a fresh provisioning link, invalidating the previous one."""
     return controller.regenerate_onboarding_link(router_id)
-
-
-@router_bp.route('/<router_id>/full-sync', methods=['POST'])
-@token_required
-def full_sync(router_id):
-    """POST /api/v1/routers/<router_id>/full-sync — Re-sync WireGuard IP, NAS, RADIUS."""
-    return controller.full_sync(router_id)
-
-
-@router_bp.route('/<router_id>/radius/test', methods=['GET'])
-@token_required
-def test_radius(router_id):
-    """GET /api/v1/routers/<router_id>/radius/test — Verify RADIUS configuration."""
-    return controller.test_radius(router_id)

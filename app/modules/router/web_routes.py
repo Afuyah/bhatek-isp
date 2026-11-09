@@ -22,7 +22,6 @@ from app.modules.router.repository import (
     HotspotServerRepository,
     PPPoeServerRepository,
 )
-from app.modules.network.service import NetworkService
 from app.modules.organization.service import OrganizationService
 from app.modules.auth.repository import UserRepository
 from app.core.database.session import db
@@ -38,7 +37,6 @@ router_service = RouterService()
 router_repo = RouterRepository()
 hotspot_repo = HotspotServerRepository()
 pppoe_repo = PPPoeServerRepository()
-network_service = NetworkService()
 organization_service = OrganizationService()
 user_repo = UserRepository()
 
@@ -108,19 +106,11 @@ def index(org_id, current_user=None, current_organization=None):
     skip = (page - 1) * per_page
 
     status_filter = request.args.get('status')
-    network_id = request.args.get('network_id')
     radius_config_status = request.args.get('radius_config_status')
-
-    network_uuid = None
-    if network_id:
-        try: network_uuid = UUID(network_id)
-        except ValueError: flash('Invalid network filter', 'warning'); network_id = None
-
-    networks = network_service.get_organization_networks(current_organization.id, 0, 100)
 
     routers = router_service.get_routers_by_organization(
         organization_id=current_organization.id, skip=skip, limit=per_page,
-        status=status_filter, network_id=network_uuid, radius_config_status=radius_config_status,
+        status=status_filter, radius_config_status=radius_config_status,
     )
 
     total = router_repo.count_by_organization(current_organization.id, status=status_filter, radius_config_status=radius_config_status)
@@ -129,10 +119,10 @@ def index(org_id, current_user=None, current_organization=None):
     return render_template(
         'web/router/index.html',
         organization=current_organization, user=current_user,
-        routers=routers, networks=networks,
+        routers=routers,
         pagination={'total': total, 'page': page, 'per_page': per_page, 'pages': total_pages, 'has_next': page < total_pages, 'has_prev': page > 1},
         context=_get_router_context(current_organization.id),
-        filters={'status': status_filter, 'network_id': network_id, 'radius_config_status': radius_config_status},
+        filters={'status': status_filter, 'radius_config_status': radius_config_status},
         new_secret=session.pop('new_radius_secret', None),
         radius_instructions=session.pop('radius_instructions', None),
     )
@@ -145,10 +135,8 @@ def index(org_id, current_user=None, current_organization=None):
 @router_web_bp.route('/create', methods=['GET', 'POST'])
 @web_router_access_required
 def create(org_id, current_user=None, current_organization=None):
-    networks = network_service.get_organization_networks(current_organization.id, 0, 100)
-
     if request.method == 'GET':
-        return render_template('web/router/create.html', organization=current_organization, user=current_user, networks=networks, form_data=None)
+        return render_template('web/router/create.html', organization=current_organization, user=current_user, form_data=None)
 
     form_data = {
         'description': request.form.get('description', '').strip(),
@@ -158,12 +146,11 @@ def create(org_id, current_user=None, current_organization=None):
     if not form_data['description'] or len(form_data['description']) < 3:
         flash('A short description is required (at least 3 characters).', 'danger')
         return render_template('web/router/create.html', organization=current_organization,
-                               user=current_user, networks=networks, form_data=form_data)
+                               user=current_user, form_data=form_data)
 
     try:
         result = router_service.create_router(
             organization_id=current_organization.id,
-            network_id=None,
             data=form_data,
         )
         router = result.get('router')
@@ -172,7 +159,7 @@ def create(org_id, current_user=None, current_organization=None):
     except Exception as e:
         logger.error(f"Error creating router: {e}", exc_info=True)
         flash(f'Error creating router: {str(e)}', 'danger')
-        return render_template('web/router/create.html', organization=current_organization, user=current_user, networks=networks, form_data=form_data)
+        return render_template('web/router/create.html', organization=current_organization, user=current_user, form_data=form_data)
 
 
 # =============================================================================
@@ -239,37 +226,100 @@ def edit(org_id, router_id, current_user=None, current_organization=None):
     try:
         router_uuid = UUID(router_id)
         router = router_service.get_router(router_uuid, current_organization.id)
-        networks = network_service.get_organization_networks(current_organization.id, 0, 100)
+    except ValueError:
+        flash('Invalid router ID format', 'danger')
+        return redirect(url_for('router_web.index', org_id=org_id))
 
-        if request.method == 'GET':
-            return render_template('web/router/edit.html', organization=current_organization, user=current_user, router=router, networks=networks, new_secret=session.pop('new_radius_secret', None))
+    if request.method == 'GET':
+        return render_template('web/router/edit.html', organization=current_organization,
+                               user=current_user, router=router,
+                               new_secret=session.pop('new_radius_secret', None))
 
-        data = {}
-        if request.form.get('name', '').strip(): data['name'] = request.form.get('name', '').strip()
-        if request.form.get('network_id'):
-            try: data['network_id'] = UUID(request.form.get('network_id'))
-            except ValueError: flash('Invalid network selection', 'danger'); return render_template('web/router/edit.html', organization=current_organization, user=current_user, router=router, networks=networks)
-        if request.form.get('ip_address', '').strip(): data['ip_address'] = request.form.get('ip_address', '').strip()
-        if request.form.get('username', '').strip(): data['username'] = request.form.get('username', '').strip()
-        if request.form.get('password'): data['password'] = request.form.get('password')
-        if request.form.get('api_port', type=int): data['api_port'] = request.form.get('api_port', type=int)
-        data['location'] = request.form.get('location', '').strip() or None
-        data['description'] = request.form.get('description', '').strip() or None
-        data['is_active'] = request.form.get('is_active') == 'true'
+    data = {}
+    if request.form.get('name', '').strip():
+        data['name'] = request.form.get('name', '').strip()
+    if request.form.get('username', '').strip():
+        data['username'] = request.form.get('username', '').strip()
+    if request.form.get('password'):
+        data['password'] = request.form.get('password')
+    if request.form.get('api_port', type=int):
+        data['api_port'] = request.form.get('api_port', type=int)
+    data['location'] = request.form.get('location', '').strip() or None
+    data['description'] = request.form.get('description', '').strip() or None
+    data['is_active'] = request.form.get('is_active') == 'true'
 
+    try:
         if data:
             updated = router_service.update_router(router_uuid, current_organization.id, data)
             flash(f'Router "{updated.name}" updated successfully!', 'success')
         else:
             flash('No changes submitted', 'info')
         return redirect(url_for('router_web.show', org_id=org_id, router_id=router_id))
-    except ValueError:
-        flash('Invalid router ID format', 'danger')
-        return redirect(url_for('router_web.index', org_id=org_id))
     except Exception as e:
         logger.error(f"Error updating router {router_id}: {e}", exc_info=True)
         flash(f'Error updating router: {str(e)}', 'danger')
         return redirect(url_for('router_web.index', org_id=org_id))
+
+
+# =============================================================================
+# CONFIGURE ROUTER (hardening + ports + hotspot)
+# =============================================================================
+
+@router_web_bp.route('/<router_id>/configure', methods=['GET', 'POST'])
+@web_router_access_required
+def configure(org_id, router_id, current_user=None, current_organization=None):
+    try:
+        router_uuid = UUID(router_id)
+        router = router_service.get_router(router_uuid, current_organization.id)
+    except ValueError:
+        flash('Invalid router ID format', 'danger')
+        return redirect(url_for('router_web.index', org_id=org_id))
+
+    saved = dict((router.settings or {}).get('topology', {}))
+    form = {**saved, 'provisioned_at': (router.settings or {}).get('provisioned_at')}
+    result = None
+
+    if request.method == 'POST':
+        cfg = {
+            'uplink': request.form.get('uplink') or 'ether1',
+            'lan_ports': request.form.getlist('lan_ports'),
+            'use_wlan': request.form.get('use_wlan') == 'on',
+            'ssid': (request.form.get('ssid') or '').strip() or None,
+        }
+        preview = request.form.get('action') == 'preview'
+        try:
+            result = router_service.provision_config(
+                router_uuid, current_organization.id, config=cfg, dry_run=preview)
+            form = {**cfg, 'provisioned_at': form.get('provisioned_at')}
+            if not preview:
+                if result.get('success'):
+                    flash('Configuration applied - the router is serving customers.', 'success')
+                else:
+                    flash(f"Applied with failures: {', '.join(result.get('failed', []))}", 'danger')
+                return redirect(url_for('router_web.show', org_id=org_id, router_id=router_id))
+        except Exception as e:
+            logger.error(f"Configure router failed: {e}", exc_info=True)
+            flash(f'Could not configure the router: {e}', 'danger')
+
+    return render_template('web/router/configure.html', organization=current_organization,
+                           user=current_user, router=router, form=form, result=result)
+
+
+@router_web_bp.route('/<router_id>/check', methods=['POST'])
+@web_router_access_required
+def check_connection(org_id, router_id, current_user=None, current_organization=None):
+    """One call that answers 'is this router online?' and refreshes its state."""
+    try:
+        result = router_service.check_connection(UUID(router_id), current_organization.id)
+        if result.get('online'):
+            label = ' '.join(x for x in [result.get('identity'), result.get('version')] if x)
+            flash(f"Router online{(' - ' + label) if label else ''}", 'success')
+        else:
+            flash(f"Router unreachable: {result.get('error') or 'no response'}", 'warning')
+    except Exception as e:
+        logger.error(f"Router check failed: {e}", exc_info=True)
+        flash(f'Check failed: {e}', 'danger')
+    return redirect(url_for('router_web.show', org_id=org_id, router_id=router_id))
 
 
 # =============================================================================
@@ -414,25 +464,6 @@ def retry_radius_config(org_id, router_id, current_user=None, current_organizati
 # =============================================================================
 # RADIUS — CHECK STATUS
 # =============================================================================
-
-@router_web_bp.route('/<router_id>/radius/check', methods=['POST'])
-@web_router_access_required
-def check_radius(org_id, router_id, current_user=None, current_organization=None):
-    try:
-        router_uuid = UUID(router_id)
-        result = router_service.check_radius_status(router_uuid, current_organization.id)
-        if result.get('radius_configured'):
-            flash('RADIUS is configured and working!', 'success')
-        elif result.get('api_reachable'):
-            flash('API reachable but RADIUS server not found. Click Retry RADIUS to configure.', 'warning')
-        else:
-            flash('RADIUS not configured. Click Retry RADIUS to configure.', 'danger')
-    except ValueError: flash('Invalid router ID format', 'danger')
-    except Exception as e:
-        logger.error(f"Error checking RADIUS: {e}", exc_info=True)
-        flash(f'RADIUS check failed: {str(e)}', 'danger')
-    return redirect(url_for('router_web.show', org_id=org_id, router_id=router_id))
-
 
 # =============================================================================
 # HOTSPOT SERVER — CREATE (on MikroTik via VPS + database)

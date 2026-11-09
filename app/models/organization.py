@@ -47,7 +47,6 @@ class Organization(BaseModel, TimestampMixin):
         cascade='all, delete-orphan'
     )
 
-    networks = relationship('Network', back_populates='organization')
     routers = relationship('Router', back_populates='organization')
     subscribers = relationship('Subscriber', back_populates='organization')
     payment_accounts = relationship('PaymentAccount', back_populates='organization')
