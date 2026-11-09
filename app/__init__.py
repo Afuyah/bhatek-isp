@@ -175,6 +175,16 @@ def create_app(config_name=None):
     _init_cors(app)
 
     setup_logging(app)
+    # ------------------------------------------------------------------
+    # Tenancy: bind the organization from the Host header
+    # ------------------------------------------------------------------
+    from app.core.tenancy import resolve_organization
+
+    @app.before_request
+    def _bind_tenant():
+        from flask import g
+        g.organization = resolve_organization()
+
     register_error_handlers(app)
     register_template_filters(app)
 

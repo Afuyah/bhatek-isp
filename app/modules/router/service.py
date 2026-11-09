@@ -1,5 +1,3 @@
-from datetime import timedelta
-import os
 """
 Router Service Module
 =====================
@@ -13,6 +11,9 @@ Flow:
     4. Retry RADIUS → only if check fails, re-runs config
 """
 
+from datetime import timedelta
+import os
+
 from typing import Dict, Any, List, Optional
 from uuid import UUID
 
@@ -24,6 +25,8 @@ import secrets
 import re
 
 from flask import current_app
+
+from app.core.database.identifiers import as_uuid
 
 from app.modules.router.repository import (
     RouterRepository, HotspotServerRepository, PPPoeServerRepository,
@@ -544,23 +547,70 @@ class RouterService:
         db.session.commit()
         return {'token': token, 'expires_at': expires}
 
+    def _provision_serializer(self):
+        from itsdangerous import URLSafeTimedSerializer
+
+        return URLSafeTimedSerializer(current_app.config['SECRET_KEY'],
+                                      salt='router-provision')
+
     def onboarding_link(self, router) -> Dict[str, Any]:
-        """Return the one-line command that installs this router."""
+        """Return the one-line command that provisions this router.
+
+        The URL is signed and time-limited; it carries the router id and the
+        revocable token, so regenerating it invalidates the previous link.
+        """
         if not router.onboarding_token:
             self._issue_onboarding_token(router)
-        url = f"{self._onboarding_base_url()}/onboard/{router.onboarding_token}.rsc"
-        command = (
-            f'/tool fetch url="{url}" dst-path=bhatek-onboard.rsc check-certificate=no; '
-            f'/import file-name=bhatek-onboard.rsc'
+        payload = self._provision_serializer().dumps(
+            {'r': str(router.id), 'n': router.onboarding_token}
         )
+        url = f"{self._onboarding_base_url()}/provision/{payload}"
+        command = (f'/tool fetch mode=https url="{url}" dst-path=bhatek.rsc;'
+                   f':delay 2s;/import bhatek.rsc')
         return {
             'url': url,
             'command': command,
             'expires_at': (router.onboarding_token_expires_at.isoformat()
                            if router.onboarding_token_expires_at else None),
-            'note': 'Single-use. Fetch it once in the MikroTik terminal; '
-                    'regenerate if it expires or the import fails.',
+            'note': 'Single-use and time-limited. Run it once in the MikroTik '
+                    'terminal; regenerate if it expires or the import fails.',
         }
+
+    def redeem_provision_payload(self, payload: str):
+        """Validate a signed provisioning payload and return (router, error)."""
+        from itsdangerous import BadSignature, SignatureExpired
+
+        from app.core.time import utcnow
+
+        if not payload or len(payload) < 16:
+            return None, 'not_found'
+        try:
+            data = self._provision_serializer().loads(
+                payload, max_age=current_app.config.get('PROVISION_LINK_TTL_SECONDS', 86400)
+            )
+        except SignatureExpired:
+            return None, 'expired'
+        except BadSignature:
+            return None, 'not_found'
+        except Exception as exc:
+            logger.warning("Unreadable provisioning payload: %s", exc)
+            return None, 'not_found'
+
+        router = Router.query.filter_by(id=as_uuid(data.get('r'))).first()
+        if router is None or not router.onboarding_token:
+            return None, 'not_found'
+        if data.get('n') != router.onboarding_token:
+            return None, 'used'
+        if router.onboarding_token_expires_at and router.onboarding_token_expires_at < utcnow():
+            return None, 'expired'
+        if (router.onboarding_used_at
+                and utcnow() - router.onboarding_used_at
+                > timedelta(minutes=self.ONBOARDING_GRACE_MINUTES)):
+            return None, 'used'
+        if router.onboarding_used_at is None:
+            router.onboarding_used_at = utcnow()
+            db.session.commit()
+        return router, None
 
     def redeem_onboarding_token(self, token: str):
         """Validate a token and return (router, error_reason)."""
@@ -581,8 +631,6 @@ class RouterService:
         return router, None
 
     def regenerate_onboarding_link(self, router_id, organization_id) -> Dict[str, Any]:
-        from app.core.database.identifiers import as_uuid
-
         router = self.repository.get_by_id(as_uuid(router_id), as_uuid(organization_id))
         if not router:
             raise ValidationError('Router not found')

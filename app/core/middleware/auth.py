@@ -36,8 +36,9 @@ class AuthMiddleware:
         # =====================================================================
         self.web_exempt_prefixes: List[str] = [
             '/static/',      # Static assets (CSS, JS, images)
-            '/health',       # Health check endpoints,
-        '/onboard/',
+            '/health',       # Health check endpoints
+            '/onboard/',     # Legacy router capability link
+            '/provision/',   # Signed router provisioning link
         ]
 
         # =====================================================================

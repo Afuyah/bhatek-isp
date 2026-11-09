@@ -1,19 +1,18 @@
-"""Public onboarding endpoint.
+"""Public provisioning endpoint.
 
-A freshly created router has no credentials yet, so it cannot authenticate.
-The URL itself is the credential: a 256-bit token, valid for
-``ONBOARDING_TTL_HOURS`` and redeemable once (with a short re-fetch grace).
+A router that has just been added has no credentials yet, so the URL itself is
+the credential. The payload is signed (and time-limited) and carries both the
+router id and its revocable token:
 
-The MikroTik fetches the script and imports it:
+    /tool fetch mode=https url="https://<org>.<domain>/provision/<payload>" \
+        dst-path=bhatek.rsc;:delay 2s;/import bhatek.rsc
 
-    /tool fetch url="https://.../onboard/<token>.rsc" dst-path=bhatek-onboard.rsc; \
-        /import file-name=bhatek-onboard.rsc
-
-Security notes:
-  * the token is single-use: a second fetch after the grace window returns 410
-  * the token expires, and regenerating invalidates the previous one
-  * the response is never cached and never indexed
-  * every redemption is logged with the client address
+Security properties:
+  * signed with SECRET_KEY — the payload cannot be forged or edited
+  * time-limited (``PROVISION_LINK_TTL_SECONDS``, 24h by default)
+  * bound to ``routers.onboarding_token``, so "New link" revokes the old one
+  * single-use, with a short grace window so a failed import can be retried
+  * never cached, never indexed, and every redemption is logged
 """
 
 from flask import Blueprint, Response, abort, request
@@ -32,27 +31,36 @@ _NO_STORE = {
 }
 
 
-@onboarding_bp.route('/onboard/<token>.rsc', methods=['GET'])
-def onboard_script(token):
-    """Return the RouterOS script for a valid onboarding token."""
-    router, reason = _router_service.redeem_onboarding_token(token)
-
+def _serve(router, reason):
     if reason == 'not_found':
-        logger.warning("Onboarding link rejected (unknown token) from %s",
+        logger.warning("Provision request rejected (unknown payload) from %s",
                        request.headers.get('X-Forwarded-For', request.remote_addr))
         abort(404)
-
     if reason in ('expired', 'used'):
-        logger.warning("Onboarding link rejected (%s) for router %s from %s",
+        logger.warning("Provision request rejected (%s) for router %s from %s",
                        reason, router.id if router else '?',
                        request.headers.get('X-Forwarded-For', request.remote_addr))
         abort(410)
 
     script = _router_service.render_onboarding_script(router)
-    logger.info("Onboarding script served for router %s (%s) to %s",
+    logger.info("Provisioning script served for router %s (%s) to %s",
                 router.id, router.name,
                 request.headers.get('X-Forwarded-For', request.remote_addr))
 
     response = Response(script, mimetype='text/plain')
     response.headers.update(_NO_STORE)
     return response
+
+
+@onboarding_bp.route('/provision/<payload>', methods=['GET'])
+def provision(payload):
+    """Serve the RouterOS script for a signed provisioning payload."""
+    router, reason = _router_service.redeem_provision_payload(payload)
+    return _serve(router, reason)
+
+
+@onboarding_bp.route('/onboard/<token>.rsc', methods=['GET'])
+def onboard_script(token):
+    """Legacy capability URL, kept so links issued before the switch still work."""
+    router, reason = _router_service.redeem_onboarding_token(token)
+    return _serve(router, reason)

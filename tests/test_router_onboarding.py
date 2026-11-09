@@ -35,8 +35,9 @@ def test_description_alone_provisions_a_router(client):
     # The script must NOT be in the response - only a link to it.
     assert 'setup_script' not in body
     command = body['onboarding']['command']
-    assert '/onboard/' in command and '.rsc' in command
-    assert '/import' in command
+    assert '/provision/' in command
+    assert 'mode=https' in command
+    assert ':delay 2s;' in command and '/import' in command
 
     api = body['api_access']
     assert api['username'].startswith('bhatek-')
@@ -61,7 +62,8 @@ def test_link_serves_the_script(client):
         assert fragment in script, f"missing {fragment!r}"
 
 
-def test_unknown_token_is_404(client):
+def test_unknown_payload_is_404(client):
+    assert client.get('/provision/not-a-valid-payload').status_code == 404
     assert client.get('/onboard/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.rsc').status_code == 404
 
 
@@ -116,8 +118,8 @@ def test_regenerate_invalidates_the_previous_link(client):
     new_url = response.get_json()['onboarding']['url']
     assert new_url != body['onboarding']['url']
 
-    # Old capability is gone; the new one works.
-    assert client.get(old_path).status_code == 404
+    # Old capability is revoked; the new one works.
+    assert client.get(old_path).status_code in (404, 410)
     assert client.get(_path_from(new_url)).status_code == 200
 
 

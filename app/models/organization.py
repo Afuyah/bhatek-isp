@@ -11,6 +11,7 @@ class Organization(BaseModel, TimestampMixin):
     
     name = Column(String(255), nullable=False)
     slug = Column(String(100), nullable=False, unique=True, index=True)
+    subdomain = Column(String(63), nullable=True, unique=True, index=True)
     business_type = Column(String(50), nullable=False)
     
     email = Column(String(255))

@@ -34,6 +34,11 @@ class Config:
     BASE_DOMAIN = os.environ.get('BASE_DOMAIN', 'localhost:5000')
     # Remove port for domain-based operations
     DOMAIN = BASE_DOMAIN.split(':')[0] if ':' in BASE_DOMAIN else BASE_DOMAIN
+    # Tenancy: each organization is addressed by its subdomain of APP_DOMAIN,
+    # e.g. bhat.bhalinks.com. UUID paths are kept only as a legacy fallback.
+    APP_DOMAIN = os.environ.get('APP_DOMAIN', DOMAIN)
+    ORG_SUBDOMAIN_ENABLED = os.environ.get('ORG_SUBDOMAIN_ENABLED', 'true').lower() in ('1', 'true', 'yes')
+    PROVISION_LINK_TTL_SECONDS = int(os.environ.get('PROVISION_LINK_TTL_SECONDS', 86400))
     BASE_URL = os.environ.get('BASE_URL', f'http://{BASE_DOMAIN}')
     API_URL = os.environ.get('API_URL', f'{BASE_URL}/api')
     
