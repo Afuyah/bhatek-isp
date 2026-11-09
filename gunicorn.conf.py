@@ -15,7 +15,8 @@ import multiprocessing
 import os
 
 # ---------------------------------------------------------------- networking
-bind = os.environ.get("GUNICORN_BIND", "0.0.0.0:8080")
+# Railway (and most PaaS) inject PORT; honour it, falling back to 8080.
+bind = os.environ.get("GUNICORN_BIND") or f"0.0.0.0:{os.environ.get('PORT', '8080')}"
 backlog = 2048
 keepalive = int(os.environ.get("GUNICORN_KEEPALIVE", "5"))
 

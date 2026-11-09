@@ -73,3 +73,6 @@ smoke.db
 .flycfg/
 .tools/
 
+# Exported environment (contains secrets)
+railway.env
+*.env.bak
