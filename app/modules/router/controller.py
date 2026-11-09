@@ -183,6 +183,40 @@ class RouterController:
     # =========================================================================
 
     @token_required
+    def provision_plan(self, router_id):
+        """GET /api/v1/routers/<router_id>/provision-plan
+
+        Preview the hardening/topology/hotspot plan without touching the device.
+        """
+        try:
+            body = request.get_json(silent=True) or {}
+            result = self.service.provision_config(
+                router_id, g.organization_id, config=body,
+                roles=body.get('roles'), dry_run=True)
+            return jsonify({'success': True, 'plan': result}), 200
+        except Exception as e:
+            logger.error(f"Provision plan failed: {e}", exc_info=True)
+            return jsonify({'success': False, 'error': str(e)}), 400
+
+    def provision(self, router_id):
+        """POST /api/v1/routers/<router_id>/provision
+
+        Apply hardening, LAN/port roles and hotspot configuration.
+        Body: {uplink, lan_ports:[], use_wlan, ssid, roles:[...]}
+        """
+        try:
+            body = request.get_json(silent=True) or {}
+            result = self.service.provision_config(
+                router_id, g.organization_id, config=body,
+                roles=body.get('roles'), dry_run=False)
+            status = 200 if result.get('success') else 207
+            return jsonify({'success': result.get('success'), 'result': result,
+                            'message': ('Configuration applied' if result.get('success')
+                                        else 'Some steps failed - see result.failed')}), status
+        except Exception as e:
+            logger.error(f"Provisioning failed: {e}", exc_info=True)
+            return jsonify({'success': False, 'error': str(e)}), 400
+
     def regenerate_onboarding_link(self, router_id):
         """POST /api/v1/routers/<router_id>/onboarding-link
 

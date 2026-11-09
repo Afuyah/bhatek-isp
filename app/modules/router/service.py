@@ -754,6 +754,56 @@ class RouterService:
         }
 
     # =========================================================================
+    # POST-ONBOARDING PROVISIONING (hardening + topology + hotspot)
+    # =========================================================================
+
+    def _topology_for(self, router, overrides=None):
+        from app.integrations.mikrotik.provisioner import Topology
+
+        saved = (router.settings or {}).get('topology', {}) if isinstance(router.settings, dict) else {}
+        org = Organization.query.get(router.organization_id)
+        defaults = {
+            'ssid': (org.name[:32] if org and org.name else 'Bhatek WiFi'),
+            'portal_url': self._onboarding_base_url(),
+        }
+        merged = {**defaults, **saved, **(overrides or {})}
+        return Topology.from_config(merged)
+
+    def provision_config(self, router_id, organization_id, config=None,
+                         roles=None, dry_run=False) -> Dict[str, Any]:
+        """Preview (dry_run) or apply the hardening/topology/hotspot plan."""
+        from app.integrations.mikrotik.provisioner import RouterProvisioner
+
+        router = self.repository.get_by_id(as_uuid(router_id), as_uuid(organization_id))
+        if not router:
+            raise ValidationError('Router not found')
+        if not router.wireguard_ip:
+            raise ValidationError('Router has no tunnel address yet - onboard it first')
+
+        topo = self._topology_for(router, config)
+        provisioner = RouterProvisioner(
+            lambda r, path, **attrs: self._execute_via_vps(r, path, **attrs)
+        )
+        result = provisioner.apply(router, topo, roles=roles, dry_run=dry_run)
+        result['topology'] = {
+            'uplink': topo.uplink,
+            'lan_ports': topo.lan_ports,
+            'use_wlan': topo.use_wlan,
+            'ssid': topo.ssid,
+            'hotspot_network': topo.hotspot_network,
+        }
+
+        if not dry_run:
+            settings = dict(router.settings or {})
+            settings['topology'] = result['topology']
+            settings['provisioned_at'] = utcnow().isoformat()
+            router.settings = settings
+            if result['success']:
+                router.status = 'online'
+            db.session.commit()
+        return result
+
+    # =========================================================================
     # TEST CONNECTION
     # =========================================================================
 

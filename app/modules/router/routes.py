@@ -287,6 +287,20 @@ def delete_pppoe_server(router_id, pppoe_id):
 
 # FULL SYNC & RADIUS TEST
 
+@router_bp.route('/<router_id>/provision-plan', methods=['GET', 'POST'])
+@token_required
+def provision_plan(router_id):
+    """Preview hardening/topology/hotspot without touching the device."""
+    return controller.provision_plan(router_id)
+
+
+@router_bp.route('/<router_id>/provision', methods=['POST'])
+@token_required
+def provision(router_id):
+    """Apply hardening, LAN/port roles and hotspot configuration."""
+    return controller.provision(router_id)
+
+
 @router_bp.route('/<router_id>/onboarding-link', methods=['POST'])
 @token_required
 def regenerate_onboarding_link(router_id):
