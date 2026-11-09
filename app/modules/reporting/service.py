@@ -614,7 +614,7 @@ class ReportingService:
             now = utcnow()
             month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-            total_orgs = Organization.query.filter_by(is_active=True).count()
+            total_orgs = Organization.query.filter(Organization.status == 'active').count()
             total_subscribers = Subscriber.query.filter_by(status='active').count()
             total_routers = Router.query.filter_by(is_active=True).count()
             online_routers = Router.query.filter_by(is_active=True, status='online').count()
