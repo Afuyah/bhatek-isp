@@ -102,3 +102,14 @@ def test_send_sms_never_raises(app, monkeypatch):
         result = send_sms('org-1', '0712345678', 'Hello')
     assert result['success'] is False
     assert 'exploded' in result['error']
+
+
+def test_accounting_status_names_are_normalised():
+    """FreeRADIUS sends "Start"/"Stop"; the handler wants 1/2."""
+    from app.integrations.radius.radius_accounting_routes import normalise_acct_status
+
+    assert normalise_acct_status('Start') == '1'
+    assert normalise_acct_status('stop') == '2'
+    assert normalise_acct_status('Interim-Update') == '3'
+    assert normalise_acct_status('2') == '2'
+    assert normalise_acct_status('') == ''

@@ -30,6 +30,26 @@ radius_accounting_bp = Blueprint(
 )
 
 
+#: FreeRADIUS expands %{Acct-Status-Type} to the attribute *name*, while the
+#: handler expects the numeric code. Accept both.
+_ACCT_STATUS_CODES = {
+    'start': '1',
+    'stop': '2',
+    'interim-update': '3',
+    'interim': '3',
+    'accounting-on': '7',
+    'accounting-off': '8',
+}
+
+
+def normalise_acct_status(value) -> str:
+    """Map an Acct-Status-Type name to its numeric code; pass numbers through."""
+    text = str(value or '').strip()
+    if not text or text.isdigit():
+        return text
+    return _ACCT_STATUS_CODES.get(text.lower(), text)
+
+
 @radius_accounting_bp.route('/accounting', methods=['POST'])
 @radius_accounting_bp.route('/accounting/start', methods=['POST'])
 @radius_accounting_bp.route('/accounting/stop', methods=['POST'])
@@ -76,6 +96,9 @@ def radius_accounting():
         if not data:
             logger.warning("RADIUS accounting: empty request body")
             return jsonify({'result': 'ok'}), 200
+
+        data = dict(data)
+        data['acct_status_type'] = normalise_acct_status(data.get('acct_status_type'))
 
         # Process accounting
         handler = RadiusAccountingHandler()
