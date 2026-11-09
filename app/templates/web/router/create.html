@@ -49,78 +49,28 @@
         <form method="POST" id="routerForm" action="{{ url_for('router_web.create', org_id=organization.id) }}">
             <!-- Network Selection -->
             <div class="form-group">
-                <label class="form-label">Network <span class="required">*</span></label>
-                <select name="network_id" class="form-select" required>
-                    <option value="">Select Network...</option>
-                    {% for net in networks %}
-                    <option value="{{ net.id }}" {% if form_data and form_data.network_id == net.id|string %}selected{% endif %}>{{ net.name }}</option>
-                    {% endfor %}
-                </select>
-                <div class="form-text">Router belongs to a network for easier management</div>
-            </div>
+                        <label class="form-label">Description <span class="required">*</span></label>
+                        <textarea name="description" class="form-control" rows="3" required
+                                  placeholder="e.g. Ruiru hotspot - main street router">{{ form_data.description if form_data else '' }}</textarea>
+                        <div class="form-text">What this router is and where it is. Everything else is generated for you.</div>
+                    </div>
 
-            <!-- Basic Info -->
-            <div class="form-group">
-                <label class="form-label">Router Name <span class="required">*</span></label>
-                <input type="text" name="name" class="form-control" required value="{{ form_data.name if form_data else '' }}" placeholder="e.g., Main Office Router">
-                <div class="form-text">A descriptive name to identify this router</div>
-            </div>
+                    <div class="form-group">
+                        <label class="form-label">Name</label>
+                        <input type="text" name="name" class="form-control"
+                               value="{{ form_data.name if form_data else '' }}"
+                               placeholder="Optional - derived from the description">
+                        <div class="form-text">Leave blank to generate a name automatically.</div>
+                    </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">IP Address <span class="required">*</span></label>
-                    <input type="text" name="ip_address" class="form-control" required value="{{ form_data.ip_address if form_data else '' }}" placeholder="192.168.1.1">
-                    <div class="form-text">Public or private IP address of the router</div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">API Port</label>
-                    <input type="number" name="api_port" class="form-control" value="{{ form_data.api_port if form_data else 8728 }}" placeholder="8728">
-                    <div class="form-text">MikroTik API port (default 8728)</div>
-                </div>
-            </div>
+                    <div class="alert alert-info" role="alert">
+                        <strong>Zero-touch onboarding.</strong>
+                        On save we allocate the router's VPN address, generate its API credentials
+                        and RADIUS secret, register it with the platform, and produce a script.
+                        Paste that script into the MikroTik terminal and the router comes online.
+                    </div>
 
-            <!-- Credentials -->
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Username <span class="required">*</span></label>
-                    <input type="text" name="username" class="form-control" required value="{{ form_data.username if form_data else '' }}" placeholder="admin">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Password <span class="required">*</span></label>
-                    <input type="password" name="password" class="form-control" required value="{{ form_data.password if form_data else '' }}">
-                </div>
-            </div>
-
-            <!-- Location & Description -->
-            <div class="form-group">
-                <label class="form-label">Location</label>
-                <input type="text" name="location" class="form-control" value="{{ form_data.location if form_data else '' }}" placeholder="e.g., Server Room A, Floor 2">
-                <div class="form-text">Physical location of the router</div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Description</label>
-                <textarea name="description" class="form-control" rows="2" placeholder="Optional description...">{{ form_data.description if form_data else '' }}</textarea>
-            </div>
-
-            <!-- Active Status -->
-            <div class="form-check">
-                <input type="checkbox" name="is_active" class="form-check-input" id="isActive" value="true" {% if not form_data or form_data.is_active != false %}checked{% endif %}>
-                <label class="form-check-label" for="isActive">Active</label>
-            </div>
-            <div class="form-text" style="margin-top: -0.25rem; margin-bottom: 1rem;">Inactive routers won't be monitored or synced</div>
-
-            <!-- Test Connection Option -->
-            <div class="form-check">
-                <input type="checkbox" name="test_connection" class="form-check-input" id="testConnection" checked value="true">
-                <label class="form-check-label" for="testConnection">Test connection and auto-configure RADIUS</label>
-            </div>
-            <div class="form-text" style="margin-top: -0.25rem; margin-bottom: 0.75rem;">We'll automatically test connectivity and configure RADIUS on your MikroTik router</div>
-
-            <!-- Test Result -->
-            <div id="testResult" class="test-result"></div>
-
-            <!-- Form Actions -->
+                    <!-- Form Actions -->
             <div class="form-actions">
                 <a href="{{ url_for('router_web.index', org_id=organization.id) }}" class="btn-cancel">
                     Cancel

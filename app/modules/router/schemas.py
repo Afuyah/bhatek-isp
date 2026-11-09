@@ -6,57 +6,20 @@ from uuid import UUID
 
 
 class RouterCreateSchema(Schema):
-    """Schema for creating a new router with RADIUS auto-configuration"""
-    
-    # Required fields
-    name = fields.String(required=True, validate=validate.Length(min=2, max=255))
-    network_id = fields.UUID(required=True)
-    ip_address = fields.String(required=True)
-    username = fields.String(required=True, validate=validate.Length(min=1, max=100))
-    password = fields.String(required=True, validate=validate.Length(min=1))
-    
-    # Optional fields
+    """Provision a router from a description.
+
+    Onboarding is zero-touch: the operator describes the router, and the
+    platform generates the VPN address, API credentials and RADIUS secret and
+    returns a script to paste into the MikroTik terminal.
+    """
+
+    description = fields.String(required=True, validate=validate.Length(min=3, max=500))
+    name = fields.String(required=False, validate=validate.Length(max=255))
     model = fields.String(required=False, validate=validate.Length(max=100))
-    api_port = fields.Integer(load_default=8728, validate=validate.Range(min=1, max=65535))
     location = fields.String(required=False, validate=validate.Length(max=255))
-    description = fields.String(required=False, validate=validate.Length(max=500))
+    api_port = fields.Integer(load_default=8728, validate=validate.Range(min=1, max=65535))
     is_active = fields.Boolean(load_default=True)
-    
-    # Advanced settings
     settings = fields.Dict(load_default=dict)
-    
-    @validates('ip_address')
-    def validate_ip(self, value, **kwargs):
-        """Validate IP address format"""
-        try:
-            ipaddress.ip_address(value)
-        except ValueError:
-            raise ValidationError('Invalid IP address format')
-    
-    @validates('name')
-    def validate_name(self, value, **kwargs):
-        """Validate router name"""
-        if not value or not value.strip():
-            raise ValidationError('Router name cannot be empty')
-        if len(value) < 2:
-            raise ValidationError('Router name must be at least 2 characters')
-    
-    @validates('api_port')
-    def validate_api_port(self, value, **kwargs):
-        """Validate API port"""
-        if value < 1 or value > 65535:
-            raise ValidationError('Port must be between 1 and 65535')
-    
-    @pre_load
-    def clean_data(self, data, **kwargs):
-        """Clean and prepare data before validation"""
-        if 'name' in data:
-            data['name'] = data['name'].strip()
-        if 'username' in data:
-            data['username'] = data['username'].strip()
-        if 'description' in data and data['description']:
-            data['description'] = data['description'].strip()
-        return data
 
 
 class RouterUpdateSchema(Schema):

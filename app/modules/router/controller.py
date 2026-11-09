@@ -73,22 +73,18 @@ class RouterController:
         try:
             data = RouterCreateSchema().load(request.json)
 
-            network_id = data.get('network_id') or request.json.get('network_id')
-            if not network_id:
-                return jsonify({
-                    'success': False,
-                    'error': 'network_id is required',
-                    'error_code': 'MISSING_NETWORK_ID',
-                }), 400
-
-            try:
-                network_uuid = UUID(network_id)
-            except (ValueError, AttributeError):
-                return jsonify({
-                    'success': False,
-                    'error': 'Invalid network_id format',
-                    'error_code': 'INVALID_NETWORK_ID',
-                }), 400
+            # network_id is optional: onboarding only needs a description.
+            network_id = data.get('network_id') or (request.json or {}).get('network_id')
+            network_uuid = None
+            if network_id:
+                try:
+                    network_uuid = UUID(str(network_id))
+                except (ValueError, AttributeError):
+                    return jsonify({
+                        'success': False,
+                        'error': 'Invalid network_id format',
+                        'error_code': 'INVALID_NETWORK_ID',
+                    }), 400
 
             result = self.service.create_router(
                 organization_id=g.organization_id,
@@ -101,8 +97,15 @@ class RouterController:
             radius_info = result.get('radius', {})
             setup_script = result.get('setup_script', '')
 
+            api_access = result.get('api_access', {})
+
             response_data = {
                 'success': True,
+                'api_access': {
+                    'username': api_access.get('username'),
+                    'password': api_access.get('password'),
+                    '_warning': 'Stored encrypted; shown once for support purposes.',
+                },
                 'message': (
                     'Router created successfully. '
                     'Paste the setup script into your MikroTik terminal, '

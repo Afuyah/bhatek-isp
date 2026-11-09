@@ -1,3 +1,4 @@
+import os
 """
 Router Service Module
 =====================
@@ -440,83 +441,178 @@ class RouterService:
     # =========================================================================
 
     def _generate_mikrotik_setup_script(self, wireguard_ip: str, mikrotik_private_key: str,
-                                          radius_secret: str, router_name: str = "Router",
-                                          organization_name: str = "ISP") -> str:
+                                        radius_secret: str, router_name: str = "Router",
+                                        organization_name: str = "ISP",
+                                        api_username: str = None,
+                                        api_password: str = None) -> str:
+        """Build the onboarding script for a MikroTik.
+
+        The platform address and portal host come from configuration, so the
+        script never carries a stale IP.
+        """
+        endpoint = (os.environ.get('WIREGUARD_ENDPOINT') or '').strip()
+        if endpoint:
+            host, _, port = endpoint.partition(':')
+        else:
+            host, port = (os.environ.get('VPS_HOST') or '10.0.0.1'), '51820'
+        port = port or '51820'
         pk = self._get_vps_public_key()
-        return f"""# ISP Platform - {router_name} | WireGuard IP: {wireguard_ip}
+        try:
+            portal = current_app.config.get('BASE_DOMAIN') or 'bhatek-isp.fly.dev'
+        except Exception:
+            portal = 'bhatek-isp.fly.dev'
 
-    # WireGuard VPN Tunnel
-    /interface wireguard add listen-port=51820 private-key="{mikrotik_private_key}" name=wg-to-vps
-    /interface wireguard peers add allowed-address=10.0.0.1/32 endpoint-address=163.245.217.16 endpoint-port=51820 interface=wg-to-vps persistent-keepalive=25 public-key="{pk}"
-    /ip address add address={wireguard_ip}/16 interface=wg-to-vps network=10.0.0.0
-    /ip route add dst-address=10.0.0.1/32 gateway=wg-to-vps
-
-    # Force WireGuard Handshake
-    /interface wireguard peers remove [find]
-    /interface wireguard peers add allowed-address=10.0.0.1/32 endpoint-address=163.245.217.16 endpoint-port=51820 interface=wg-to-vps persistent-keepalive=25 public-key="{pk}"
-
-    # Firewall
-    /ip firewall filter add chain=input src-address=10.0.0.0/16 action=accept comment="ISP Platform" place-before=0
-    /interface list member add interface=wg-to-vps list=LAN
-
-    # API Access
-    /ip service enable api
-    /ip service set api address=0.0.0.0/0
-    /ip service enable winbox
-    /ip service set winbox address=0.0.0.0/0
-    /ip service enable ssh
-    /ip service set ssh address=0.0.0.0/0
-
-    # RADIUS
-    /radius remove [find]
-    :delay 1s
-    /radius add address=10.0.0.1 secret="{radius_secret}" service=hotspot,ppp authentication-port=1812 accounting-port=1813 timeout=3s
-    :foreach p in=[/ip hotspot profile find] do={{ /ip hotspot profile set $p use-radius=yes }}
-    /ppp aaa set use-radius=yes
-    /radius incoming set accept=yes
-
-    # Walled Garden
-    /ip hotspot walled-garden ip add dst-port=53 protocol=udp action=accept comment="DNS"
-    /ip hotspot walled-garden ip add dst-host=isp.bhatek.space action=accept comment="ISP Portal"
-    /ip hotspot walled-garden ip add dst-host=*.safaricom.co.ke action=accept comment="M-Pesa"
-    /ip hotspot walled-garden ip add dst-host=*.googleapis.com action=accept comment="Fonts"
-    /ip hotspot walled-garden ip add dst-host=*.gstatic.com action=accept comment="CDN"
-
-    # Verify: /ping 10.0.0.1 count=3"""
+        lines = [
+            f"# {organization_name} - {router_name}",
+            f"# WireGuard address: {wireguard_ip}    Portal: {portal}",
+            "",
+            "# 1. WireGuard tunnel to the platform",
+            f'/interface wireguard add listen-port=51820 private-key="{mikrotik_private_key}" name=wg-to-vps',
+            f'/interface wireguard peers add allowed-address=10.0.0.1/32 endpoint-address={host} '
+            f'endpoint-port={port} interface=wg-to-vps persistent-keepalive=25 public-key="{pk}"',
+            f"/ip address add address={wireguard_ip}/16 interface=wg-to-vps network=10.0.0.0",
+            "/ip route add dst-address=10.0.0.1/32 gateway=wg-to-vps",
+            "",
+            "# 2. Firewall: trust the platform tunnel",
+            '/ip firewall filter add chain=input src-address=10.0.0.0/16 action=accept '
+            'comment="ISP Platform" place-before=0',
+            "/interface list member add interface=wg-to-vps list=LAN",
+            "",
+            "# 3. Management services - reachable only over the tunnel",
+            "/ip service enable api",
+            "/ip service set api address=10.0.0.0/16",
+            "/ip service enable winbox",
+            "/ip service set winbox address=10.0.0.0/16",
+            "/ip service enable ssh",
+            "/ip service set ssh address=10.0.0.0/16",
+        ]
+        if api_username and api_password:
+            lines += [
+                "",
+                "# 4. Dedicated API user for the platform",
+                f'/user add name="{api_username}" password="{api_password}" group=full '
+                f'comment="ISP Platform"',
+            ]
+        lines += [
+            "",
+            "# 5. RADIUS (AAA) served by the platform",
+            "/radius remove [find]",
+            f'/radius add address=10.0.0.1 secret="{radius_secret}" service=hotspot,ppp '
+            f'authentication-port=1812 accounting-port=1813 timeout=3s',
+            "/ppp aaa set use-radius=yes",
+            "/ppp aaa set accounting=yes",
+            "/radius incoming set accept=yes",
+            "/ip hotspot profile set [find] use-radius=yes",
+            "/ip hotspot profile set [find] radius-accounting=yes",
+            "",
+            "# 6. Walled garden - reachable before login",
+            '/ip hotspot walled-garden ip add dst-port=53 protocol=udp action=accept comment="DNS"',
+            f'/ip hotspot walled-garden ip add dst-host={portal} action=accept comment="Payment portal"',
+            '/ip hotspot walled-garden ip add dst-host=*.safaricom.co.ke action=accept comment="M-Pesa API"',
+            '/ip hotspot walled-garden ip add dst-host=*.googleapis.com action=accept comment="Fonts"',
+            '/ip hotspot walled-garden ip add dst-host=*.gstatic.com action=accept comment="CDN"',
+            "",
+            "# 7. Verify the tunnel",
+            "/ping 10.0.0.1 count=3",
+        ]
+        return "\n".join(lines)
 
     # =========================================================================
     # CREATE ROUTER
     # =========================================================================
 
-    def create_router(self, organization_id: UUID, network_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
-        for f in ['name', 'username', 'password']:
-            if not data.get(f): raise ValidationError(f"'{f}' is required")
-        local_ip = data.get('ip_address') or data.get('local_ip')
-        if not local_ip: raise ValidationError("ip_address or local_ip required")
+    def _router_name_from(self, description: str) -> str:
+        """Derive a stable, readable name from the description."""
+        base = re.sub(r'[^A-Za-z0-9]+', '-', description).strip('-').lower()[:40]
+        return f"{base or 'router'}-{secrets.token_hex(2)}"
+
+    def _default_network_id(self, organization_id):
+        """Return the organization's first network, creating one if needed."""
+        from app.models.network import Network
+
+        network = Network.query.filter_by(organization_id=organization_id).first()
+        if network is None:
+            network = Network(
+                organization_id=organization_id,
+                name='Default',
+                description='Created automatically for router onboarding',
+                is_active=True,
+            )
+            db.session.add(network)
+            db.session.flush()
+        return network.id
+
+    def create_router(self, organization_id: UUID, network_id: UUID = None,
+                      data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Provision a router from a description alone.
+
+        Generates the VPN address, API credentials and RADIUS secret, creates the
+        Router + NAS records, adds the WireGuard peer, and returns the onboarding
+        script for the MikroTik.
+        """
+        data = data or {}
+        description = (data.get('description') or '').strip()
+        if not description:
+            raise ValidationError("'description' is required")
+
         org = Organization.query.get(organization_id)
-        if not org: raise ValidationError("Organization not found")
+        if not org:
+            raise ValidationError("Organization not found")
+
+        name = (data.get('name') or '').strip() or self._router_name_from(description)
+        if not network_id:
+            network_id = self._default_network_id(organization_id)
+
+        api_username = f"bhatek-{secrets.token_hex(3)}"
+        api_password = secrets.token_urlsafe(18)
         wg_priv, wg_pub = self.wireguard.generate_peer_keypair()
         wg_ip, subnet, idx = self._allocate_wireguard_ip(organization_id)
         radius_secret = self._generate_radius_secret()
-        enc_pw = self.encryption.encrypt(data['password']); enc_wg = self.encryption.encrypt(wg_priv)
+
         router = self.repository.create({
-            'organization_id': organization_id, 'network_id': network_id, 'name': data['name'],
-            'model': data.get('model'), 'ip_address': wg_ip, 'local_ip': local_ip,
-            'api_port': data.get('api_port', 8728), 'username': data['username'],
-            'password_encrypted': enc_pw, 'location': data.get('location'),
-            'description': data.get('description'), 'is_active': True, 'status': 'pending_wireguard',
-            'radius_secret': radius_secret, 'radius_config_status': 'pending', 'auto_config_attempts': 0,
-            'wireguard_ip': wg_ip, 'wireguard_public_key': wg_pub, 'wireguard_private_key_encrypted': enc_wg,
+            'organization_id': organization_id,
+            'network_id': network_id,
+            'name': name,
+            'model': data.get('model'),
+            'ip_address': wg_ip,
+            'local_ip': wg_ip,
+            'api_port': data.get('api_port', 8728),
+            'username': api_username,
+            'password_encrypted': self.encryption.encrypt(api_password),
+            'location': data.get('location'),
+            'description': description,
+            'is_active': True,
+            'status': 'pending_onboarding',
+            'radius_secret': radius_secret,
+            'radius_config_status': 'pending',
+            'auto_config_attempts': 0,
+            'wireguard_ip': wg_ip,
+            'wireguard_public_key': wg_pub,
+            'wireguard_private_key_encrypted': self.encryption.encrypt(wg_priv),
         })
         self._create_nas_entry(router, radius_secret)
         db.session.commit()
+
         wg_ok = self.wireguard.add_peer(wg_pub, f"{wg_ip}/32")
-        script = self._generate_mikrotik_setup_script(wg_ip, wg_priv, radius_secret, router.name, org.name)
-        logger.info(f"Router created: {router.name} (WG: {wg_ip}, peer: {'OK' if wg_ok else 'FAILED'})")
-        return {'success': True, 'router': router,
-                'wireguard': {'ip': wg_ip, 'public_key': wg_pub, 'private_key': wg_priv, 'peer_added_to_vps': wg_ok},
-                'radius': {'secret': radius_secret, 'server': self._get_radius_server(), 'auth_port': 1812, 'acct_port': 1813},
-                'setup_script': script, 'next_step': 'Paste script into MikroTik terminal, then click Test Connection.'}
+        script = self._generate_mikrotik_setup_script(
+            wg_ip, wg_priv, radius_secret, router.name, org.name,
+            api_username=api_username, api_password=api_password,
+        )
+        logger.info(
+            "Router provisioned: %s (WG %s, api user %s, peer %s)",
+            router.name, wg_ip, api_username, 'OK' if wg_ok else 'FAILED',
+        )
+        return {
+            'success': True,
+            'router': router,
+            'wireguard': {'ip': wg_ip, 'public_key': wg_pub, 'private_key': wg_priv,
+                          'peer_added_to_vps': wg_ok},
+            'api_access': {'username': api_username, 'password': api_password},
+            'radius': {'secret': radius_secret, 'server': self._get_radius_server(),
+                       'auth_port': 1812, 'acct_port': 1813},
+            'setup_script': script,
+            'next_step': 'Run the script in the MikroTik terminal, then Test Connection.',
+        }
 
     # =========================================================================
     # TEST CONNECTION

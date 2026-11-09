@@ -151,32 +151,19 @@ def create(org_id, current_user=None, current_organization=None):
         return render_template('web/router/create.html', organization=current_organization, user=current_user, networks=networks, form_data=None)
 
     form_data = {
-        'name': request.form.get('name', '').strip(),
-        'network_id': request.form.get('network_id'),
-        'ip_address': request.form.get('ip_address', '').strip(),
-        'username': request.form.get('username', '').strip(),
-        'password': request.form.get('password', ''),
-        'api_port': request.form.get('api_port', 8728, type=int),
-        'location': request.form.get('location', '').strip(),
         'description': request.form.get('description', '').strip(),
-        'is_active': True,
+        'name': request.form.get('name', '').strip(),
     }
 
-    errors = []
-    if not form_data['name']: errors.append('Router name is required')
-    if not form_data['network_id']: errors.append('Network selection is required')
-    if not form_data['ip_address']: errors.append('IP address is required')
-    if not form_data['username']: errors.append('Username is required')
-    if not form_data['password']: errors.append('Password is required')
-
-    if errors:
-        for error in errors: flash(error, 'danger')
-        return render_template('web/router/create.html', organization=current_organization, user=current_user, networks=networks, form_data=form_data)
+    if not form_data['description'] or len(form_data['description']) < 3:
+        flash('A short description is required (at least 3 characters).', 'danger')
+        return render_template('web/router/create.html', organization=current_organization,
+                               user=current_user, networks=networks, form_data=form_data)
 
     try:
         result = router_service.create_router(
             organization_id=current_organization.id,
-            network_id=UUID(form_data['network_id']),
+            network_id=None,
             data=form_data,
         )
         router = result.get('router')
@@ -218,12 +205,20 @@ def show(org_id, router_id, current_user=None, current_organization=None):
                     wg_private_key = encryption.decrypt(router.wireguard_private_key_encrypted)
                 except Exception as e:
                     logger.error(f"Failed to decrypt WireGuard private key: {e}")
+            api_password = ''
+            if router.password_encrypted:
+                try:
+                    api_password = encryption.decrypt(router.password_encrypted)
+                except Exception as e:
+                    logger.error(f"Failed to decrypt router API password: {e}")
             setup_script = router_service._generate_mikrotik_setup_script(
                 wireguard_ip=router.wireguard_ip or '10.0.0.0',
                 mikrotik_private_key=wg_private_key or 'KEY_NOT_AVAILABLE',
                 radius_secret=router.radius_secret or 'SECRET_NOT_AVAILABLE',
                 router_name=router.name,
                 organization_name=current_organization.name,
+                api_username=router.username,
+                api_password=api_password or None,
             )
 
         return render_template(
