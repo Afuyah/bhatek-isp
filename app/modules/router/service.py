@@ -131,6 +131,7 @@ class RouterService:
         if not key: raise BusinessError("VPS SSH key not configured")
         if '\\n' in key: key = key.replace('\\n', '\n')
         key_path = None
+        client = None
         try:
             import paramiko
             with _tempfile.NamedTemporaryFile(mode='w', suffix='.key', delete=False) as f:
@@ -144,11 +145,17 @@ class RouterService:
             out = stdout.read().decode('utf-8', errors='ignore').strip()
             err = stderr.read().decode('utf-8', errors='ignore').strip()
             exit_code = stdout.channel.recv_exit_status()
-            client.close()
             return exit_code == 0, out, err
         except Exception as e:
             logger.error(f"SSH failed: {e}"); return False, '', str(e)
         finally:
+            # Close the transport on every path: one leaked SSH connection per
+            # router call would exhaust file descriptors on the worker.
+            if client is not None:
+                try:
+                    client.close()
+                except Exception:
+                    pass
             if key_path and _os.path.exists(key_path): _os.unlink(key_path)
 
     # =========================================================================

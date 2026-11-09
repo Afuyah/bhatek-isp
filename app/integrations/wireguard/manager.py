@@ -121,6 +121,7 @@ class WireGuardManager:
             vps_private_key = vps_private_key.replace('\\n', '\n')
 
         key_path = None
+        client = None
         try:
             import paramiko
 
@@ -139,7 +140,6 @@ class WireGuardManager:
             stdout_str = stdout.read().decode('utf-8', errors='ignore').strip()
             stderr_str = stderr.read().decode('utf-8', errors='ignore').strip()
             exit_status = stdout.channel.recv_exit_status()
-            client.close()
 
             success = exit_status == 0
             if not success and stderr_str:
@@ -157,6 +157,13 @@ class WireGuardManager:
             logger.error(f"SSH connection failed to {vps_host}: {e}")
             return False, '', str(e)
         finally:
+            # Always close the transport: a leaked SSH connection per router
+            # operation would exhaust file descriptors on the worker.
+            if client is not None:
+                try:
+                    client.close()
+                except Exception:
+                    pass
             if key_path and os.path.exists(key_path):
                 os.unlink(key_path)
 

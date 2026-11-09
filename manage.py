@@ -50,5 +50,25 @@ def send_test_sms(phone, message):
             raise SystemExit(1)
 
 
+
+
+@cli.command("wg-status")
+def wg_status():
+    """Show the WireGuard peers currently registered on the VPS."""
+    from app.integrations.wireguard.manager import WireGuardManager
+    from flask import current_app
+
+    with app.app_context():
+        wg = WireGuardManager()
+        print(f"VPS: {wg.host}  endpoint: {wg.vps_endpoint}")
+        result = wg.list_peers()
+        if result.get("error"):
+            print(f"FAILED: {result['error']}")
+            raise SystemExit(1)
+        print(f"peers: {result['count']}")
+        for peer in result["peers"]:
+            print(f"  {peer['public_key'][:20]}…  {peer['allowed_ips']}")
+
+
 if __name__ == '__main__':
     cli()
