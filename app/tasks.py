@@ -27,10 +27,10 @@ Billing Reports
 Usage
 -----
     # Start worker
-    celery -A app.celery_app worker --loglevel=info
+    celery -A app.celery worker --loglevel=info
 
     # Start beat scheduler
-    celery -A app.celery_app beat --loglevel=info
+    celery -A app.celery beat --loglevel=info
 """
 
 from __future__ import annotations

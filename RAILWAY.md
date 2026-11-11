@@ -44,6 +44,38 @@ railway variables --set "$(cat railway.env | grep -v '^#' | tr '\n' ' ')"
 - `railway.json` sets the Dockerfile builder, the `/health` healthcheck and a
   single replica
 - The container binds `$PORT` (gunicorn.conf.py honours Railway's `PORT`)
+- Give the service **at least 1 GB** of memory
+- `railway.env` is excluded from the build context (`.dockerignore`), so secrets
+  only ever come from Railway's variables
+
+### Migrations
+
+Railway → service → Settings → **Pre-deploy command**:
+
+```
+flask db upgrade
+```
+
+`FLASK_APP=wsgi.py` is already set in the image. Verified locally:
+`flask db current` → `d9e0f1a2b3c4 (head)`.
+
+### Celery (optional, recommended)
+
+The web service does not run background jobs. Add a second service from the
+same repository/image with this start command:
+
+```
+celery -A app.celery worker --loglevel=info
+```
+
+And, if you want the scheduled jobs (billing rollups, expiry reminders), a third
+single-replica service:
+
+```
+celery -A app.celery beat --loglevel=info
+```
+
+Both need the same variables as the web service.
 
 ## 4. Database is already Railway
 
