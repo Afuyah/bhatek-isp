@@ -17,7 +17,8 @@ primary_region = 'ams'
   processes = ['app']
 
 [[vm]]
+  # memory_mb (legacy) previously overrode this and forced 256 MB, which is
+  # below what the app needs: the worker alone reserves ~100 MB.
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 256
