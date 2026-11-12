@@ -173,11 +173,6 @@ def show(org_id, router_id, current_user=None, current_organization=None):
         router_uuid = UUID(router_id)
         router = router_service.get_router(router_uuid, current_organization.id)
 
-        network_name = None
-        if router.network_id:
-            network = network_service.get_network(router.network_id, current_organization.id)
-            network_name = network.name if network else None
-
         hotspot_servers = hotspot_repo.get_by_router(router_uuid, current_organization.id)
         pppoe_servers = pppoe_repo.get_by_router(router_uuid, current_organization.id)
         connection_status = router_service.get_connection_status(router_uuid, current_organization.id)
@@ -198,7 +193,7 @@ def show(org_id, router_id, current_user=None, current_organization=None):
         return render_template(
             'web/router/show.html',
             organization=current_organization, user=current_user,
-            router=router, network_name=network_name,
+            router=router,
             hotspot_servers=hotspot_servers, pppoe_servers=pppoe_servers,
             connection_status=connection_status,
             context=_get_router_context(current_organization.id),

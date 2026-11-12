@@ -120,7 +120,7 @@
                 <h3 style="font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 14px;">Information</h3>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                     {% for label, value, stat_icon in [
-                        ('Name',router.name,'fa-tag'),('Network',network_name or '—','fa-network-wired'),('Tunnel IP',wg_ip,'fa-globe'),
+                        ('Name',router.name,'fa-tag'),('Tunnel IP',wg_ip,'fa-globe'),
                         ('API Port',router.api_port|string,'fa-plug'),('Username',router.username,'fa-user'),('Model',router.model or '—','fa-microchip'),
                         ('Firmware',router.firmware_version or '—','fa-code-branch'),('Location',router.location or '—','fa-map-pin'),
                         ('Last Seen',router.last_seen_at.strftime('%b %d, %H:%M') if router.last_seen_at else 'Never','fa-clock'),

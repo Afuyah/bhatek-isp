@@ -524,25 +524,13 @@ class RouterController:
             skip = (page - 1) * per_page
 
             status = request.args.get('status')
-            network_id = request.args.get('network_id')
             radius_config_status = request.args.get('radius_config_status')
             search = request.args.get('search')
-
-            network_uuid = None
-            if network_id:
-                try:
-                    network_uuid = UUID(network_id)
-                except ValueError:
-                    return jsonify({
-                        'success': False,
-                        'error': 'Invalid network_id format',
-                        'error_code': 'INVALID_UUID',
-                    }), 400
 
             routers = self.service.get_routers_by_organization(
                 organization_id=g.organization_id,
                 skip=skip, limit=per_page,
-                status=status, network_id=network_uuid,
+                status=status,
                 radius_config_status=radius_config_status,
             )
 
@@ -572,7 +560,7 @@ class RouterController:
                     'has_prev': page > 1,
                 },
                 'filters_applied': {
-                    'status': status, 'network_id': network_id,
+                    'status': status,
                     'radius_config_status': radius_config_status, 'search': search,
                 },
             }), 200
@@ -587,29 +575,6 @@ class RouterController:
     # FILTERED VIEWS
     # =========================================================================
 
-    def get_by_network(self, network_id):
-        """GET /api/v1/routers/by-network/<network_id>"""
-        try:
-            network_uuid = UUID(network_id)
-            routers = self.service.get_routers_by_network(network_uuid, g.organization_id)
-            return jsonify({
-                'success': True, 'network_id': network_id,
-                'routers': [self._serialize_router_list(r) for r in routers],
-                'count': len(routers),
-            }), 200
-        except ValueError:
-            return jsonify({
-                'success': False, 'error': 'Invalid network ID format',
-                'error_code': 'INVALID_UUID',
-            }), 400
-        except Exception as e:
-            logger.error(f"Get routers by network error: {e}", exc_info=True)
-            return jsonify({
-                'success': False, 'error': 'Internal server error',
-                'error_code': 'INTERNAL_ERROR',
-            }), 500
-
-    @token_required
     def get_active(self):
         """GET /api/v1/routers/active"""
         try:
