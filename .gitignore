@@ -76,3 +76,4 @@ smoke.db
 # Exported environment (contains secrets)
 railway.env
 *.env.bak
+railway.paste.env
