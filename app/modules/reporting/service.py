@@ -21,8 +21,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import and_, func, case, distinct
-from sqlalchemy.orm import joinedload
+from sqlalchemy import and_, func, distinct
 
 from app.core.database.session import db
 from app.core.logging.logger import logger
@@ -463,7 +462,7 @@ class ReportingService:
     ) -> Dict[str, Any]:
         """Data usage and session statistics for a period."""
         try:
-            from app.models.session import ActiveSession, RadiusAccounting
+            from app.models.session import ActiveSession
 
             s, e = self._date_range(period, start_date, end_date)
 

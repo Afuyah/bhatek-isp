@@ -7,7 +7,6 @@ from app.modules.billing.service import BillingService
 from app.modules.organization.service import OrganizationService
 from app.modules.auth.repository import UserRepository
 from app.core.time import utcnow
-from datetime import datetime
 
 # Create web blueprint with organization ID in URL pattern
 billing_web_bp = Blueprint('billing_web', __name__, url_prefix='/organization/<org_id>/billing')
@@ -491,10 +490,6 @@ def dashboard(org_id, current_user=None, current_organization=None):
     """Billing dashboard with overview"""
     
     try:
-        from datetime import datetime, timedelta
-        from decimal import Decimal
-        from sqlalchemy import func
-        
         # Get days parameter from query string (default 30)
         days = request.args.get('days', 30, type=int)
         
