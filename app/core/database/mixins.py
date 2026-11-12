@@ -1,6 +1,5 @@
 from sqlalchemy import Column, UUID, ForeignKey, Boolean, DateTime, func , String
 from sqlalchemy.orm import declared_attr
-import uuid
 
 class OrganizationMixin:
     """Mixin to add organization isolation"""

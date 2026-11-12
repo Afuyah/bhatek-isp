@@ -2,9 +2,7 @@
 RADIUS Database Models for FreeRADIUS integration
 These models map to FreeRADIUS tables
 """
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Index
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, String, Integer, DateTime, Index
 
 from app.core.database.base import BaseModel
 from app.core.database.mixins import OrganizationMixin

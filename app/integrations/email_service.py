@@ -9,7 +9,7 @@ background workers.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 from app.core.logging.logger import logger

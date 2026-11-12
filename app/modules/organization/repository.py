@@ -2,7 +2,6 @@ from typing import Optional, List, Dict, Any
 from uuid import UUID
 from sqlalchemy import and_, desc, func
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
 
 from app.models.organization import Organization, OrganizationUser, OrganizationSetting
 from app.core.database.session import db

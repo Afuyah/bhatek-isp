@@ -1,5 +1,4 @@
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Index
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Boolean, DateTime
 from datetime import timedelta
 import secrets
 

@@ -1,7 +1,6 @@
 from flask_redis import FlaskRedis
 import json
 from typing import Optional, Any
-import redis
 
 # Initialize FlaskRedis
 redis_client = FlaskRedis()

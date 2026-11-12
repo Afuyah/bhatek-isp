@@ -1,8 +1,6 @@
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Dict, Any, Optional
 from uuid import UUID, uuid4
-from datetime import timedelta
 from flask import current_app, request
-import secrets
 import threading
 
 from app.modules.auth.repository import UserRepository, RefreshTokenRepository
@@ -11,7 +9,7 @@ from app.core.security.jwt import JWTService
 from app.core.database.session import db
 from app.core.logging.logger import logger
 from app.modules.auth.permissions import ROLE_PERMISSIONS
-from app.core.exceptions.handlers import AuthenticationError, ValidationError, BusinessError, NotFoundError
+from app.core.exceptions.handlers import AuthenticationError, ValidationError, BusinessError
 from flask import copy_current_request_context
 from app.core.time import utcnow
 

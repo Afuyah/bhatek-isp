@@ -9,7 +9,6 @@ from app.core.database.mixins import TimestampMixin
 
 from uuid import uuid4
 
-from app.core.database.session import db
 from app.core.time import utcnow
 from datetime import datetime
 
@@ -147,7 +146,6 @@ class RefreshToken(BaseModel):
     
     def is_valid(self) -> bool:
         """Check if token is still valid"""
-        from datetime import datetime
         return not self.revoked and self.expires_at > utcnow()
     
     def to_dict(self) -> dict:

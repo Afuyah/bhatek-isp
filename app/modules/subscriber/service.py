@@ -11,11 +11,9 @@ RADIUS Sync: Automatically syncs subscribers, subscriptions,
 
 from typing import Dict, Any, Optional, List, Tuple
 from uuid import UUID
-from datetime import timedelta
 from decimal import Decimal
 import re
 
-from flask import current_app
 
 from app.modules.subscriber.repository import SubscriberRepository, PlanRepository
 from app.models.subscriber import Subscriber

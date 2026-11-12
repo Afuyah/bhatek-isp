@@ -31,7 +31,7 @@ FreeRADIUS rlm_rest Response Format (CORRECTED):
     - ERROR:  {"Reply-Message": "Internal server error"}
 """
 
-from flask import request, jsonify, Blueprint, current_app
+from flask import request, jsonify, Blueprint
 from datetime import timedelta
 from uuid import UUID
 import hashlib

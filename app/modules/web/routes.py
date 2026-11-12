@@ -1,7 +1,6 @@
 # Add these imports at the top if not already present
-from flask import render_template, request, redirect, url_for, session, jsonify, g, current_app
+from flask import render_template, request, redirect, url_for, session, jsonify, g
 from datetime import datetime
-import uuid
 import re
 from uuid import UUID  
 from app.modules.web import web_bp

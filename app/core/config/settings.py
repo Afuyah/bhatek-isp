@@ -1,8 +1,7 @@
 import os
 import re
 from datetime import timedelta
-from typing import Dict, Any, List, Optional
-from pathlib import Path
+from typing import Dict, List
 
 def _normalize_database_url(url):
     """Force the psycopg2 driver onto a bare PostgreSQL URL.

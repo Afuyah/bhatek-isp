@@ -11,7 +11,7 @@ Verified Commands: Uses RouterOS v6.43+ / v7.x compatible commands.
 import subprocess
 import tempfile
 import os
-from typing import Tuple, Optional, Dict, Any, List
+from typing import Tuple, Dict, Any, List
 
 from flask import current_app
 

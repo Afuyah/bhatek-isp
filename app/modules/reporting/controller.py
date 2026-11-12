@@ -6,7 +6,6 @@ Delegates to ReportingService for data aggregation.
 """
 
 from flask import request, g, jsonify
-from uuid import UUID
 from datetime import datetime
 
 from app.modules.reporting.service import ReportingService

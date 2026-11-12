@@ -37,7 +37,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from celery import shared_task
 from celery.utils.log import get_task_logger

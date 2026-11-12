@@ -2,11 +2,9 @@
 RADIUS Sync Service - Synchronizes subscribers and subscriptions to FreeRADIUS database
 This service manages the radcheck, radreply, and radusergroup tables
 """
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, List
 from uuid import UUID
-from datetime import datetime
-from sqlalchemy import and_, or_, delete
-from sqlalchemy.orm import Session
+from sqlalchemy import and_, delete
 
 from app.core.database.session import db
 from app.core.logging.logger import logger

@@ -1,8 +1,6 @@
 from flask import current_app
 from app.core.logging.logger import logger
 from app.integrations.email.transport import send
-import threading
-import time
 
 class BrevoEmailService:
       

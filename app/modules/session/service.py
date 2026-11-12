@@ -1,7 +1,6 @@
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from uuid import UUID
 from datetime import timedelta
-from flask import current_app
 from sqlalchemy import func
 
 from app.modules.session.repository import SessionRepository, RadiusAccountingRepository
@@ -9,7 +8,7 @@ from app.models.session import ActiveSession
 from app.integrations.radius.radius_cache import RadiusCache
 from app.integrations.mikrotik.client import MikroTikClient
 from app.core.logging.logger import logger
-from app.core.exceptions.handlers import NotFoundError, BusinessError
+from app.core.exceptions.handlers import NotFoundError
 from app.core.security.encryption import EncryptionService
 from app.core.time import utcnow
 

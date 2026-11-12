@@ -1,5 +1,3 @@
-from flask import current_app
-from app.core.logging.logger import logger
 from app.integrations.email.brevo_service import BrevoEmailService
 
 

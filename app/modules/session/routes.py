@@ -1,4 +1,4 @@
-from flask import Blueprint, request, g, jsonify
+from flask import Blueprint
 from app.modules.session.controller import SessionController
 from app.core.security.jwt import token_required
 

@@ -1,7 +1,6 @@
 # app/models/nas.py
 from sqlalchemy import Column, String, Integer, ForeignKey, Index, Text, Boolean
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 from app.core.database.base import BaseModel
 from app.core.database.mixins import OrganizationMixin, TimestampMixin
 

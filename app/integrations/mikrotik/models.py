@@ -1,7 +1,6 @@
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 from datetime import datetime
 from dataclasses import dataclass, field
-from uuid import UUID
 
 
 @dataclass

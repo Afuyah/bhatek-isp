@@ -31,7 +31,7 @@ from app.core.database.identifiers import as_uuid
 from app.modules.router.repository import (
     RouterRepository, HotspotServerRepository, PPPoeServerRepository,
 )
-from app.models.router import Router, HotspotServer, PPPoeServer
+from app.models.router import Router
 from app.models.nas import NAS
 from app.models.organization import Organization
 from app.core.security.encryption import EncryptionService

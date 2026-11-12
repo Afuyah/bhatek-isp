@@ -2,9 +2,8 @@ import json
 import base64
 import requests
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from flask import current_app
-import hashlib
 
 from app.core.security.encryption import EncryptionService
 from app.core.logging.logger import logger
@@ -383,9 +382,6 @@ class MpesaClient:
         # In production, this should use proper encryption with Safaricom's public certificate
         # For sandbox, a simplified version is acceptable
         import base64
-        from cryptography.hazmat.primitives import serialization
-        from cryptography.hazmat.primitives.asymmetric import rsa, padding
-        from cryptography.hazmat.backends import default_backend
         
         # This is a placeholder - in production, load the actual Safaricom certificate
         # and encrypt the initiator password

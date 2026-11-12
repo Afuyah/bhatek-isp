@@ -10,11 +10,10 @@ Auth: Modern direct login (v6.43+/v7.x) + legacy challenge fallback
 import hashlib
 import socket
 import ssl
-import struct
 import binascii
 import time
 import threading
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 from datetime import datetime
 
 from flask import current_app, has_app_context

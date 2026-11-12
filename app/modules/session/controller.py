@@ -1,6 +1,5 @@
 from flask import request, g, jsonify
 from uuid import UUID
-from datetime import datetime
 
 from app.modules.session.service import SessionService
 from app.core.security.jwt import token_required, permission_required
